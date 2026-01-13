@@ -531,36 +531,64 @@ const InfoIcon = () => (
   </svg>
 );
 
-// Offer Card - Clean Design with Full Image + Info Icon
+// Close Icon Component
+const CloseIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/>
+    <line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
+
+// Offer Card - Clean Design with Full Image + Info displayed inside card
 const OfferCard = ({ offer, selected, onClick }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const defaultImage = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=200&fit=crop";
+  
+  const toggleDescription = (e) => {
+    e.stopPropagation();
+    setShowDescription(!showDescription);
+  };
   
   return (
     <div onClick={onClick} className={`offer-card rounded-xl overflow-hidden ${selected ? 'selected' : ''}`} data-testid={`offer-card-${offer.id}`}>
-      <div style={{ position: 'relative' }}>
-        <img 
-          src={offer.thumbnail || defaultImage} 
-          alt={offer.name} 
-          className="offer-card-image"
-          onError={(e) => { e.target.src = defaultImage; }}
-        />
-        {/* Info Icon - Only show if description exists */}
-        {offer.description && (
+      <div style={{ position: 'relative', height: '140px' }}>
+        {/* Image or Description based on state */}
+        {!showDescription ? (
+          <>
+            <img 
+              src={offer.thumbnail || defaultImage} 
+              alt={offer.name} 
+              className="offer-card-image"
+              onError={(e) => { e.target.src = defaultImage; }}
+            />
+            {/* Info Icon - Only show if description exists */}
+            {offer.description && (
+              <div 
+                className="offer-info-btn"
+                onClick={toggleDescription}
+                data-testid={`offer-info-${offer.id}`}
+                title="Voir la description"
+              >
+                <InfoIcon />
+              </div>
+            )}
+          </>
+        ) : (
+          /* Description Panel - replaces image */
           <div 
-            className="offer-info-btn"
-            onClick={(e) => { e.stopPropagation(); setShowTooltip(!showTooltip); }}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            data-testid={`offer-info-${offer.id}`}
+            className="offer-description-panel"
+            data-testid={`offer-description-panel-${offer.id}`}
           >
-            <InfoIcon />
-          </div>
-        )}
-        {/* Tooltip */}
-        {showTooltip && offer.description && (
-          <div className="offer-tooltip" data-testid={`offer-tooltip-${offer.id}`}>
-            {offer.description}
+            <p className="offer-description-text">{offer.description}</p>
+            {/* Close button */}
+            <button 
+              className="offer-close-btn"
+              onClick={toggleDescription}
+              data-testid={`offer-close-${offer.id}`}
+              title="Fermer"
+            >
+              <CloseIcon />
+            </button>
           </div>
         )}
       </div>
