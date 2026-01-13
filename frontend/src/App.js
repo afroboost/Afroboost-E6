@@ -880,33 +880,64 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     }
   };
 
-  // Create campaign
+  // Create campaign (supports multiple schedule slots)
   const createCampaign = async (e) => {
     e.preventDefault();
     if (!newCampaign.name || !newCampaign.message) return;
     
-    const scheduledAt = newCampaign.scheduledDate && newCampaign.scheduledTime 
-      ? `${newCampaign.scheduledDate}T${newCampaign.scheduledTime}:00` 
-      : null;
-    
-    const campaignData = {
-      name: newCampaign.name,
-      message: newCampaign.message,
-      mediaUrl: newCampaign.mediaUrl,
-      mediaFormat: newCampaign.mediaFormat,
-      targetType: newCampaign.targetType,
-      selectedContacts: newCampaign.targetType === "selected" ? selectedContactsForCampaign : [],
-      channels: newCampaign.channels,
-      scheduledAt
-    };
+    const scheduleSlots = newCampaign.scheduleSlots;
+    const isImmediate = scheduleSlots.length === 0;
     
     try {
-      const res = await axios.post(`${API}/campaigns`, campaignData);
-      setCampaigns([res.data, ...campaigns]);
-      setNewCampaign({ name: "", message: "", mediaUrl: "", mediaFormat: "16:9", targetType: "all", selectedContacts: [], channels: { whatsapp: true, email: false, instagram: false }, scheduledAt: null, scheduledDate: "", scheduledTime: "" });
+      if (isImmediate) {
+        // Create single immediate campaign
+        const campaignData = {
+          name: newCampaign.name,
+          message: newCampaign.message,
+          mediaUrl: newCampaign.mediaUrl,
+          mediaFormat: newCampaign.mediaFormat,
+          targetType: newCampaign.targetType,
+          selectedContacts: newCampaign.targetType === "selected" ? selectedContactsForCampaign : [],
+          channels: newCampaign.channels,
+          scheduledAt: null
+        };
+        const res = await axios.post(`${API}/campaigns`, campaignData);
+        setCampaigns([res.data, ...campaigns]);
+        addCampaignLog(res.data.id, `Campagne "${newCampaign.name}" créée (envoi immédiat)`, 'success');
+      } else {
+        // Create one campaign per schedule slot (multi-date)
+        for (let i = 0; i < scheduleSlots.length; i++) {
+          const slot = scheduleSlots[i];
+          const scheduledAt = `${slot.date}T${slot.time}:00`;
+          const campaignData = {
+            name: scheduleSlots.length > 1 ? `${newCampaign.name} (${i + 1}/${scheduleSlots.length})` : newCampaign.name,
+            message: newCampaign.message,
+            mediaUrl: newCampaign.mediaUrl,
+            mediaFormat: newCampaign.mediaFormat,
+            targetType: newCampaign.targetType,
+            selectedContacts: newCampaign.targetType === "selected" ? selectedContactsForCampaign : [],
+            channels: newCampaign.channels,
+            scheduledAt
+          };
+          const res = await axios.post(`${API}/campaigns`, campaignData);
+          setCampaigns(prev => [res.data, ...prev]);
+          addCampaignLog(res.data.id, `Campagne "${campaignData.name}" programmée pour ${new Date(scheduledAt).toLocaleString('fr-FR')}`, 'info');
+        }
+      }
+      
+      // Reset form
+      setNewCampaign({ 
+        name: "", message: "", mediaUrl: "", mediaFormat: "16:9", 
+        targetType: "all", selectedContacts: [], 
+        channels: { whatsapp: true, email: false, instagram: false }, 
+        scheduleSlots: [] 
+      });
       setSelectedContactsForCampaign([]);
-      alert("✅ Campagne créée avec succès !");
-    } catch (err) { console.error("Error creating campaign:", err); }
+      alert(`✅ ${isImmediate ? 'Campagne créée' : `${scheduleSlots.length} campagne(s) programmée(s)`} avec succès !`);
+    } catch (err) { 
+      console.error("Error creating campaign:", err);
+      addCampaignLog('new', `Erreur création campagne: ${err.message}`, 'error');
+    }
   };
 
   // Launch campaign (generate links)
