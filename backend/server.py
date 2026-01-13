@@ -424,6 +424,114 @@ async def use_discount_code(code_id: str):
     await db.discount_codes.update_one({"id": code_id}, {"$inc": {"used": 1}})
     return {"success": True}
 
+# --- Campaigns (Marketing Module) ---
+@api_router.get("/campaigns")
+async def get_campaigns():
+    campaigns = await db.campaigns.find({}, {"_id": 0}).sort("createdAt", -1).to_list(100)
+    return campaigns
+
+@api_router.get("/campaigns/{campaign_id}")
+async def get_campaign(campaign_id: str):
+    campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    return campaign
+
+@api_router.post("/campaigns")
+async def create_campaign(campaign: CampaignCreate):
+    campaign_data = Campaign(
+        name=campaign.name,
+        message=campaign.message,
+        mediaUrl=campaign.mediaUrl,
+        mediaFormat=campaign.mediaFormat,
+        targetType=campaign.targetType,
+        selectedContacts=campaign.selectedContacts,
+        channels=campaign.channels,
+        scheduledAt=campaign.scheduledAt,
+        status="scheduled" if campaign.scheduledAt else "draft"
+    ).model_dump()
+    await db.campaigns.insert_one(campaign_data)
+    return {k: v for k, v in campaign_data.items() if k != "_id"}
+
+@api_router.put("/campaigns/{campaign_id}")
+async def update_campaign(campaign_id: str, data: dict):
+    data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    await db.campaigns.update_one({"id": campaign_id}, {"$set": data})
+    return await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+
+@api_router.delete("/campaigns/{campaign_id}")
+async def delete_campaign(campaign_id: str):
+    await db.campaigns.delete_one({"id": campaign_id})
+    return {"success": True}
+
+@api_router.post("/campaigns/{campaign_id}/launch")
+async def launch_campaign(campaign_id: str):
+    """Mark campaign as sending and prepare results"""
+    campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    # Get contacts based on targetType
+    if campaign.get("targetType") == "all":
+        contacts = await db.users.find({}, {"_id": 0}).to_list(1000)
+    else:
+        selected_ids = campaign.get("selectedContacts", [])
+        contacts = await db.users.find({"id": {"$in": selected_ids}}, {"_id": 0}).to_list(1000)
+    
+    # Prepare results for each contact and channel
+    results = []
+    channels = campaign.get("channels", {})
+    for contact in contacts:
+        for channel, enabled in channels.items():
+            if enabled:
+                results.append({
+                    "contactId": contact.get("id", ""),
+                    "contactName": contact.get("name", ""),
+                    "contactEmail": contact.get("email", ""),
+                    "contactPhone": contact.get("whatsapp", ""),
+                    "channel": channel,
+                    "status": "pending",
+                    "sentAt": None
+                })
+    
+    # Update campaign
+    await db.campaigns.update_one(
+        {"id": campaign_id},
+        {"$set": {
+            "status": "sending",
+            "results": results,
+            "updatedAt": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+
+@api_router.post("/campaigns/{campaign_id}/mark-sent")
+async def mark_campaign_sent(campaign_id: str, data: dict):
+    """Mark specific result as sent"""
+    contact_id = data.get("contactId")
+    channel = data.get("channel")
+    
+    await db.campaigns.update_one(
+        {"id": campaign_id, "results.contactId": contact_id, "results.channel": channel},
+        {"$set": {
+            "results.$.status": "sent",
+            "results.$.sentAt": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Check if all results are sent
+    campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+    if campaign:
+        all_sent = all(r.get("status") == "sent" for r in campaign.get("results", []))
+        if all_sent:
+            await db.campaigns.update_one(
+                {"id": campaign_id},
+                {"$set": {"status": "completed", "updatedAt": datetime.now(timezone.utc).isoformat()}}
+            )
+    
+    return {"success": True}
+
 # --- Payment Links ---
 @api_router.get("/payment-links", response_model=PaymentLinks)
 async def get_payment_links():
