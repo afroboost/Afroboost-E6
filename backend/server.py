@@ -332,25 +332,50 @@ async def delete_discount_code(code_id: str):
 
 @api_router.post("/discount-codes/validate")
 async def validate_discount_code(data: dict):
-    code_str = data.get("code", "")
-    user_email = data.get("email", "")
-    course_id = data.get("courseId", "")
+    code_str = data.get("code", "").strip().upper()  # Normalize: trim + uppercase
+    user_email = data.get("email", "").strip()
+    course_id = data.get("courseId", "").strip()
     
-    code = await db.discount_codes.find_one({"code": code_str, "active": True}, {"_id": 0})
+    # Case-insensitive search using regex
+    code = await db.discount_codes.find_one({
+        "code": {"$regex": f"^{code_str}$", "$options": "i"},  # Case insensitive match
+        "active": True
+    }, {"_id": 0})
+    
     if not code:
-        return {"valid": False, "message": "Code promo invalide"}
+        return {"valid": False, "message": "Code inconnu ou invalide"}
     
-    if code.get("expiresAt") and datetime.fromisoformat(code["expiresAt"].replace('Z', '+00:00')) < datetime.now(timezone.utc):
-        return {"valid": False, "message": "Code promo expiré"}
+    # Check expiration date
+    if code.get("expiresAt"):
+        try:
+            expiry = code["expiresAt"]
+            if isinstance(expiry, str):
+                # Handle various date formats
+                expiry = expiry.replace('Z', '+00:00')
+                if 'T' not in expiry:
+                    expiry = expiry + "T23:59:59+00:00"
+                expiry_date = datetime.fromisoformat(expiry)
+            else:
+                expiry_date = expiry
+            if expiry_date < datetime.now(timezone.utc):
+                return {"valid": False, "message": "Code promo expiré"}
+        except Exception as e:
+            print(f"Date parsing error: {e}")
     
+    # Check max uses
     if code.get("maxUses") and code.get("used", 0) >= code["maxUses"]:
-        return {"valid": False, "message": "Code promo épuisé"}
+        return {"valid": False, "message": "Code promo épuisé (nombre max d'utilisations atteint)"}
     
-    if code.get("courses") and len(code["courses"]) > 0 and course_id not in code["courses"]:
-        return {"valid": False, "message": "Code non valide pour ce cours"}
+    # Check if course is allowed - IMPORTANT: empty list = all courses allowed
+    allowed_courses = code.get("courses", [])
+    if allowed_courses and len(allowed_courses) > 0:
+        if course_id not in allowed_courses:
+            return {"valid": False, "message": "Code non applicable à ce cours"}
     
-    if code.get("assignedEmail") and code["assignedEmail"].lower() != user_email.lower():
-        return {"valid": False, "message": "Code non attribué à votre compte"}
+    # Check assigned email
+    if code.get("assignedEmail") and code["assignedEmail"].strip():
+        if code["assignedEmail"].strip().lower() != user_email.lower():
+            return {"valid": False, "message": "Code réservé à un autre compte"}
     
     return {"valid": True, "code": code}
 
