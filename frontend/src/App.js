@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
 
@@ -25,7 +25,6 @@ const translations = {
     reserveFree: "Réserver gratuitement",
     loading: "Chargement...",
     copyright: "© Afroboost 2026",
-    // Coach Mode
     coachLogin: "Connexion Coach",
     email: "Email",
     password: "Mot de passe",
@@ -46,6 +45,7 @@ const translations = {
     code: "Code",
     name: "Nom",
     date: "Date",
+    time: "Heure",
     offer: "Offre",
     qty: "Qté",
     noReservations: "Aucune réservation pour le moment",
@@ -56,11 +56,12 @@ const translations = {
     location: "Lieu",
     mapsLink: "Lien Google Maps",
     weekday: "Jour",
-    time: "Horaire",
     addCourse: "Ajouter un cours",
     offerName: "Nom de l'offre",
     price: "Prix (CHF)",
     visible: "Visible",
+    thumbnail: "URL miniature",
+    description: "Description (max 150 car.)",
     addOffer: "Ajouter une offre",
     stripeLink: "Lien Stripe",
     paypalLink: "Lien PayPal",
@@ -70,38 +71,36 @@ const translations = {
     type: "Type",
     value: "Valeur",
     assignedEmail: "Email assigné (optionnel)",
+    allowedCourses: "Cours autorisés",
+    allCourses: "Tous les cours",
+    maxUses: "Utilisations max",
+    expiresAt: "Date d'expiration",
+    importCSV: "Importer CSV",
     add: "Ajouter",
     noPromoCode: "Aucun code promo",
     active: "Actif",
     inactive: "Inactif",
     used: "Utilisé",
-    // Confirmation
     paymentDone: "Paiement effectué ?",
-    paymentConfirmText: "Si vous avez terminé le paiement sur Twint ou Stripe, cliquez ci-dessous pour valider officiellement votre réservation.",
+    paymentConfirmText: "Si vous avez terminé le paiement, cliquez ci-dessous pour valider.",
     confirmPayment: "✅ Confirmer mon paiement",
     reservationConfirmed: "Réservation confirmée !",
     reservationCode: "Code",
     print: "🖨️ Imprimer",
     share: "📱 Partager",
-    // Errors
     emailWhatsappRequired: "L'email et le numéro WhatsApp sont obligatoires.",
     invalidPromoCode: "Code promo invalide.",
     expiredPromoCode: "Code promo expiré.",
     noPaymentConfigured: "Paiement requis – réservation impossible.",
     subscriberOnlyCode: "Seuls les abonnés peuvent utiliser ce code.",
     wrongCredentials: "Email ou mot de passe incorrect",
-    // Days
-    sunday: "Dimanche",
-    monday: "Lundi",
-    tuesday: "Mardi",
-    wednesday: "Mercredi",
-    thursday: "Jeudi",
-    friday: "Vendredi",
-    saturday: "Samedi",
+    discount: "Réduction",
+    sunday: "Dimanche", monday: "Lundi", tuesday: "Mardi", wednesday: "Mercredi",
+    thursday: "Jeudi", friday: "Vendredi", saturday: "Samedi",
   },
   en: {
     appTitle: "Afroboost",
-    conceptDefault: "The Afroboost concept: cardio + afrobeat dance + immersive audio headsets. A fun, energetic and accessible workout for everyone.",
+    conceptDefault: "The Afroboost concept: cardio + afrobeat dance + immersive audio headsets. A fun, energetic workout for everyone.",
     chooseSession: "Choose your session",
     chooseOffer: "Choose your offer",
     yourInfo: "Your information",
@@ -137,6 +136,7 @@ const translations = {
     code: "Code",
     name: "Name",
     date: "Date",
+    time: "Time",
     offer: "Offer",
     qty: "Qty",
     noReservations: "No reservations yet",
@@ -147,11 +147,12 @@ const translations = {
     location: "Location",
     mapsLink: "Google Maps link",
     weekday: "Day",
-    time: "Time",
     addCourse: "Add course",
     offerName: "Offer name",
     price: "Price (CHF)",
     visible: "Visible",
+    thumbnail: "Thumbnail URL",
+    description: "Description (max 150 char.)",
     addOffer: "Add offer",
     stripeLink: "Stripe link",
     paypalLink: "PayPal link",
@@ -161,35 +162,36 @@ const translations = {
     type: "Type",
     value: "Value",
     assignedEmail: "Assigned email (optional)",
+    allowedCourses: "Allowed courses",
+    allCourses: "All courses",
+    maxUses: "Max uses",
+    expiresAt: "Expiration date",
+    importCSV: "Import CSV",
     add: "Add",
     noPromoCode: "No promo code",
     active: "Active",
     inactive: "Inactive",
     used: "Used",
     paymentDone: "Payment done?",
-    paymentConfirmText: "If you completed the payment on Twint or Stripe, click below to officially validate your reservation.",
+    paymentConfirmText: "If you completed the payment, click below to validate.",
     confirmPayment: "✅ Confirm my payment",
     reservationConfirmed: "Reservation confirmed!",
     reservationCode: "Code",
     print: "🖨️ Print",
     share: "📱 Share",
-    emailWhatsappRequired: "Email and WhatsApp number are required.",
+    emailWhatsappRequired: "Email and WhatsApp are required.",
     invalidPromoCode: "Invalid promo code.",
     expiredPromoCode: "Expired promo code.",
     noPaymentConfigured: "Payment required – reservation impossible.",
     subscriberOnlyCode: "Only subscribers can use this code.",
     wrongCredentials: "Wrong email or password",
-    sunday: "Sunday",
-    monday: "Monday",
-    tuesday: "Tuesday",
-    wednesday: "Wednesday",
-    thursday: "Thursday",
-    friday: "Friday",
-    saturday: "Saturday",
+    discount: "Discount",
+    sunday: "Sunday", monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday",
+    thursday: "Thursday", friday: "Friday", saturday: "Saturday",
   },
   de: {
     appTitle: "Afroboost",
-    conceptDefault: "Das Afroboost-Konzept: Cardio + Afrobeat-Tanz + immersive Audio-Kopfhörer. Ein spaßiges, energetisches Training für alle.",
+    conceptDefault: "Das Afroboost-Konzept: Cardio + Afrobeat-Tanz + immersive Audio-Kopfhörer. Ein spaßiges Training für alle.",
     chooseSession: "Wählen Sie Ihre Sitzung",
     chooseOffer: "Wählen Sie Ihr Angebot",
     yourInfo: "Ihre Informationen",
@@ -200,7 +202,7 @@ const translations = {
     total: "Gesamt",
     alreadySubscribed: "Ich bin bereits abonniert",
     selectProfile: "Wählen Sie Ihr Profil...",
-    acceptTerms: "Ich akzeptiere die Bedingungen und bestätige meine Reservierung.",
+    acceptTerms: "Ich akzeptiere die Bedingungen.",
     payAndReserve: "💳 Zahlen und reservieren",
     reserveFree: "Kostenlos reservieren",
     loading: "Laden...",
@@ -225,6 +227,7 @@ const translations = {
     code: "Code",
     name: "Name",
     date: "Datum",
+    time: "Zeit",
     offer: "Angebot",
     qty: "Menge",
     noReservations: "Noch keine Reservierungen",
@@ -235,11 +238,12 @@ const translations = {
     location: "Ort",
     mapsLink: "Google Maps Link",
     weekday: "Tag",
-    time: "Zeit",
     addCourse: "Kurs hinzufügen",
     offerName: "Angebotsname",
     price: "Preis (CHF)",
     visible: "Sichtbar",
+    thumbnail: "Miniatur-URL",
+    description: "Beschreibung (max 150 Zeichen)",
     addOffer: "Angebot hinzufügen",
     stripeLink: "Stripe-Link",
     paypalLink: "PayPal-Link",
@@ -249,31 +253,32 @@ const translations = {
     type: "Typ",
     value: "Wert",
     assignedEmail: "Zugewiesene E-Mail (optional)",
+    allowedCourses: "Erlaubte Kurse",
+    allCourses: "Alle Kurse",
+    maxUses: "Max. Nutzungen",
+    expiresAt: "Ablaufdatum",
+    importCSV: "CSV importieren",
     add: "Hinzufügen",
     noPromoCode: "Kein Promo-Code",
     active: "Aktiv",
     inactive: "Inaktiv",
     used: "Verwendet",
     paymentDone: "Zahlung abgeschlossen?",
-    paymentConfirmText: "Wenn Sie die Zahlung bei Twint oder Stripe abgeschlossen haben, klicken Sie unten, um Ihre Reservierung offiziell zu bestätigen.",
+    paymentConfirmText: "Wenn Sie die Zahlung abgeschlossen haben, klicken Sie unten.",
     confirmPayment: "✅ Zahlung bestätigen",
     reservationConfirmed: "Reservierung bestätigt!",
     reservationCode: "Code",
     print: "🖨️ Drucken",
     share: "📱 Teilen",
-    emailWhatsappRequired: "E-Mail und WhatsApp-Nummer sind erforderlich.",
+    emailWhatsappRequired: "E-Mail und WhatsApp sind erforderlich.",
     invalidPromoCode: "Ungültiger Promo-Code.",
     expiredPromoCode: "Abgelaufener Promo-Code.",
-    noPaymentConfigured: "Zahlung erforderlich – Reservierung nicht möglich.",
+    noPaymentConfigured: "Zahlung erforderlich.",
     subscriberOnlyCode: "Nur Abonnenten können diesen Code verwenden.",
     wrongCredentials: "Falsche E-Mail oder Passwort",
-    sunday: "Sonntag",
-    monday: "Montag",
-    tuesday: "Dienstag",
-    wednesday: "Mittwoch",
-    thursday: "Donnerstag",
-    friday: "Freitag",
-    saturday: "Samstag",
+    discount: "Rabatt",
+    sunday: "Sonntag", monday: "Montag", tuesday: "Dienstag", wednesday: "Mittwoch",
+    thursday: "Donnerstag", friday: "Freitag", saturday: "Samstag",
   }
 };
 
@@ -291,7 +296,6 @@ function getNextOccurrences(weekday, count = 4) {
   let diff = weekday - day;
   if (diff < 0) diff += 7;
   let current = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
-
   for (let i = 0; i < count; i++) {
     results.push(new Date(current));
     current.setDate(current.getDate() + 7);
@@ -301,12 +305,43 @@ function getNextOccurrences(weekday, count = 4) {
 
 function formatDate(d, time, lang) {
   const formatted = d.toLocaleDateString(lang === 'de' ? 'de-CH' : lang === 'en' ? 'en-GB' : 'fr-CH', {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit"
+    weekday: "short", day: "2-digit", month: "2-digit"
   });
   return `${formatted} • ${time}`;
 }
+
+// Globe Icon (SVG white)
+const GlobeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="2" y1="12" x2="22" y2="12"/>
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+  </svg>
+);
+
+// GPS/Location Icon (SVG white)
+const LocationIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+    <circle cx="12" cy="10" r="3"/>
+  </svg>
+);
+
+// Info Icon (SVG white)
+const InfoIcon = ({ onClick }) => (
+  <svg onClick={onClick} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'pointer', marginLeft: '6px', opacity: 0.7 }}>
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="16" x2="12" y2="12"/>
+    <line x1="12" y1="8" x2="12.01" y2="8"/>
+  </svg>
+);
+
+// Folder Icon for CSV Import
+const FolderIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  </svg>
+);
 
 // Splash Screen
 const SplashScreen = () => (
@@ -316,49 +351,60 @@ const SplashScreen = () => (
   </div>
 );
 
-// Language Selector
+// Language Selector with Globe Icon
 const LanguageSelector = ({ lang, setLang }) => {
   const [open, setOpen] = useState(false);
-  const languages = [
-    { code: 'fr', label: 'FR' },
-    { code: 'en', label: 'EN' },
-    { code: 'de', label: 'DE' }
-  ];
+  const languages = [{ code: 'fr', label: 'FR' }, { code: 'en', label: 'EN' }, { code: 'de', label: 'DE' }];
 
   return (
     <div className="lang-selector" onClick={() => setOpen(!open)} data-testid="lang-selector">
-      <span style={{ fontSize: '20px' }}>🌐</span>
-      <span style={{ color: 'white', fontWeight: '600' }}>{lang.toUpperCase()}</span>
+      <GlobeIcon />
+      <span style={{ color: '#FFFFFF', fontWeight: '600', marginLeft: '6px' }}>{lang.toUpperCase()}</span>
       {open && (
         <div style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: '8px',
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid rgba(139, 92, 246, 0.4)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          minWidth: '80px'
+          position: 'absolute', top: '100%', right: 0, marginTop: '8px',
+          background: 'rgba(0, 0, 0, 0.95)', border: '1px solid rgba(139, 92, 246, 0.4)',
+          borderRadius: '8px', overflow: 'hidden', minWidth: '80px'
         }}>
           {languages.map(l => (
-            <div
-              key={l.code}
-              onClick={(e) => { e.stopPropagation(); setLang(l.code); setOpen(false); }}
-              style={{
-                padding: '10px 16px',
-                color: 'white',
-                cursor: 'pointer',
-                background: lang === l.code ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
-                transition: 'background 0.2s'
-              }}
+            <div key={l.code} onClick={(e) => { e.stopPropagation(); setLang(l.code); setOpen(false); }}
+              style={{ padding: '10px 16px', color: '#FFFFFF', cursor: 'pointer',
+                background: lang === l.code ? 'rgba(139, 92, 246, 0.3)' : 'transparent' }}
               data-testid={`lang-${l.code}`}
-            >
-              {l.label}
-            </div>
+            >{l.label}</div>
           ))}
         </div>
       )}
+    </div>
+  );
+};
+
+// Offer Card with Thumbnail and Info Tooltip
+const OfferCard = ({ offer, selected, onClick, t }) => {
+  const [showInfo, setShowInfo] = useState(false);
+  
+  return (
+    <div onClick={onClick} className={`offer-card glass rounded-xl p-5 text-center ${selected ? 'selected' : ''}`} data-testid={`offer-card-${offer.id}`}>
+      {offer.thumbnail && (
+        <div className="mb-3 rounded-lg overflow-hidden" style={{ height: '100px' }}>
+          <img src={offer.thumbnail} alt={offer.name} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className="flex items-center justify-center">
+        <h3 className="font-semibold text-white">{offer.name}</h3>
+        {offer.description && (
+          <div className="relative">
+            <InfoIcon onClick={(e) => { e.stopPropagation(); setShowInfo(!showInfo); }} />
+            {showInfo && (
+              <div className="info-tooltip" onClick={(e) => e.stopPropagation()}>
+                {offer.description.slice(0, 150)}
+                {offer.description.length > 150 && '...'}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <p className="font-bold text-xl mt-2" style={{ color: '#d91cd2' }}>CHF {offer.price}.-</p>
     </div>
   );
 };
@@ -373,77 +419,31 @@ const CoachLoginModal = ({ t, onLogin, onCancel }) => {
     e.preventDefault();
     try {
       const response = await axios.post(`${API}/coach-auth/login`, { email, password });
-      if (response.data.success) {
-        onLogin();
-      } else {
-        setError(t('wrongCredentials'));
-      }
-    } catch (err) {
-      setError(t('wrongCredentials'));
-    }
-  };
-
-  const handleForgotPassword = () => {
-    window.location.href = `mailto:contact.artboost@gmail.com?subject=${encodeURIComponent("🔐 Afroboost — Réinitialisation Coach")}`;
+      if (response.data.success) onLogin();
+      else setError(t('wrongCredentials'));
+    } catch { setError(t('wrongCredentials')); }
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content glass rounded-xl p-8 max-w-md w-full neon-border" style={{ background: 'rgba(0, 0, 0, 0.95)' }}>
         <form onSubmit={handleSubmit}>
-          <h2 className="font-bold mb-6 text-center text-white" style={{ fontSize: '24px' }}>
-            {t('coachLogin')}
-          </h2>
-          {error && (
-            <div className="mb-4 p-3 rounded-lg text-center" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}>
-              {error}
-            </div>
-          )}
+          <h2 className="font-bold mb-6 text-center text-white" style={{ fontSize: '24px' }}>{t('coachLogin')}</h2>
+          {error && <div className="mb-4 p-3 rounded-lg text-center" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}>{error}</div>}
           <div className="space-y-4 mb-6">
             <div>
               <label className="block mb-2 text-white">{t('email')}</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg neon-input"
-                placeholder="coach@afroboost.com"
-                data-testid="coach-login-email"
-              />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="coach@afroboost.com" data-testid="coach-login-email" />
             </div>
             <div>
               <label className="block mb-2 text-white">{t('password')}</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg neon-input"
-                placeholder="••••••••"
-                data-testid="coach-login-password"
-              />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="••••••••" data-testid="coach-login-password" />
             </div>
           </div>
-          <button type="submit" className="btn-primary w-full py-3 rounded-lg font-bold mb-3" data-testid="coach-login-submit">
-            {t('login')}
-          </button>
-          <button
-            type="button"
-            onClick={handleForgotPassword}
-            className="w-full text-center mb-4"
-            style={{ color: '#d91cd2', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}
-          >
-            {t('forgotPassword')}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="w-full py-2 rounded-lg glass text-white"
-            data-testid="coach-login-cancel"
-          >
-            {t('cancel')}
-          </button>
+          <button type="submit" className="btn-primary w-full py-3 rounded-lg font-bold mb-3" data-testid="coach-login-submit">{t('login')}</button>
+          <button type="button" onClick={() => window.location.href = `mailto:contact.artboost@gmail.com?subject=${encodeURIComponent("🔐 Afroboost — Réinitialisation Coach")}`}
+            className="w-full text-center mb-4" style={{ color: '#d91cd2', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>{t('forgotPassword')}</button>
+          <button type="button" onClick={onCancel} className="w-full py-2 rounded-lg glass text-white" data-testid="coach-login-cancel">{t('cancel')}</button>
         </form>
       </div>
     </div>
@@ -459,77 +459,61 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
   const [paymentLinks, setPaymentLinks] = useState({ stripe: "", paypal: "", twint: "", coachWhatsapp: "" });
   const [concept, setConcept] = useState({ description: "", heroImageUrl: "" });
   const [discountCodes, setDiscountCodes] = useState([]);
-  const [newCode, setNewCode] = useState({ code: "", type: "", value: "", assignedEmail: "" });
+  const [newCode, setNewCode] = useState({ code: "", type: "", value: "", assignedEmail: "", courses: [], maxUses: "", expiresAt: "" });
   const [newCourse, setNewCourse] = useState({ name: "", weekday: 0, time: "18:30", locationName: "", mapsUrl: "" });
-  const [newOffer, setNewOffer] = useState({ name: "", price: 0, visible: true });
+  const [newOffer, setNewOffer] = useState({ name: "", price: 0, visible: true, thumbnail: "", description: "" });
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const [res, crs, off, lnk, cpt, cds] = await Promise.all([
-          axios.get(`${API}/reservations`),
-          axios.get(`${API}/courses`),
-          axios.get(`${API}/offers`),
-          axios.get(`${API}/payment-links`),
-          axios.get(`${API}/concept`),
-          axios.get(`${API}/discount-codes`)
+          axios.get(`${API}/reservations`), axios.get(`${API}/courses`), axios.get(`${API}/offers`),
+          axios.get(`${API}/payment-links`), axios.get(`${API}/concept`), axios.get(`${API}/discount-codes`)
         ]);
-        setReservations(res.data);
-        setCourses(crs.data);
-        setOffers(off.data);
-        setPaymentLinks(lnk.data);
-        setConcept(cpt.data);
-        setDiscountCodes(cds.data);
-      } catch (err) {
-        console.error("Error:", err);
-      }
+        setReservations(res.data); setCourses(crs.data); setOffers(off.data);
+        setPaymentLinks(lnk.data); setConcept(cpt.data); setDiscountCodes(cds.data);
+      } catch (err) { console.error("Error:", err); }
     };
     loadData();
   }, []);
 
+  // Export CSV with full structure
   const exportCSV = () => {
     const rows = [
-      [t('code'), t('name'), t('email'), "WhatsApp", t('courses'), t('date'), t('offer'), t('price'), t('qty'), t('total')],
-      ...reservations.map(r => [
-        r.reservationCode || '', r.userName, r.userEmail, r.userWhatsapp || '',
-        r.courseName, new Date(r.datetime).toLocaleDateString('fr-CH'),
-        r.offerName, r.price, r.quantity || 1, r.totalPrice || r.price
-      ])
+      [t('code'), t('name'), t('email'), "WhatsApp", t('courses'), t('date'), t('time'), t('offer'), t('qty'), t('total')],
+      ...reservations.map(r => {
+        const dt = new Date(r.datetime);
+        return [
+          r.reservationCode || '', r.userName, r.userEmail, r.userWhatsapp || '',
+          r.courseName, dt.toLocaleDateString('fr-CH'), dt.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' }),
+          r.offerName, r.quantity || 1, r.totalPrice || r.price
+        ];
+      })
     ];
     const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `afroboost_reservations_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = `afroboost_reservations_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
 
-  const saveConcept = async () => {
-    await axios.put(`${API}/concept`, concept);
-    alert("Saved!");
-  };
-
-  const savePayments = async () => {
-    await axios.put(`${API}/payment-links`, paymentLinks);
-    alert("Saved!");
-  };
+  const saveConcept = async () => { await axios.put(`${API}/concept`, concept); alert("Saved!"); };
+  const savePayments = async () => { await axios.put(`${API}/payment-links`, paymentLinks); alert("Saved!"); };
 
   const addCode = async (e) => {
     e.preventDefault();
     if (!newCode.type || !newCode.value) return;
     const response = await axios.post(`${API}/discount-codes`, {
       code: newCode.code || `CODE-${Date.now().toString().slice(-4)}`,
-      type: newCode.type,
-      value: parseFloat(newCode.value),
+      type: newCode.type, value: parseFloat(newCode.value),
       assignedEmail: newCode.assignedEmail || null,
-      courses: [],
-      maxUses: null
+      courses: newCode.courses, maxUses: newCode.maxUses ? parseInt(newCode.maxUses) : null,
+      expiresAt: newCode.expiresAt || null
     });
     setDiscountCodes([...discountCodes, response.data]);
-    setNewCode({ code: "", type: "", value: "", assignedEmail: "" });
+    setNewCode({ code: "", type: "", value: "", assignedEmail: "", courses: [], maxUses: "", expiresAt: "" });
   };
 
   const toggleCode = async (code) => {
@@ -537,10 +521,35 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     setDiscountCodes(discountCodes.map(c => c.id === code.id ? { ...c, active: !c.active } : c));
   };
 
-  const updateCourse = async (course) => {
-    await axios.put(`${API}/courses/${course.id}`, course);
+  const handleImportCSV = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        const newCodes = [];
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+          const [email, name, value, type, expiration] = parts;
+          if (value && type) {
+            const response = await axios.post(`${API}/discount-codes`, {
+              code: name || `CODE-${Date.now() + i}`.slice(-6),
+              type, value: parseFloat(value),
+              assignedEmail: email || null, expiresAt: expiration || null, courses: [], maxUses: null
+            });
+            newCodes.push(response.data);
+          }
+        }
+        setDiscountCodes([...discountCodes, ...newCodes]);
+      } catch (error) { console.error('Import error:', error); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
+  const updateCourse = async (course) => { await axios.put(`${API}/courses/${course.id}`, course); };
   const addCourse = async (e) => {
     e.preventDefault();
     if (!newCourse.name) return;
@@ -549,31 +558,33 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     setNewCourse({ name: "", weekday: 0, time: "18:30", locationName: "", mapsUrl: "" });
   };
 
-  const updateOffer = async (offer) => {
-    await axios.put(`${API}/offers/${offer.id}`, offer);
-  };
-
+  const updateOffer = async (offer) => { await axios.put(`${API}/offers/${offer.id}`, offer); };
   const addOffer = async (e) => {
     e.preventDefault();
     if (!newOffer.name) return;
     const response = await axios.post(`${API}/offers`, newOffer);
     setOffers([...offers, response.data]);
-    setNewOffer({ name: "", price: 0, visible: true });
+    setNewOffer({ name: "", price: 0, visible: true, thumbnail: "", description: "" });
+  };
+
+  const toggleCourseSelection = (courseId) => {
+    setNewCode(prev => ({
+      ...prev,
+      courses: prev.courses.includes(courseId) 
+        ? prev.courses.filter(id => id !== courseId) 
+        : [...prev.courses, courseId]
+    }));
   };
 
   const tabs = [
-    { id: "reservations", label: t('reservations') },
-    { id: "concept", label: t('conceptVisual') },
-    { id: "courses", label: t('courses') },
-    { id: "offers", label: t('offers') },
-    { id: "payments", label: t('payments') },
-    { id: "codes", label: t('promoCodes') }
+    { id: "reservations", label: t('reservations') }, { id: "concept", label: t('conceptVisual') },
+    { id: "courses", label: t('courses') }, { id: "offers", label: t('offers') },
+    { id: "payments", label: t('payments') }, { id: "codes", label: t('promoCodes') }
   ];
 
   return (
     <div className="w-full min-h-screen p-6" style={{ background: '#000000' }}>
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
           <h1 className="font-bold text-white" style={{ fontSize: '32px' }}>{t('coachMode')}</h1>
           <div className="flex gap-3">
@@ -582,18 +593,11 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {tabs.map(tb => (
-            <button
-              key={tb.id}
-              onClick={() => setTab(tb.id)}
+            <button key={tb.id} onClick={() => setTab(tb.id)}
               className={`coach-tab px-4 py-2 rounded-lg ${tab === tb.id ? 'active' : 'glass'}`}
-              style={{ color: 'white' }}
-              data-testid={`coach-tab-${tb.id}`}
-            >
-              {tb.label}
-            </button>
+              style={{ color: 'white' }} data-testid={`coach-tab-${tb.id}`}>{tb.label}</button>
           ))}
         </div>
 
@@ -602,38 +606,33 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
           <div className="glass rounded-xl p-6">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
               <h2 className="font-semibold text-white" style={{ fontSize: '24px' }}>{t('reservationsList')}</h2>
-              <button onClick={exportCSV} className="csv-btn" data-testid="export-csv">
-                {t('downloadCSV')}
-              </button>
+              <button onClick={exportCSV} className="csv-btn" data-testid="export-csv">{t('downloadCSV')}</button>
             </div>
             <div className="overflow-x-auto">
               <table className="coach-table">
                 <thead>
                   <tr>
-                    <th>{t('code')}</th>
-                    <th>{t('name')}</th>
-                    <th>{t('email')}</th>
-                    <th>{t('date')}</th>
-                    <th>{t('offer')}</th>
-                    <th>{t('qty')}</th>
-                    <th>{t('total')}</th>
+                    <th>{t('code')}</th><th>{t('name')}</th><th>{t('email')}</th><th>WhatsApp</th>
+                    <th>{t('courses')}</th><th>{t('date')}</th><th>{t('time')}</th>
+                    <th>{t('offer')}</th><th>{t('qty')}</th><th>{t('total')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reservations.map(r => (
-                    <tr key={r.id}>
-                      <td style={{ fontWeight: 'bold', color: '#d91cd2' }}>{r.reservationCode || '-'}</td>
-                      <td>{r.userName}</td>
-                      <td>{r.userEmail}</td>
-                      <td>{new Date(r.datetime).toLocaleDateString('fr-CH')}</td>
-                      <td>{r.offerName}</td>
-                      <td>{r.quantity || 1}</td>
-                      <td style={{ fontWeight: 'bold' }}>CHF {r.totalPrice || r.price}</td>
-                    </tr>
-                  ))}
-                  {reservations.length === 0 && (
-                    <tr><td colSpan="7" className="text-center py-8" style={{ opacity: 0.6 }}>{t('noReservations')}</td></tr>
-                  )}
+                  {reservations.map(r => {
+                    const dt = new Date(r.datetime);
+                    return (
+                      <tr key={r.id}>
+                        <td style={{ fontWeight: 'bold', color: '#d91cd2' }}>{r.reservationCode || '-'}</td>
+                        <td>{r.userName}</td><td>{r.userEmail}</td><td>{r.userWhatsapp || '-'}</td>
+                        <td>{r.courseName}</td>
+                        <td>{dt.toLocaleDateString('fr-CH')}</td>
+                        <td>{dt.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })}</td>
+                        <td>{r.offerName}</td><td>{r.quantity || 1}</td>
+                        <td style={{ fontWeight: 'bold' }}>CHF {r.totalPrice || r.price}</td>
+                      </tr>
+                    );
+                  })}
+                  {reservations.length === 0 && <tr><td colSpan="10" className="text-center py-8" style={{ opacity: 0.6 }}>{t('noReservations')}</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -647,38 +646,23 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
             <div className="space-y-4">
               <div>
                 <label className="block mb-2 text-white">{t('conceptDescription')}</label>
-                <textarea
-                  value={concept.description}
-                  onChange={(e) => setConcept({ ...concept, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg neon-input"
-                  rows={4}
-                  data-testid="concept-description"
-                />
+                <textarea value={concept.description} onChange={(e) => setConcept({ ...concept, description: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg neon-input" rows={4} data-testid="concept-description" />
               </div>
               <div>
                 <label className="block mb-2 text-white">{t('mediaUrl')}</label>
-                <input
-                  type="url"
-                  value={concept.heroImageUrl}
-                  onChange={(e) => setConcept({ ...concept, heroImageUrl: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg neon-input"
-                  placeholder="https://example.com/media.mp4 ou image.jpg"
-                  data-testid="concept-media-url"
-                />
+                <input type="url" value={concept.heroImageUrl} onChange={(e) => setConcept({ ...concept, heroImageUrl: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://example.com/media.mp4" data-testid="concept-media-url" />
               </div>
               {concept.heroImageUrl && (
                 <div className="mt-4">
                   <p className="text-white mb-2" style={{ opacity: 0.7 }}>Aperçu:</p>
-                  {concept.heroImageUrl.toLowerCase().endsWith('.mp4') ? (
-                    <video src={concept.heroImageUrl} className="w-full max-h-64 rounded-lg object-cover" autoPlay loop muted />
-                  ) : (
-                    <img src={concept.heroImageUrl} alt="Preview" className="w-full max-h-64 rounded-lg object-cover" />
-                  )}
+                  {concept.heroImageUrl.toLowerCase().endsWith('.mp4') 
+                    ? <video src={concept.heroImageUrl} className="w-full max-h-64 rounded-lg object-cover" autoPlay loop muted />
+                    : <img src={concept.heroImageUrl} alt="Preview" className="w-full max-h-64 rounded-lg object-cover" />}
                 </div>
               )}
-              <button onClick={saveConcept} className="btn-primary px-6 py-3 rounded-lg" data-testid="save-concept">
-                {t('save')}
-              </button>
+              <button onClick={saveConcept} className="btn-primary px-6 py-3 rounded-lg" data-testid="save-concept">{t('save')}</button>
             </div>
           </div>
         )}
@@ -692,59 +676,34 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block mb-1 text-white text-sm">{t('courseName')}</label>
-                    <input
-                      type="text"
-                      value={course.name}
-                      onChange={(e) => { const n = [...courses]; n[idx].name = e.target.value; setCourses(n); }}
-                      onBlur={() => updateCourse(course)}
-                      className="w-full px-3 py-2 rounded-lg neon-input"
-                    />
+                    <input type="text" value={course.name} onChange={(e) => { const n = [...courses]; n[idx].name = e.target.value; setCourses(n); }}
+                      onBlur={() => updateCourse(course)} className="w-full px-3 py-2 rounded-lg neon-input" />
                   </div>
                   <div>
                     <label className="block mb-1 text-white text-sm">{t('location')}</label>
-                    <input
-                      type="text"
-                      value={course.locationName}
-                      onChange={(e) => { const n = [...courses]; n[idx].locationName = e.target.value; setCourses(n); }}
-                      onBlur={() => updateCourse(course)}
-                      className="w-full px-3 py-2 rounded-lg neon-input"
-                    />
+                    <input type="text" value={course.locationName} onChange={(e) => { const n = [...courses]; n[idx].locationName = e.target.value; setCourses(n); }}
+                      onBlur={() => updateCourse(course)} className="w-full px-3 py-2 rounded-lg neon-input" />
                   </div>
                   <div>
                     <label className="block mb-1 text-white text-sm">{t('weekday')}</label>
-                    <select
-                      value={course.weekday}
-                      onChange={(e) => { const n = [...courses]; n[idx].weekday = parseInt(e.target.value); setCourses(n); updateCourse({ ...course, weekday: parseInt(e.target.value) }); }}
-                      className="w-full px-3 py-2 rounded-lg neon-input"
-                    >
+                    <select value={course.weekday} onChange={(e) => { const n = [...courses]; n[idx].weekday = parseInt(e.target.value); setCourses(n); updateCourse({ ...course, weekday: parseInt(e.target.value) }); }}
+                      className="w-full px-3 py-2 rounded-lg neon-input">
                       {WEEKDAYS_MAP[lang].map((d, i) => <option key={i} value={i}>{d}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block mb-1 text-white text-sm">{t('time')}</label>
-                    <input
-                      type="time"
-                      value={course.time}
-                      onChange={(e) => { const n = [...courses]; n[idx].time = e.target.value; setCourses(n); }}
-                      onBlur={() => updateCourse(course)}
-                      className="w-full px-3 py-2 rounded-lg neon-input"
-                    />
+                    <input type="time" value={course.time} onChange={(e) => { const n = [...courses]; n[idx].time = e.target.value; setCourses(n); }}
+                      onBlur={() => updateCourse(course)} className="w-full px-3 py-2 rounded-lg neon-input" />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block mb-1 text-white text-sm">{t('mapsLink')}</label>
-                    <input
-                      type="url"
-                      value={course.mapsUrl || ''}
-                      onChange={(e) => { const n = [...courses]; n[idx].mapsUrl = e.target.value; setCourses(n); }}
-                      onBlur={() => updateCourse(course)}
-                      className="w-full px-3 py-2 rounded-lg neon-input"
-                      placeholder="https://maps.google.com/..."
-                    />
+                    <input type="url" value={course.mapsUrl || ''} onChange={(e) => { const n = [...courses]; n[idx].mapsUrl = e.target.value; setCourses(n); }}
+                      onBlur={() => updateCourse(course)} className="w-full px-3 py-2 rounded-lg neon-input" placeholder="https://maps.google.com/..." />
                   </div>
                 </div>
               </div>
             ))}
-            {/* Add Course Form */}
             <form onSubmit={addCourse} className="glass rounded-lg p-4 mt-4" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
               <h3 className="text-white mb-4 font-semibold">{t('addCourse')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -765,48 +724,45 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
           <div className="glass rounded-xl p-6">
             <h2 className="font-semibold text-white mb-6" style={{ fontSize: '24px' }}>{t('offers')}</h2>
             {offers.map((offer, idx) => (
-              <div key={offer.id} className="glass rounded-lg p-4 mb-4 flex flex-wrap items-center gap-4" style={{ borderColor: 'rgba(217, 28, 210, 0.4)' }}>
-                <div className="flex-1 min-w-48">
-                  <label className="block mb-1 text-white text-sm">{t('offerName')}</label>
-                  <input
-                    type="text"
-                    value={offer.name}
-                    onChange={(e) => { const n = [...offers]; n[idx].name = e.target.value; setOffers(n); }}
-                    onBlur={() => updateOffer(offer)}
-                    className="w-full px-3 py-2 rounded-lg neon-input"
-                  />
-                </div>
-                <div className="w-32">
-                  <label className="block mb-1 text-white text-sm">{t('price')}</label>
-                  <input
-                    type="number"
-                    value={offer.price}
-                    onChange={(e) => { const n = [...offers]; n[idx].price = parseFloat(e.target.value); setOffers(n); }}
-                    onBlur={() => updateOffer(offer)}
-                    className="w-full px-3 py-2 rounded-lg neon-input"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-white text-sm">{t('visible')}</label>
-                  <div
-                    className={`switch ${offer.visible ? 'active' : ''}`}
-                    onClick={() => { const n = [...offers]; n[idx].visible = !offer.visible; setOffers(n); updateOffer({ ...offer, visible: !offer.visible }); }}
-                    data-testid={`offer-toggle-${offer.id}`}
-                  />
+              <div key={offer.id} className="glass rounded-lg p-4 mb-4" style={{ borderColor: 'rgba(217, 28, 210, 0.4)' }}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block mb-1 text-white text-sm">{t('offerName')}</label>
+                    <input type="text" value={offer.name} onChange={(e) => { const n = [...offers]; n[idx].name = e.target.value; setOffers(n); }}
+                      onBlur={() => updateOffer(offer)} className="w-full px-3 py-2 rounded-lg neon-input" />
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-white text-sm">{t('price')}</label>
+                    <input type="number" value={offer.price} onChange={(e) => { const n = [...offers]; n[idx].price = parseFloat(e.target.value); setOffers(n); }}
+                      onBlur={() => updateOffer(offer)} className="w-full px-3 py-2 rounded-lg neon-input" />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <label className="block mb-1 text-white text-sm">{t('visible')}</label>
+                      <div className={`switch ${offer.visible ? 'active' : ''}`} onClick={() => { const n = [...offers]; n[idx].visible = !offer.visible; setOffers(n); updateOffer({ ...offer, visible: !offer.visible }); }} />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block mb-1 text-white text-sm">{t('thumbnail')}</label>
+                    <input type="url" value={offer.thumbnail || ''} onChange={(e) => { const n = [...offers]; n[idx].thumbnail = e.target.value; setOffers(n); }}
+                      onBlur={() => updateOffer(offer)} className="w-full px-3 py-2 rounded-lg neon-input" placeholder="https://..." />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="block mb-1 text-white text-sm">{t('description')}</label>
+                    <input type="text" maxLength={150} value={offer.description || ''} onChange={(e) => { const n = [...offers]; n[idx].description = e.target.value; setOffers(n); }}
+                      onBlur={() => updateOffer(offer)} className="w-full px-3 py-2 rounded-lg neon-input" placeholder="Description courte..." />
+                  </div>
                 </div>
               </div>
             ))}
-            {/* Add Offer Form */}
-            <form onSubmit={addOffer} className="glass rounded-lg p-4 mt-4 flex flex-wrap items-end gap-4" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
-              <div className="flex-1 min-w-48">
-                <label className="block mb-1 text-white text-sm">{t('offerName')}</label>
-                <input type="text" value={newOffer.name} onChange={e => setNewOffer({ ...newOffer, name: e.target.value })} className="w-full px-3 py-2 rounded-lg neon-input" required />
+            <form onSubmit={addOffer} className="glass rounded-lg p-4 mt-4" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
+              <h3 className="text-white mb-4 font-semibold">{t('addOffer')}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" placeholder={t('offerName')} value={newOffer.name} onChange={e => setNewOffer({ ...newOffer, name: e.target.value })} className="px-3 py-2 rounded-lg neon-input" required />
+                <input type="number" placeholder={t('price')} value={newOffer.price} onChange={e => setNewOffer({ ...newOffer, price: parseFloat(e.target.value) })} className="px-3 py-2 rounded-lg neon-input" />
+                <input type="url" placeholder={t('thumbnail')} value={newOffer.thumbnail} onChange={e => setNewOffer({ ...newOffer, thumbnail: e.target.value })} className="px-3 py-2 rounded-lg neon-input" />
               </div>
-              <div className="w-32">
-                <label className="block mb-1 text-white text-sm">{t('price')}</label>
-                <input type="number" value={newOffer.price} onChange={e => setNewOffer({ ...newOffer, price: parseFloat(e.target.value) })} className="w-full px-3 py-2 rounded-lg neon-input" />
-              </div>
-              <button type="submit" className="btn-primary px-4 py-2 rounded-lg">{t('add')}</button>
+              <button type="submit" className="btn-primary px-4 py-2 rounded-lg mt-4">{t('add')}</button>
             </form>
           </div>
         )}
@@ -816,57 +772,90 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
           <div className="glass rounded-xl p-6">
             <h2 className="font-semibold text-white mb-6" style={{ fontSize: '24px' }}>{t('payments')}</h2>
             <div className="space-y-4">
-              <div>
-                <label className="block mb-2 text-white">{t('stripeLink')}</label>
-                <input type="url" value={paymentLinks.stripe} onChange={e => setPaymentLinks({ ...paymentLinks, stripe: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://buy.stripe.com/..." data-testid="payment-stripe" />
-              </div>
-              <div>
-                <label className="block mb-2 text-white">{t('paypalLink')}</label>
-                <input type="url" value={paymentLinks.paypal} onChange={e => setPaymentLinks({ ...paymentLinks, paypal: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://paypal.me/..." data-testid="payment-paypal" />
-              </div>
-              <div>
-                <label className="block mb-2 text-white">{t('twintLink')}</label>
-                <input type="url" value={paymentLinks.twint} onChange={e => setPaymentLinks({ ...paymentLinks, twint: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://..." data-testid="payment-twint" />
-              </div>
-              <div>
-                <label className="block mb-2 text-white">{t('coachWhatsapp')}</label>
-                <input type="tel" value={paymentLinks.coachWhatsapp} onChange={e => setPaymentLinks({ ...paymentLinks, coachWhatsapp: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="+41791234567" data-testid="payment-whatsapp" />
-              </div>
-              <button onClick={savePayments} className="btn-primary px-6 py-3 rounded-lg" data-testid="save-payments">{t('save')}</button>
+              <div><label className="block mb-2 text-white">{t('stripeLink')}</label>
+                <input type="url" value={paymentLinks.stripe} onChange={e => setPaymentLinks({ ...paymentLinks, stripe: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://buy.stripe.com/..." /></div>
+              <div><label className="block mb-2 text-white">{t('paypalLink')}</label>
+                <input type="url" value={paymentLinks.paypal} onChange={e => setPaymentLinks({ ...paymentLinks, paypal: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://paypal.me/..." /></div>
+              <div><label className="block mb-2 text-white">{t('twintLink')}</label>
+                <input type="url" value={paymentLinks.twint} onChange={e => setPaymentLinks({ ...paymentLinks, twint: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="https://..." /></div>
+              <div><label className="block mb-2 text-white">{t('coachWhatsapp')}</label>
+                <input type="tel" value={paymentLinks.coachWhatsapp} onChange={e => setPaymentLinks({ ...paymentLinks, coachWhatsapp: e.target.value })} className="w-full px-4 py-3 rounded-lg neon-input" placeholder="+41791234567" /></div>
+              <button onClick={savePayments} className="btn-primary px-6 py-3 rounded-lg">{t('save')}</button>
             </div>
           </div>
         )}
 
-        {/* Promo Codes Tab */}
+        {/* Promo Codes Tab - Enhanced Design */}
         {tab === "codes" && (
           <div className="glass rounded-xl p-6">
-            <h2 className="font-semibold text-white mb-6" style={{ fontSize: '24px' }}>{t('promoCodes')}</h2>
-            <form onSubmit={addCode} className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <input type="text" placeholder={t('codePromo')} value={newCode.code} onChange={e => setNewCode({ ...newCode, code: e.target.value })} className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-name" />
-              <select value={newCode.type} onChange={e => setNewCode({ ...newCode, type: e.target.value })} className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-type">
-                <option value="">{t('type')}</option>
-                <option value="100%">100% ({t('reserveFree').replace(/[^\w\s]/g, '')})</option>
-                <option value="%">%</option>
-                <option value="CHF">CHF</option>
-              </select>
-              <input type="number" placeholder={t('value')} value={newCode.value} onChange={e => setNewCode({ ...newCode, value: e.target.value })} className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-value" />
-              <input type="email" placeholder={t('assignedEmail')} value={newCode.assignedEmail} onChange={e => setNewCode({ ...newCode, assignedEmail: e.target.value })} className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-email" />
-              <button type="submit" className="btn-primary px-4 py-2 rounded-lg md:col-span-4" data-testid="add-code">{t('add')}</button>
-            </form>
-            {discountCodes.map(code => (
-              <div key={code.id} className="p-4 glass rounded-lg mb-2 flex justify-between items-center flex-wrap gap-2" style={{ borderColor: code.active ? 'rgba(217, 28, 210, 0.4)' : 'rgba(100, 100, 100, 0.4)' }}>
-                <div>
-                  <span className="text-white font-bold">{code.code}</span>
-                  <span className="text-white ml-2 opacity-70">({code.type} {code.value})</span>
-                  <span className="text-white ml-2 opacity-50">{code.assignedEmail || 'Tous'}</span>
-                  <span className="text-white ml-2 opacity-50">• {t('used')}: {code.used || 0}x</span>
-                </div>
-                <button onClick={() => toggleCode(code)} className={`px-3 py-1 rounded text-sm ${code.active ? 'bg-green-600' : 'bg-gray-600'}`} style={{ color: 'white' }} data-testid={`toggle-code-${code.id}`}>
-                  {code.active ? `✅ ${t('active')}` : `❌ ${t('inactive')}`}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-semibold text-white" style={{ fontSize: '24px' }}>{t('promoCodes')}</h2>
+              <div>
+                <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImportCSV} style={{ display: 'none' }} />
+                <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2 rounded-lg glass text-white" data-testid="import-csv-btn">
+                  <FolderIcon /> {t('importCSV')}
                 </button>
               </div>
-            ))}
-            {discountCodes.length === 0 && <p className="text-center py-4 text-white opacity-60">{t('noPromoCode')}</p>}
+            </div>
+            
+            <form onSubmit={addCode} className="mb-6 p-4 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <input type="text" placeholder={t('codePromo')} value={newCode.code} onChange={e => setNewCode({ ...newCode, code: e.target.value })}
+                  className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-name" />
+                <select value={newCode.type} onChange={e => setNewCode({ ...newCode, type: e.target.value })} className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-type">
+                  <option value="">{t('type')}</option>
+                  <option value="100%">100% (Gratuit)</option>
+                  <option value="%">%</option>
+                  <option value="CHF">CHF</option>
+                </select>
+                <input type="number" placeholder={t('value')} value={newCode.value} onChange={e => setNewCode({ ...newCode, value: e.target.value })}
+                  className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-value" />
+                <input type="email" placeholder={t('assignedEmail')} value={newCode.assignedEmail} onChange={e => setNewCode({ ...newCode, assignedEmail: e.target.value })}
+                  className="px-3 py-2 rounded-lg neon-input" data-testid="new-code-email" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <input type="number" placeholder={t('maxUses')} value={newCode.maxUses} onChange={e => setNewCode({ ...newCode, maxUses: e.target.value })}
+                  className="px-3 py-2 rounded-lg neon-input" />
+                <input type="date" placeholder={t('expiresAt')} value={newCode.expiresAt} onChange={e => setNewCode({ ...newCode, expiresAt: e.target.value })}
+                  className="px-3 py-2 rounded-lg neon-input" />
+                <div>
+                  <label className="block text-white text-sm mb-1">{t('allowedCourses')}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {courses.map(c => (
+                      <button key={c.id} type="button" onClick={() => toggleCourseSelection(c.id)}
+                        className={`px-2 py-1 rounded text-xs ${newCode.courses.includes(c.id) ? 'bg-purple-600' : 'bg-gray-700'}`}
+                        style={{ color: 'white' }}>{c.name.split(' ')[0]}</button>
+                    ))}
+                    {courses.length === 0 && <span className="text-white text-xs opacity-60">{t('allCourses')}</span>}
+                  </div>
+                </div>
+              </div>
+              <button type="submit" className="btn-primary px-6 py-2 rounded-lg" data-testid="add-code">{t('add')}</button>
+            </form>
+
+            <div className="space-y-2">
+              {discountCodes.map(code => (
+                <div key={code.id} className="p-4 rounded-lg flex justify-between items-center flex-wrap gap-3"
+                  style={{ background: code.active ? 'rgba(217, 28, 210, 0.1)' : 'rgba(100, 100, 100, 0.1)', border: `1px solid ${code.active ? 'rgba(217, 28, 210, 0.4)' : 'rgba(100, 100, 100, 0.3)'}` }}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-white font-bold text-lg">{code.code}</span>
+                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(139, 92, 246, 0.3)', color: '#d8b4fe' }}>{code.type} {code.value}</span>
+                    </div>
+                    <div className="text-white text-sm opacity-60">
+                      {code.assignedEmail && <span className="mr-3">📧 {code.assignedEmail}</span>}
+                      {code.maxUses && <span className="mr-3">🔢 Max: {code.maxUses}</span>}
+                      {code.expiresAt && <span className="mr-3">📅 {new Date(code.expiresAt).toLocaleDateString()}</span>}
+                      <span>✓ {t('used')}: {code.used || 0}x</span>
+                    </div>
+                  </div>
+                  <button onClick={() => toggleCode(code)} className={`px-4 py-2 rounded-lg text-sm font-medium ${code.active ? 'bg-green-600' : 'bg-gray-600'}`} style={{ color: 'white' }}>
+                    {code.active ? `✅ ${t('active')}` : `❌ ${t('inactive')}`}
+                  </button>
+                </div>
+              ))}
+              {discountCodes.length === 0 && <p className="text-center py-8 text-white opacity-60">{t('noPromoCode')}</p>}
+            </div>
           </div>
         )}
       </div>
@@ -898,8 +887,8 @@ const SuccessOverlay = ({ t, data, onClose }) => {
           <p><strong>{t('total')}:</strong> CHF {data.totalPrice}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={handlePrint} className="flex-1 p-2 glass rounded-lg text-white text-sm" data-testid="print-btn">{t('print')}</button>
-          <button onClick={handleShare} className="flex-1 p-2 glass rounded-lg text-white text-sm" data-testid="share-btn">{t('share')}</button>
+          <button onClick={handlePrint} className="flex-1 p-2 glass rounded-lg text-white text-sm">{t('print')}</button>
+          <button onClick={handleShare} className="flex-1 p-2 glass rounded-lg text-white text-sm">{t('share')}</button>
         </div>
       </div>
     </div>
@@ -913,8 +902,8 @@ const ConfirmPaymentOverlay = ({ t, onConfirm, onCancel }) => (
       <div style={{ fontSize: '48px' }}>💳</div>
       <p className="font-bold text-white my-4" style={{ fontSize: '20px' }}>{t('paymentDone')}</p>
       <p className="mb-6 text-white opacity-80">{t('paymentConfirmText')}</p>
-      <button onClick={onConfirm} className="w-full btn-primary py-3 rounded-lg font-bold mb-3" data-testid="confirm-payment">{t('confirmPayment')}</button>
-      <button onClick={onCancel} className="w-full py-2 glass rounded-lg text-white opacity-60" data-testid="cancel-payment">{t('cancel')}</button>
+      <button onClick={onConfirm} className="w-full btn-primary py-3 rounded-lg font-bold mb-3">{t('confirmPayment')}</button>
+      <button onClick={onCancel} className="w-full py-2 glass rounded-lg text-white opacity-60">{t('cancel')}</button>
     </div>
   </div>
 );
@@ -952,84 +941,91 @@ function App() {
   const [pendingReservation, setPendingReservation] = useState(null);
   const [lastReservation, setLastReservation] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
 
-  // Secret click counter for coach access
   const [clickCount, setClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
 
   const t = useCallback((key) => translations[lang][key] || key, [lang]);
 
-  // Save language preference
-  useEffect(() => {
-    localStorage.setItem("af_lang", lang);
-  }, [lang]);
+  useEffect(() => { localStorage.setItem("af_lang", lang); }, [lang]);
 
-  // Fetch data
   useEffect(() => {
     let mounted = true;
     const fetchData = async () => {
       try {
         const [crs, off, usr, lnk, cpt, cds] = await Promise.all([
-          axios.get(`${API}/courses`),
-          axios.get(`${API}/offers`),
-          axios.get(`${API}/users`),
-          axios.get(`${API}/payment-links`),
-          axios.get(`${API}/concept`),
-          axios.get(`${API}/discount-codes`)
+          axios.get(`${API}/courses`), axios.get(`${API}/offers`), axios.get(`${API}/users`),
+          axios.get(`${API}/payment-links`), axios.get(`${API}/concept`), axios.get(`${API}/discount-codes`)
         ]);
         if (mounted) {
-          setCourses(crs.data);
-          setOffers(off.data);
-          setUsers(usr.data);
-          setPaymentLinks(lnk.data);
-          setConcept(cpt.data);
-          setDiscountCodes(cds.data);
+          setCourses(crs.data); setOffers(off.data); setUsers(usr.data);
+          setPaymentLinks(lnk.data); setConcept(cpt.data); setDiscountCodes(cds.data);
         }
-      } catch (err) {
-        console.error("Error:", err);
-      }
+      } catch (err) { console.error("Error:", err); }
     };
     fetchData();
     return () => { mounted = false; };
   }, []);
 
-  // Splash timer
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  useEffect(() => { const timer = setTimeout(() => setShowSplash(false), 1500); return () => clearTimeout(timer); }, []);
 
-  // Handle secret coach access (3 rapid clicks)
+  // Validate discount code and update price in real-time
+  useEffect(() => {
+    const validateCode = async () => {
+      if (!discountCode || !selectedCourse) {
+        setAppliedDiscount(null);
+        return;
+      }
+      const email = isExistingUser ? users.find(u => u.id === selectedUserId)?.email : userEmail;
+      try {
+        const res = await axios.post(`${API}/discount-codes/validate`, { code: discountCode, email: email || '', courseId: selectedCourse.id });
+        if (res.data.valid) {
+          setAppliedDiscount(res.data.code);
+          setValidationMessage("");
+        } else {
+          setAppliedDiscount(null);
+        }
+      } catch {
+        setAppliedDiscount(null);
+      }
+    };
+    const debounce = setTimeout(validateCode, 300);
+    return () => clearTimeout(debounce);
+  }, [discountCode, selectedCourse, isExistingUser, selectedUserId, userEmail, users]);
+
   const handleCopyrightClick = () => {
     const now = Date.now();
     if (now - lastClickTime < 500) {
       const newCount = clickCount + 1;
       setClickCount(newCount);
-      if (newCount >= 3) {
-        setShowCoachLogin(true);
-        setClickCount(0);
-      }
-    } else {
-      setClickCount(1);
-    }
+      if (newCount >= 3) { setShowCoachLogin(true); setClickCount(0); }
+    } else { setClickCount(1); }
     setLastClickTime(now);
   };
 
   const isDiscountFree = (code) => code && (code.type === "100%" || (code.type === "%" && parseFloat(code.value) >= 100));
 
+  const calculateTotal = () => {
+    if (!selectedOffer) return 0;
+    let total = selectedOffer.price;
+    if (appliedDiscount) {
+      if (appliedDiscount.type === "100%" || (appliedDiscount.type === "%" && parseFloat(appliedDiscount.value) >= 100)) {
+        total = 0;
+      } else if (appliedDiscount.type === "%") {
+        total = total * (1 - parseFloat(appliedDiscount.value) / 100);
+      } else if (appliedDiscount.type === "CHF") {
+        total = Math.max(0, total - parseFloat(appliedDiscount.value));
+      }
+    }
+    return total.toFixed(2);
+  };
+
   const resetForm = () => {
-    setPendingReservation(null);
-    setSelectedCourse(null);
-    setSelectedDate(null);
-    setSelectedOffer(null);
-    setSelectedSession(null);
-    setIsExistingUser(false);
-    setSelectedUserId("");
-    setUserName("");
-    setUserEmail("");
-    setUserWhatsapp("");
-    setDiscountCode("");
-    setHasAcceptedTerms(false);
+    setPendingReservation(null); setSelectedCourse(null); setSelectedDate(null);
+    setSelectedOffer(null); setSelectedSession(null); setIsExistingUser(false);
+    setSelectedUserId(""); setUserName(""); setUserEmail(""); setUserWhatsapp("");
+    setDiscountCode(""); setHasAcceptedTerms(false); setAppliedDiscount(null);
   };
 
   const sendWhatsAppNotification = (reservation, isCoach) => {
@@ -1053,49 +1049,27 @@ function App() {
       return;
     }
 
-    let appliedDiscount = null;
-    if (discountCode) {
-      try {
-        const res = await axios.post(`${API}/discount-codes/validate`, { code: discountCode, email, courseId: selectedCourse.id });
-        if (!res.data.valid) {
-          setValidationMessage(res.data.message || t('invalidPromoCode'));
-          setTimeout(() => setValidationMessage(""), 3000);
-          return;
-        }
-        appliedDiscount = res.data.code;
-      } catch {
-        setValidationMessage(t('invalidPromoCode'));
-        setTimeout(() => setValidationMessage(""), 3000);
-        return;
-      }
-    }
-
     const user = isExistingUser ? users.find(u => u.id === selectedUserId) : null;
     const [h, m] = selectedCourse.time.split(':');
     const dt = new Date(selectedDate);
     dt.setHours(parseInt(h), parseInt(m), 0, 0);
 
+    const totalPrice = parseFloat(calculateTotal());
+
     const reservation = {
       userId: user?.id || `user-${Date.now()}`,
       userName: user?.name || userName,
-      userEmail: email,
-      userWhatsapp: whatsapp,
-      courseId: selectedCourse.id,
-      courseName: selectedCourse.name,
-      courseTime: selectedCourse.time,
-      datetime: dt.toISOString(),
-      offerId: selectedOffer.id,
-      offerName: selectedOffer.name,
-      price: selectedOffer.price,
-      quantity: 1,
-      totalPrice: selectedOffer.price,
+      userEmail: email, userWhatsapp: whatsapp,
+      courseId: selectedCourse.id, courseName: selectedCourse.name,
+      courseTime: selectedCourse.time, datetime: dt.toISOString(),
+      offerId: selectedOffer.id, offerName: selectedOffer.name,
+      price: selectedOffer.price, quantity: 1, totalPrice,
       discountCode: appliedDiscount?.code || null,
       discountType: appliedDiscount?.type || null,
       discountValue: appliedDiscount?.value || null,
       appliedDiscount
     };
 
-    // Free reservation
     if (appliedDiscount && isDiscountFree(appliedDiscount)) {
       if (!isExistingUser) {
         setValidationMessage(t('subscriberOnlyCode'));
@@ -1110,14 +1084,11 @@ function App() {
         sendWhatsAppNotification(res.data, true);
         setShowSuccess(true);
         resetForm();
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
       setLoading(false);
       return;
     }
 
-    // Paid reservation
     const hasPayment = paymentLinks.stripe?.trim() || paymentLinks.paypal?.trim() || paymentLinks.twint?.trim();
     if (!hasPayment) {
       setValidationMessage(t('noPaymentConfigured'));
@@ -1127,14 +1098,10 @@ function App() {
 
     setPendingReservation(reservation);
     if (!isExistingUser) {
-      try {
-        await axios.post(`${API}/users`, { name: userName, email: userEmail, whatsapp: userWhatsapp });
-      } catch (e) {
-        console.error("User creation error:", e);
-      }
+      try { await axios.post(`${API}/users`, { name: userName, email: userEmail, whatsapp: userWhatsapp }); }
+      catch (err) { console.error("User creation error:", err); }
     }
 
-    // Open payment
     if (paymentLinks.twint?.trim()) window.open(paymentLinks.twint, '_blank');
     else if (paymentLinks.stripe?.trim()) window.open(paymentLinks.stripe, '_blank');
     else if (paymentLinks.paypal?.trim()) window.open(paymentLinks.paypal, '_blank');
@@ -1156,9 +1123,7 @@ function App() {
       setShowSuccess(true);
       setShowConfirmPayment(false);
       resetForm();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
     setLoading(false);
   };
 
@@ -1170,14 +1135,10 @@ function App() {
           const sessionId = `${course.id}-${date.getTime()}`;
           const isSelected = selectedSession === sessionId;
           return (
-            <button
-              key={idx}
-              type="button"
+            <button key={idx} type="button"
               onClick={() => { setSelectedCourse(course); setSelectedDate(date); setSelectedSession(sessionId); }}
               className={`session-btn px-3 py-2 rounded-lg text-sm font-medium ${isSelected ? 'selected' : ''}`}
-              style={{ color: 'white' }}
-              data-testid={`date-btn-${course.id}-${idx}`}
-            >
+              style={{ color: 'white' }} data-testid={`date-btn-${course.id}-${idx}`}>
               {formatDate(date, course.time, lang)} {isSelected && '✔'}
             </button>
           );
@@ -1187,83 +1148,68 @@ function App() {
   };
 
   if (showSplash) return <SplashScreen />;
-
-  if (showCoachLogin) {
-    return <CoachLoginModal t={t} onLogin={() => { setCoachMode(true); setShowCoachLogin(false); }} onCancel={() => setShowCoachLogin(false)} />;
-  }
-
-  if (coachMode) {
-    return <CoachDashboard t={t} lang={lang} onBack={() => setCoachMode(false)} onLogout={() => setCoachMode(false)} />;
-  }
+  if (showCoachLogin) return <CoachLoginModal t={t} onLogin={() => { setCoachMode(true); setShowCoachLogin(false); }} onCancel={() => setShowCoachLogin(false)} />;
+  if (coachMode) return <CoachDashboard t={t} lang={lang} onBack={() => setCoachMode(false)} onLogout={() => setCoachMode(false)} />;
 
   const visibleOffers = offers.filter(o => o.visible !== false);
   const uniqueUsers = Array.from(new Map(users.map(u => [u.email, u])).values());
-  const currentEmail = isExistingUser ? uniqueUsers.find(u => u.id === selectedUserId)?.email : userEmail;
-  const foundCode = discountCodes.find(c => c.code === discountCode && c.active);
-  const isFree = isExistingUser && foundCode && isDiscountFree(foundCode) && (!foundCode.assignedEmail || foundCode.assignedEmail.toLowerCase() === (currentEmail || "").toLowerCase());
+  const totalPrice = calculateTotal();
+  const isFree = parseFloat(totalPrice) === 0 && appliedDiscount;
 
   return (
     <div className="w-full min-h-screen p-6 relative" style={{ background: '#000000', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Language Selector */}
       <LanguageSelector lang={lang} setLang={setLang} />
 
-      {/* Overlays */}
       {showConfirmPayment && <ConfirmPaymentOverlay t={t} onConfirm={confirmPayment} onCancel={() => { setShowConfirmPayment(false); setPendingReservation(null); }} />}
       {showSuccess && lastReservation && <SuccessOverlay t={t} data={lastReservation} onClose={() => setShowSuccess(false)} />}
 
       <div className="max-w-4xl mx-auto pt-12">
-        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-bold mb-2 text-white" style={{ fontSize: '48px', textShadow: '0 0 20px rgba(217, 28, 210, 0.5)' }} data-testid="app-title">
-            {t('appTitle')}
-          </h1>
-          <p className="concept-glow max-w-2xl mx-auto text-white opacity-80" style={{ fontSize: '16px' }}>
-            {concept.description || t('conceptDefault')}
-          </p>
+          <h1 className="font-bold mb-2 text-white" style={{ fontSize: '48px', textShadow: '0 0 20px rgba(217, 28, 210, 0.5)' }} data-testid="app-title">{t('appTitle')}</h1>
+          <p className="concept-glow max-w-2xl mx-auto text-white opacity-80" style={{ fontSize: '16px' }}>{concept.description || t('conceptDefault')}</p>
         </div>
 
-        {/* Hero Media */}
         {concept.heroImageUrl && (
           <div className="hero-media-container mb-8">
-            {concept.heroImageUrl.toLowerCase().endsWith('.mp4') ? (
-              <video src={concept.heroImageUrl} autoPlay loop muted playsInline className="w-full h-full" />
-            ) : (
-              <img src={concept.heroImageUrl} alt="Afroboost" className="w-full h-full" />
-            )}
+            {concept.heroImageUrl.toLowerCase().endsWith('.mp4')
+              ? <video src={concept.heroImageUrl} autoPlay loop muted playsInline className="w-full h-full" />
+              : <img src={concept.heroImageUrl} alt="Afroboost" className="w-full h-full" />}
           </div>
         )}
 
-        {/* Sessions */}
         <div className="mb-8">
           <h2 className="font-semibold mb-4 text-white" style={{ fontSize: '20px' }}>{t('chooseSession')}</h2>
           <div className="space-y-4">
             {courses.map(course => (
               <div key={course.id} className={`course-card glass rounded-xl p-5 ${selectedCourse?.id === course.id ? 'selected' : ''}`} data-testid={`course-card-${course.id}`}>
                 <h3 className="font-semibold text-white">{course.name}</h3>
-                <p className="text-xs text-white opacity-60 mb-1">📍 {course.locationName}</p>
-                {course.mapsUrl && <a href={course.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-xs" style={{ color: '#8b5cf6' }}>🗺️ Google Maps</a>}
+                <div className="flex items-center gap-2 text-xs text-white opacity-60 mb-1">
+                  <LocationIcon />
+                  <span>{course.locationName}</span>
+                  {course.mapsUrl && (
+                    <a href={course.mapsUrl} target="_blank" rel="noopener noreferrer" className="ml-2 flex items-center gap-1" style={{ color: '#8b5cf6' }}
+                      onClick={(e) => e.stopPropagation()}>
+                      <LocationIcon /> Maps
+                    </a>
+                  )}
+                </div>
                 {renderDates(course)}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Offers */}
         {selectedCourse && selectedDate && (
           <div className="mb-8">
             <h2 className="font-semibold mb-4 text-white" style={{ fontSize: '20px' }}>{t('chooseOffer')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {visibleOffers.map(offer => (
-                <div key={offer.id} onClick={() => setSelectedOffer(offer)} className={`offer-card glass rounded-xl p-5 text-center ${selectedOffer?.id === offer.id ? 'selected' : ''}`} data-testid={`offer-card-${offer.id}`}>
-                  <h3 className="font-semibold text-white">{offer.name}</h3>
-                  <p className="font-bold text-xl" style={{ color: '#d91cd2' }}>CHF {offer.price}.-</p>
-                </div>
+                <OfferCard key={offer.id} offer={offer} selected={selectedOffer?.id === offer.id} onClick={() => setSelectedOffer(offer)} t={t} />
               ))}
             </div>
           </div>
         )}
 
-        {/* Form */}
         {selectedOffer && (
           <form onSubmit={handleSubmit}>
             <div className="glass rounded-xl p-6 mb-6">
@@ -1287,11 +1233,19 @@ function App() {
                     <input type="tel" required placeholder={t('whatsappRequired')} value={userWhatsapp} onChange={e => setUserWhatsapp(e.target.value)} className="w-full p-3 rounded-lg neon-input" data-testid="user-whatsapp-input" />
                   </>
                 )}
-                <input type="text" placeholder={t('promoCode')} value={discountCode} onChange={e => setDiscountCode(e.target.value)} className="w-full p-3 rounded-lg neon-input" style={{ borderColor: 'rgba(139, 92, 246, 0.5)' }} data-testid="discount-code-input" />
+                <input type="text" placeholder={t('promoCode')} value={discountCode} onChange={e => setDiscountCode(e.target.value)}
+                  className="w-full p-3 rounded-lg neon-input" style={{ borderColor: appliedDiscount ? '#22c55e' : 'rgba(139, 92, 246, 0.5)' }} data-testid="discount-code-input" />
                 {validationMessage && <p className="text-red-500 text-sm font-bold" data-testid="validation-message">{validationMessage}</p>}
+                
                 <div className="p-4 rounded-lg" style={{ background: 'rgba(217, 28, 210, 0.1)', borderLeft: '4px solid #d91cd2' }}>
-                  <p className="font-bold text-white" data-testid="total-price">{t('total')}: CHF {isFree ? "0.00" : selectedOffer.price.toFixed(2)}</p>
+                  {appliedDiscount && (
+                    <p className="text-green-400 text-sm mb-1">
+                      ✓ {t('discount')}: {appliedDiscount.type === 'CHF' ? `${appliedDiscount.value} CHF` : `${appliedDiscount.value}${appliedDiscount.type}`}
+                    </p>
+                  )}
+                  <p className="font-bold text-white text-lg" data-testid="total-price">{t('total')}: CHF {totalPrice}</p>
                 </div>
+                
                 <label className="flex items-start gap-2 cursor-pointer text-xs text-white opacity-70">
                   <input type="checkbox" required checked={hasAcceptedTerms} onChange={e => setHasAcceptedTerms(e.target.checked)} data-testid="terms-checkbox" />
                   <span>{t('acceptTerms')}</span>
@@ -1304,11 +1258,8 @@ function App() {
           </form>
         )}
 
-        {/* Footer with secret coach access */}
         <footer className="mt-12 mb-8 text-center" style={{ opacity: 0.4 }}>
-          <span onClick={handleCopyrightClick} className="copyright-secret text-white text-xs" data-testid="copyright-secret">
-            {t('copyright')}
-          </span>
+          <span onClick={handleCopyrightClick} className="copyright-secret text-white text-xs" data-testid="copyright-secret">{t('copyright')}</span>
         </footer>
       </div>
     </div>
