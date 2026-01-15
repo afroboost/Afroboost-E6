@@ -684,6 +684,154 @@ async def update_coach_auth(auth: CoachAuth):
     await db.coach_auth.update_one({"id": "coach_auth"}, {"$set": auth.model_dump()}, upsert=True)
     return {"success": True}
 
+# ==================== EMAILJS CONFIG (MongoDB) ====================
+
+class EmailJSConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "emailjs_config"
+    serviceId: str = ""
+    templateId: str = ""
+    publicKey: str = ""
+
+class EmailJSConfigUpdate(BaseModel):
+    serviceId: Optional[str] = None
+    templateId: Optional[str] = None
+    publicKey: Optional[str] = None
+
+@api_router.get("/emailjs-config")
+async def get_emailjs_config():
+    config = await db.emailjs_config.find_one({"id": "emailjs_config"}, {"_id": 0})
+    if not config:
+        return {"id": "emailjs_config", "serviceId": "", "templateId": "", "publicKey": ""}
+    return config
+
+@api_router.put("/emailjs-config")
+async def update_emailjs_config(config: EmailJSConfigUpdate):
+    updates = {k: v for k, v in config.model_dump().items() if v is not None}
+    updates["id"] = "emailjs_config"
+    await db.emailjs_config.update_one({"id": "emailjs_config"}, {"$set": updates}, upsert=True)
+    return await db.emailjs_config.find_one({"id": "emailjs_config"}, {"_id": 0})
+
+# ==================== WHATSAPP CONFIG (MongoDB) ====================
+
+class WhatsAppConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "whatsapp_config"
+    accountSid: str = ""
+    authToken: str = ""
+    fromNumber: str = ""
+    apiMode: str = "twilio"
+
+class WhatsAppConfigUpdate(BaseModel):
+    accountSid: Optional[str] = None
+    authToken: Optional[str] = None
+    fromNumber: Optional[str] = None
+    apiMode: Optional[str] = None
+
+@api_router.get("/whatsapp-config")
+async def get_whatsapp_config():
+    config = await db.whatsapp_config.find_one({"id": "whatsapp_config"}, {"_id": 0})
+    if not config:
+        return {"id": "whatsapp_config", "accountSid": "", "authToken": "", "fromNumber": "", "apiMode": "twilio"}
+    return config
+
+@api_router.put("/whatsapp-config")
+async def update_whatsapp_config(config: WhatsAppConfigUpdate):
+    updates = {k: v for k, v in config.model_dump().items() if v is not None}
+    updates["id"] = "whatsapp_config"
+    await db.whatsapp_config.update_one({"id": "whatsapp_config"}, {"$set": updates}, upsert=True)
+    return await db.whatsapp_config.find_one({"id": "whatsapp_config"}, {"_id": 0})
+
+# ==================== DATA MIGRATION (localStorage -> MongoDB) ====================
+
+class MigrationData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    emailJSConfig: Optional[dict] = None
+    whatsAppConfig: Optional[dict] = None
+    aiConfig: Optional[dict] = None
+    reservations: Optional[List[dict]] = None
+    coachAuth: Optional[dict] = None
+
+@api_router.post("/migrate-data")
+async def migrate_localstorage_to_mongodb(data: MigrationData):
+    """
+    Endpoint pour migrer les données du localStorage vers MongoDB.
+    Appelé une seule fois lors de la première utilisation après la migration.
+    """
+    migrated = {"emailJS": False, "whatsApp": False, "ai": False, "reservations": 0, "coachAuth": False}
+    
+    # Migration EmailJS Config
+    if data.emailJSConfig and data.emailJSConfig.get("serviceId"):
+        existing = await db.emailjs_config.find_one({"id": "emailjs_config"})
+        if not existing or not existing.get("serviceId"):
+            await db.emailjs_config.update_one(
+                {"id": "emailjs_config"}, 
+                {"$set": {**data.emailJSConfig, "id": "emailjs_config"}}, 
+                upsert=True
+            )
+            migrated["emailJS"] = True
+    
+    # Migration WhatsApp Config
+    if data.whatsAppConfig and data.whatsAppConfig.get("accountSid"):
+        existing = await db.whatsapp_config.find_one({"id": "whatsapp_config"})
+        if not existing or not existing.get("accountSid"):
+            await db.whatsapp_config.update_one(
+                {"id": "whatsapp_config"}, 
+                {"$set": {**data.whatsAppConfig, "id": "whatsapp_config"}}, 
+                upsert=True
+            )
+            migrated["whatsApp"] = True
+    
+    # Migration AI Config
+    if data.aiConfig and data.aiConfig.get("systemPrompt"):
+        existing = await db.ai_config.find_one({"id": "ai_config"})
+        if not existing or not existing.get("systemPrompt"):
+            await db.ai_config.update_one(
+                {"id": "ai_config"}, 
+                {"$set": {**data.aiConfig, "id": "ai_config"}}, 
+                upsert=True
+            )
+            migrated["ai"] = True
+    
+    # Migration Reservations
+    if data.reservations:
+        for res in data.reservations:
+            if res.get("reservationCode"):
+                existing = await db.reservations.find_one({"reservationCode": res["reservationCode"]})
+                if not existing:
+                    await db.reservations.insert_one(res)
+                    migrated["reservations"] += 1
+    
+    # Migration Coach Auth
+    if data.coachAuth:
+        existing = await db.coach_auth.find_one({"id": "coach_auth"})
+        if not existing:
+            await db.coach_auth.update_one(
+                {"id": "coach_auth"}, 
+                {"$set": {**data.coachAuth, "id": "coach_auth"}}, 
+                upsert=True
+            )
+            migrated["coachAuth"] = True
+    
+    logger.info(f"Migration completed: {migrated}")
+    return {"success": True, "migrated": migrated}
+
+@api_router.get("/migration-status")
+async def get_migration_status():
+    """Vérifie si les données ont été migrées vers MongoDB"""
+    emailjs = await db.emailjs_config.find_one({"id": "emailjs_config"}, {"_id": 0})
+    whatsapp = await db.whatsapp_config.find_one({"id": "whatsapp_config"}, {"_id": 0})
+    ai = await db.ai_config.find_one({"id": "ai_config"}, {"_id": 0})
+    reservations_count = await db.reservations.count_documents({})
+    
+    return {
+        "emailJS": bool(emailjs and emailjs.get("serviceId")),
+        "whatsApp": bool(whatsapp and whatsapp.get("accountSid")),
+        "ai": bool(ai and ai.get("systemPrompt")),
+        "reservationsCount": reservations_count,
+        "migrationComplete": True
+    }
+
 # ==================== AI WHATSAPP AGENT ====================
 
 class AIConfig(BaseModel):
