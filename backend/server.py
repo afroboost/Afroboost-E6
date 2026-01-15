@@ -642,9 +642,16 @@ async def get_concept():
 
 @api_router.put("/concept")
 async def update_concept(concept: ConceptUpdate):
-    updates = {k: v for k, v in concept.model_dump().items() if v is not None}
-    await db.concept.update_one({"id": "concept"}, {"$set": updates}, upsert=True)
-    return await db.concept.find_one({"id": "concept"}, {"_id": 0})
+    try:
+        updates = {k: v for k, v in concept.model_dump().items() if v is not None}
+        print(f"Updating concept with: {updates}")
+        result = await db.concept.update_one({"id": "concept"}, {"$set": updates}, upsert=True)
+        print(f"Update result: matched={result.matched_count}, modified={result.modified_count}")
+        updated = await db.concept.find_one({"id": "concept"}, {"_id": 0})
+        return updated
+    except Exception as e:
+        print(f"Error updating concept: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- Config ---
 @api_router.get("/config", response_model=AppConfig)
