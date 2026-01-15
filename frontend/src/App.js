@@ -3,6 +3,13 @@ import "@/App.css";
 import axios from "axios";
 import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
+import { 
+  getEmailJSConfig, 
+  saveEmailJSConfig, 
+  isEmailJSConfigured, 
+  sendBulkEmails,
+  testEmailJSConfig 
+} from "./services/emailService";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
