@@ -174,13 +174,17 @@ html, body {
 /* Conteneur parent des offres - SWIPE FLUIDE iPhone/Android */
 .offers-container, .offers-slider {
   display: flex !important;
+  flex-wrap: nowrap !important;
   overflow-x: auto !important;
   overflow-y: visible !important;
   -webkit-overflow-scrolling: touch !important; /* Vital pour iPhone */
   scroll-snap-type: x mandatory !important;
-  scroll-behavior: smooth;
-  gap: 15px;
-  padding: 20px;
+  scroll-behavior: smooth !important;
+  gap: 15px !important;
+  padding: 20px !important;
+  touch-action: pan-x !important; /* Permet le swipe horizontal */
+  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+  scrollbar-width: thin; /* Firefox */
 }
 
 /* QR Scanner Container - VISIBLE */
@@ -220,6 +224,8 @@ html, body {
     0 0 25px rgba(217, 28, 210, 0.5),
     0 0 40px rgba(217, 28, 210, 0.25),
     inset 0 0 30px rgba(217, 28, 210, 0.08);
+  height: auto !important;
+  max-height: none !important;
 }
 
 /* Offer Card Image - 250px HEIGHT */
@@ -362,18 +368,21 @@ html, body {
   50% { transform: scale(1.1); opacity: 0.8; }
 }
 
-/* Offers Horizontal Slider - SCROLL ENABLED */
+/* Offers Horizontal Slider - SCROLL ENABLED - PRIORITÉ HAUTE */
 .offers-slider {
   display: flex !important;
+  flex-wrap: nowrap !important;
   overflow-x: auto !important;
   overflow-y: visible !important;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: #d91cd2 rgba(0, 0, 0, 0.3);
-  gap: 16px;
-  padding: 10px 0;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #d91cd2 rgba(0, 0, 0, 0.3) !important;
+  gap: 16px !important;
+  padding: 10px 20px !important;
+  touch-action: pan-x !important;
+  -ms-overflow-style: none;
 }
 
 .offers-slider::-webkit-scrollbar {
