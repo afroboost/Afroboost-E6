@@ -4965,7 +4965,7 @@ function App() {
         </div>
 
         {selectedCourse && selectedDate && (
-          <div className="mb-8">
+          <div id="offers-section" className="mb-8">
             <h2 className="font-semibold mb-4 text-white" style={{ fontSize: '18px' }}>{t('chooseOffer')}</h2>
             
             {/* Horizontal Slider for Offers with LED effect - SWIPE FLUIDE */}
