@@ -1652,6 +1652,90 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 </div>
               </div>
 
+              {/* Affiche Événement (Popup) */}
+              <div className="mt-6 pt-6 border-t border-purple-500/30">
+                <h3 className="text-white text-sm font-semibold mb-4">🎉 Affiche Événement (Popup d'accueil)</h3>
+                <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Affichez une image ou vidéo en popup dès l'arrivée des visiteurs.
+                </p>
+                
+                {/* Toggle Activer/Désactiver */}
+                <div className="flex items-center justify-between p-3 rounded-lg mb-4" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📢</span>
+                    <span className="text-white text-sm">Activer l'affiche événement</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setConcept({ ...concept, eventPosterEnabled: !concept.eventPosterEnabled })}
+                    className={`relative w-12 h-6 rounded-full transition-all duration-300 ${concept.eventPosterEnabled ? 'bg-pink-500' : 'bg-gray-600'}`}
+                    data-testid="toggle-event-poster"
+                  >
+                    <span 
+                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${concept.eventPosterEnabled ? 'left-7' : 'left-1'}`}
+                    />
+                  </button>
+                </div>
+                
+                {/* URL du média (visible seulement si activé) */}
+                {concept.eventPosterEnabled && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block mb-1 text-white text-xs opacity-70">URL de l'image ou vidéo</label>
+                      <input 
+                        type="url" 
+                        value={concept.eventPosterMediaUrl || ''} 
+                        onChange={(e) => setConcept({ ...concept, eventPosterMediaUrl: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg neon-input text-sm" 
+                        placeholder="https://... (image ou vidéo YouTube/Vimeo)"
+                        data-testid="event-poster-url"
+                      />
+                    </div>
+                    
+                    {/* Aperçu du média */}
+                    {concept.eventPosterMediaUrl && (
+                      <div className="mt-3">
+                        <label className="block mb-2 text-white text-xs opacity-70">Aperçu :</label>
+                        <div className="rounded-lg overflow-hidden border border-purple-500/30" style={{ maxWidth: '300px' }}>
+                          {concept.eventPosterMediaUrl.includes('youtube.com') || concept.eventPosterMediaUrl.includes('youtu.be') ? (
+                            <div className="aspect-video">
+                              <iframe 
+                                src={`https://www.youtube.com/embed/${concept.eventPosterMediaUrl.includes('youtu.be') 
+                                  ? concept.eventPosterMediaUrl.split('/').pop() 
+                                  : new URLSearchParams(new URL(concept.eventPosterMediaUrl).search).get('v')}`}
+                                className="w-full h-full"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title="Event poster preview"
+                              />
+                            </div>
+                          ) : concept.eventPosterMediaUrl.includes('vimeo.com') ? (
+                            <div className="aspect-video">
+                              <iframe 
+                                src={`https://player.vimeo.com/video/${concept.eventPosterMediaUrl.split('/').pop()}`}
+                                className="w-full h-full"
+                                frameBorder="0"
+                                allow="autoplay; fullscreen; picture-in-picture"
+                                allowFullScreen
+                                title="Event poster preview"
+                              />
+                            </div>
+                          ) : (
+                            <img 
+                              src={concept.eventPosterMediaUrl} 
+                              alt="Aperçu affiche événement" 
+                              className="w-full"
+                              onError={(e) => { e.target.src = ''; e.target.alt = 'Image non valide'; }}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <button onClick={saveConcept} className="btn-primary px-6 py-3 rounded-lg mt-6" data-testid="save-concept">{t('save')}</button>
             </div>
           </div>
