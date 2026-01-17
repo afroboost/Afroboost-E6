@@ -2953,7 +2953,11 @@ function App() {
           {visibleCourses.length > 0 && (
             <>
               <h2 className="font-semibold mb-4 text-white" style={{ fontSize: '18px' }}>{t('chooseSession')}</h2>
-              <div className="space-y-4">
+              {/* Container avec scroll pour mobile */}
+              <div 
+                className="space-y-4 custom-scrollbar" 
+                style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}
+              >
                 {visibleCourses.map(course => (
                   <div key={course.id} className={`course-card rounded-xl p-5 ${selectedCourse?.id === course.id ? 'selected' : ''}`} data-testid={`course-card-${course.id}`}>
                     <h3 className="font-semibold text-white">{course.name}</h3>
