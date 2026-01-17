@@ -444,6 +444,27 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Section "Cours archivés"** : Affiche les cours archivés avec compteur
   - **Bouton restaurer** : Permet de récupérer un cours archivé
   - **Backend** : Champ `archived: bool` ajouté au modèle Course + endpoint /archive
+- [x] **UI Ultra-Minimaliste avec Navigation Onglets (17 Jan 2026)**:
+  - **3 icônes de navigation** : Tout, Cours, Shop (style micro 26px, cercles fins)
+  - **Design similaire au globe** : Icônes en traits fins (strokeWidth 1.5)
+  - **État actif** : Bordure et fond rose (#D91CD2) sur l'icône sélectionnée
+  - **Filtrage fonctionnel** : Cliquer sur "Shop" masque complètement les sessions
+  - **Texte Shop** : Blanc pur (#ffffff) et police fine (fontWeight 300)
+  - **Scrollbar sessions** : Rose (#D91CD2), 4px de largeur
+  - **Padding glow** : 30px en haut pour éviter que l'effet glow soit coupé
+- [x] **Sélecteur de Variantes Interactif (17 Jan 2026)**:
+  - **Chips cliquables** : Tailles, couleurs présentées en boutons arrondis
+  - **Style** : Bordure rose fine, fond rose sur sélection
+  - **Validation obligatoire** : Le client DOIT sélectionner une variante avant l'ajout au panier
+  - **Message d'erreur** : "Veuillez sélectionner: taille, couleur" si non sélectionné
+  - **Récapitulatif** : Les variantes choisies apparaissent sur le ticket de confirmation
+  - **Backend** : Champs `selectedVariants` et `variantsText` dans le modèle Reservation
+- [x] **Personnalisation Identité Application (17 Jan 2026)**:
+  - **Section Admin** : "🎨 Identité de l'application" dans Mode Coach → Concept & Visuel
+  - **Nom de l'application** : Champ pour changer le titre principal ("Afroboost" → custom)
+  - **URL du Logo** : Champ pour configurer le logo (Splash Screen & PWA)
+  - **Persistance MongoDB** : Champ `appName` ajouté au modèle Concept
+  - **Dynamique** : Le titre du site utilise `concept.appName` au lieu de la traduction
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
