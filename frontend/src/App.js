@@ -2829,26 +2829,88 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
 
         <div className="flex gap-2 mb-6 flex-wrap">
           {tabs.map(tb => (
-            <button key={tb.id} onClick={() => setTab(tb.id)} className={`coach-tab px-4 py-2 rounded-lg text-sm ${tab === tb.id ? 'active' : ''}`}
+            <button key={tb.id} onClick={() => setTab(tb.id)} className={`coach-tab px-3 py-2 rounded-lg text-xs sm:text-sm ${tab === tb.id ? 'active' : ''}`}
               style={{ color: 'white' }} data-testid={`coach-tab-${tb.id}`}>{tb.label}</button>
           ))}
         </div>
 
-        {/* Reservations Tab */}
+        {/* Reservations Tab - Responsive: Table on PC, Cards on Mobile */}
         {tab === "reservations" && (
-          <div className="card-gradient rounded-xl p-6">
+          <div className="card-gradient rounded-xl p-4 sm:p-6">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-              <h2 className="font-semibold text-white" style={{ fontSize: '20px' }}>{t('reservationsList')}</h2>
-              <div className="flex gap-2">
-                <button onClick={() => setShowScanner(true)} className="btn-primary px-4 py-2 rounded-lg flex items-center gap-2" data-testid="scan-ticket-btn">
-                  📷 Scanner un ticket
+              <h2 className="font-semibold text-white text-lg sm:text-xl">{t('reservationsList')}</h2>
+              <div className="flex gap-2 flex-wrap">
+                <button onClick={() => setShowScanner(true)} className="btn-primary px-3 py-2 rounded-lg flex items-center gap-2 text-xs sm:text-sm" data-testid="scan-ticket-btn">
+                  📷 Scanner
                 </button>
-                <button onClick={exportCSV} className="csv-btn" data-testid="export-csv">{t('downloadCSV')}</button>
+                <button onClick={exportCSV} className="csv-btn text-xs sm:text-sm" data-testid="export-csv">{t('downloadCSV')}</button>
               </div>
             </div>
             
-            {/* Scrollable reservations table */}
-            <div className="overflow-x-auto overflow-y-auto rounded-lg" style={{ maxHeight: '600px' }}>
+            {/* === MOBILE VIEW: Cards === */}
+            <div className="block md:hidden space-y-3">
+              {reservations.map(r => {
+                const dt = new Date(r.datetime);
+                const isProduct = r.selectedVariants || r.trackingNumber || r.shippingStatus !== 'pending';
+                return (
+                  <div key={r.id} className={`p-4 rounded-lg glass ${r.validated ? 'border border-green-500/30' : 'border border-purple-500/20'}`}>
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <span className="text-pink-400 font-bold text-sm">{r.reservationCode || '-'}</span>
+                        <h3 className="text-white font-semibold">{r.userName}</h3>
+                        <p className="text-white/60 text-xs">{r.userEmail}</p>
+                        {r.userWhatsapp && <p className="text-white/60 text-xs">📱 {r.userWhatsapp}</p>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {r.validated ? (
+                          <span className="px-2 py-1 rounded text-xs bg-green-600 text-white">✅</span>
+                        ) : (
+                          <span className="px-2 py-1 rounded text-xs bg-yellow-600 text-white">⏳</span>
+                        )}
+                        <button 
+                          onClick={() => deleteReservation(r.id)}
+                          className="p-2 rounded-lg hover:bg-red-500/20 transition-all"
+                          title={t('deleteReservation')}
+                          data-testid={`delete-reservation-${r.id}`}
+                        >
+                          <span style={{ color: '#ef4444', fontSize: '16px' }}>🗑️</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
+                      <div><span className="opacity-50">Cours:</span> {r.courseName}</div>
+                      <div><span className="opacity-50">Date:</span> {dt.toLocaleDateString('fr-CH')}</div>
+                      <div><span className="opacity-50">Offre:</span> {r.offerName}</div>
+                      <div><span className="opacity-50">Total:</span> <span className="text-white font-bold">CHF {r.totalPrice || r.price}</span></div>
+                    </div>
+                    {isProduct && (
+                      <div className="mt-3 pt-3 border-t border-white/10 flex gap-2">
+                        <input 
+                          type="text" 
+                          placeholder="N° suivi" 
+                          defaultValue={r.trackingNumber || ''}
+                          onBlur={(e) => updateTracking(r.id, e.target.value, r.shippingStatus || 'pending')}
+                          className="px-2 py-1 rounded text-xs neon-input flex-1"
+                        />
+                        <select 
+                          defaultValue={r.shippingStatus || 'pending'}
+                          onChange={(e) => updateTracking(r.id, r.trackingNumber, e.target.value)}
+                          className="px-2 py-1 rounded text-xs neon-input"
+                        >
+                          <option value="pending">📦</option>
+                          <option value="shipped">🚚</option>
+                          <option value="delivered">✅</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {reservations.length === 0 && <p className="text-center py-8 text-white/50">{t('noReservations')}</p>}
+            </div>
+            
+            {/* === DESKTOP VIEW: Table === */}
+            <div className="hidden md:block overflow-x-auto overflow-y-auto rounded-lg" style={{ maxHeight: '600px' }}>
               <table className="coach-table">
                 <thead className="sticky top-0 bg-black z-10">
                   <tr>
@@ -2863,7 +2925,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                     <th className="bg-black">{t('qty')}</th>
                     <th className="bg-black">{t('total')}</th>
                     <th className="bg-black">Statut</th>
-                    <th className="bg-black">📦 Expédition</th>
+                    <th className="bg-black">📦</th>
+                    <th className="bg-black">🗑️</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2922,10 +2985,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                             <span className="text-xs opacity-30">-</span>
                           )}
                         </td>
+                        {/* Delete button */}
+                        <td>
+                          <button 
+                            onClick={() => deleteReservation(r.id)}
+                            className="p-2 rounded-lg hover:bg-red-500/20 transition-all"
+                            title={t('deleteReservation')}
+                            data-testid={`delete-reservation-${r.id}`}
+                          >
+                            <span style={{ color: '#ef4444' }}>🗑️</span>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
-                  {reservations.length === 0 && <tr><td colSpan="12" className="text-center py-8" style={{ opacity: 0.5 }}>{t('noReservations')}</td></tr>}
+                  {reservations.length === 0 && <tr><td colSpan="13" className="text-center py-8" style={{ opacity: 0.5 }}>{t('noReservations')}</td></tr>}
                 </tbody>
               </table>
             </div>
