@@ -355,6 +355,15 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Chat IA personnalisé** : "Enchanté [Prénom] ! Je suis l'assistant IA d'Afroboost..."
   - **Contexte enrichi** : L'IA utilise la description Afroboost et les cours disponibles
   - **API Endpoints** : POST /api/leads, GET /api/leads, POST /api/chat
+- [x] **Amélioration UX Carrousel des Offres (17 Jan 2026)**:
+  - **Auto-play** : Défilement automatique toutes les 3.5 secondes pour montrer la multiplicité des offres
+  - **Indicateur "Auto"** : Badge en haut à droite avec point rose pulsant quand l'auto-play est actif
+  - **Pause intelligente** : Auto-play se met en pause au survol de souris ou au toucher (reprend après 5s)
+  - **Consigne visuelle** : Texte rose "👉 Sélectionnez une offre pour continuer" au-dessus du carrousel
+  - **Points de pagination** : Indicateurs cliquables pour naviguer manuellement entre les offres
+  - **Scroll automatique vers formulaire** : Après clic sur une offre, scroll fluide vers "Vos informations"
+  - **Badge "✓ Sélectionné"** : Visible sur l'offre choisie avec effet glow rose
+  - **Composant OffersSliderAutoPlay** : Nouveau composant dans App.js (lignes 946-1081)
 
 ### P1 - À faire
 - [ ] Continuer refactoring: Extraire CoachDashboard, CoachLoginModal dans composants séparés
