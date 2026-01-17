@@ -1939,9 +1939,10 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                       <div className={`switch ${course.visible !== false ? 'active' : ''}`} 
                         onClick={() => { 
                           const n = [...courses]; 
-                          n[idx].visible = course.visible === false ? true : false; 
+                          const realIdx = courses.findIndex(c => c.id === course.id);
+                          n[realIdx].visible = course.visible === false ? true : false; 
                           setCourses(n); 
-                          updateCourse({ ...course, visible: n[idx].visible }); 
+                          updateCourse({ ...course, visible: n[realIdx].visible }); 
                         }} 
                         data-testid={`course-visible-${course.id}`}
                       />
@@ -1953,6 +1954,38 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                 </div>
               ))}
             </div>
+            
+            {/* Section Cours Archivés */}
+            {courses.filter(c => c.archived).length > 0 && (
+              <div className="mt-6 pt-6 border-t border-purple-500/30">
+                <h3 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
+                  <span>📁</span> Cours archivés ({courses.filter(c => c.archived).length})
+                </h3>
+                <div className="space-y-2">
+                  {courses.filter(c => c.archived).map(course => (
+                    <div key={course.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)' }}>
+                      <span className="text-white text-sm opacity-70">{course.name}</span>
+                      <button 
+                        onClick={async () => {
+                          try {
+                            await axios.put(`${API}/courses/${course.id}`, { ...course, archived: false });
+                            setCourses(courses.map(c => c.id === course.id ? { ...c, archived: false } : c));
+                          } catch (err) {
+                            console.error("Erreur restauration cours:", err);
+                          }
+                        }}
+                        className="px-3 py-1 rounded text-xs"
+                        style={{ background: 'rgba(34, 197, 94, 0.3)', color: '#22c55e' }}
+                        data-testid={`restore-course-${course.id}`}
+                      >
+                        ↩️ Restaurer
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={addCourse} className="glass rounded-lg p-4 mt-4">
               <h3 className="text-white mb-4 font-semibold text-sm">{t('addCourse')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
