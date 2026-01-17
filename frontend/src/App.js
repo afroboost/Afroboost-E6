@@ -3057,12 +3057,15 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                   {/* Toggle Twint */}
                   <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
                     <div className="flex items-center gap-3">
-                      <img 
-                        src="https://upload.wikimedia.org/wikipedia/commons/8/83/Twint_Logo.svg" 
-                        alt="Twint" 
-                        style={{ height: '20px' }}
-                        onError={(e) => { e.target.src = ''; e.target.alt = 'Twint'; }}
-                      />
+                      <div style={{ 
+                        background: '#00A9E0', 
+                        borderRadius: '4px', 
+                        padding: '2px 6px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>TWINT</span>
+                      </div>
                       <span className="text-white text-sm">Twint</span>
                     </div>
                     <button
