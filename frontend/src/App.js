@@ -3034,34 +3034,6 @@ function App() {
         )}
 
         {/* =====================================================
-            BOUTON EXPERIENCE AUDIO IMMERSIVE
-            Visible si: cours sélectionné + playlist existe + feature flag activé
-            ===================================================== */}
-        {selectedCourse && 
-         selectedCourse.playlist && 
-         selectedCourse.playlist.length > 0 && 
-         audioFeatureEnabled && (
-          <div className="mb-6">
-            <button
-              onClick={() => setShowAudioPlayer(true)}
-              className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3"
-              style={{
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(217, 28, 210, 0.3))',
-                border: '1px solid rgba(217, 28, 210, 0.5)',
-                boxShadow: '0 0 20px rgba(217, 28, 210, 0.2)'
-              }}
-              data-testid="join-audio-experience-btn"
-            >
-              <span style={{ fontSize: '24px' }}>🎧</span>
-              <span>Rejoindre l'expérience immersive</span>
-            </button>
-            <p className="text-center text-white/40 text-xs mt-2">
-              Ambiance musicale pendant votre session
-            </p>
-          </div>
-        )}
-
-        {/* =====================================================
             LECTEUR AUDIO IMMERSIF (Mini Player)
             Design sobre sur fond noir, contrôle du volume
             ===================================================== */}
