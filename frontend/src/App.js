@@ -3501,6 +3501,35 @@ function App() {
               </div>
             </div>
             
+            {/* =====================================================
+                BOUTON EXPERIENCE AUDIO IMMERSIVE
+                Visible si: cours sélectionné + playlist existe + feature flag activé
+                Positionné juste au-dessus du bouton de réservation
+                ===================================================== */}
+            {selectedCourse && 
+             selectedCourse.playlist && 
+             selectedCourse.playlist.length > 0 && 
+             audioFeatureEnabled && (
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAudioPlayer(true)}
+                  className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3"
+                  style={{
+                    background: 'linear-gradient(135deg, #8b5cf6, #d91cd2)',
+                    boxShadow: '0 4px 20px rgba(217, 28, 210, 0.4)'
+                  }}
+                  data-testid="join-audio-experience-btn"
+                >
+                  <span style={{ fontSize: '24px' }}>🎧</span>
+                  <span>Rejoindre l'expérience immersive</span>
+                </button>
+                <p className="text-center text-white/40 text-xs mt-2">
+                  Ambiance musicale pendant votre session
+                </p>
+              </div>
+            )}
+
             {/* DYNAMISME DU BOUTON: Change selon le montant total */}
             <button type="submit" disabled={!hasAcceptedTerms || loading} 
               className={`w-full py-4 rounded-xl font-bold uppercase tracking-wide ${parseFloat(totalPrice) === 0 ? 'btn-free' : 'btn-primary'}`} 
