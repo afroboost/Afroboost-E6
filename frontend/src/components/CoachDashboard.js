@@ -266,15 +266,19 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
       return;
     }
     
+    // Mode normal - un seul code
+    const beneficiaryEmail = selectedBeneficiaries.length > 0 ? selectedBeneficiaries[0] : null;
+    
     const response = await axios.post(`${API}/discount-codes`, {
       code: newCode.code || `CODE-${Date.now().toString().slice(-4)}`,
       type: newCode.type, value: parseFloat(newCode.value),
-      assignedEmail: newCode.assignedEmail || null,
+      assignedEmail: beneficiaryEmail,
       courses: newCode.courses, maxUses: newCode.maxUses ? parseInt(newCode.maxUses) : null,
       expiresAt: newCode.expiresAt || null
     });
     setDiscountCodes([...discountCodes, response.data]);
-    setNewCode({ code: "", type: "", value: "", assignedEmail: "", courses: [], maxUses: "", expiresAt: "", batchCount: 1, prefix: "" });
+    setNewCode({ code: "", type: "", value: "", assignedEmails: [], courses: [], maxUses: "", expiresAt: "", batchCount: 1, prefix: "" });
+    setSelectedBeneficiaries([]);
   };
 
   // Génération en série de codes promo - Crée réellement N entrées distinctes en base
