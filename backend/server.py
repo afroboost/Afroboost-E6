@@ -509,6 +509,20 @@ async def get_user(user_id: str):
         user['createdAt'] = datetime.fromisoformat(user['createdAt'].replace('Z', '+00:00'))
     return user
 
+@api_router.put("/users/{user_id}", response_model=User)
+async def update_user(user_id: str, user: UserCreate):
+    """Update an existing user/contact"""
+    existing = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = user.model_dump()
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    updated = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if isinstance(updated.get('createdAt'), str):
+        updated['createdAt'] = datetime.fromisoformat(updated['createdAt'].replace('Z', '+00:00'))
+    return updated
+
 @api_router.delete("/users/{user_id}")
 async def delete_user(user_id: str):
     """Supprime un utilisateur/contact et nettoie les références dans les codes promo"""
