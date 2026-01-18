@@ -536,6 +536,19 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Sauvegarde** : Playlist liée à l'ID du cours et persistée en MongoDB
   - **Tests** : 10/10 backend pytest passés
   - **Onglets inchangés** : Paiements et Réservations non modifiés
+- [x] **Lecteur Audio Immersif Client (18 Jan 2026)**:
+  - **Bouton conditionnel** : "🎧 Rejoindre l'expérience immersive" visible uniquement si :
+    - Le cours sélectionné a une playlist (`playlist.length > 0`)
+    - ET le feature flag `AUDIO_SERVICE_ENABLED` est activé
+  - **Positionnement** : Juste au-dessus du bouton "Payer et Réserver"
+  - **Style** : Dégradé violet/rose (`linear-gradient(135deg, #8b5cf6, #d91cd2)`) avec ombre portée
+  - **Log console** : `Audio Service: ENABLED/DISABLED` affiché au chargement
+  - **Lecteur mini** : S'ouvre en bas de l'écran (fixed) sans bloquer l'interface de réservation
+  - **Contrôles** : Play/Pause, piste suivante/précédente, volume slider
+  - **Info piste** : "Piste 1 / 3" avec nom du cours affiché
+  - **Fermeture** : Bouton × pour fermer le lecteur
+  - **Testable sans paiement** : Le lecteur est accessible avant le paiement pour permettre les tests
+  - **Tests** : Tous les scénarios conditionnels vérifiés (flag ON/OFF, avec/sans playlist)
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
