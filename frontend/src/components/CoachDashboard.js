@@ -2837,12 +2837,45 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
                             {code.type === '100%' ? '100%' : `${code.value}${code.type}`}
                           </span>
                         </div>
-                        <div className="text-white text-xs opacity-50">
-                          {code.assignedEmail && <span className="mr-3">📧 {code.assignedEmail}</span>}
-                          {code.maxUses && <span className="mr-3">🔢 Max: {code.maxUses}</span>}
-                          {code.expiresAt && <span className="mr-3">📅 {new Date(code.expiresAt).toLocaleDateString()}</span>}
+                        <div className="text-white text-xs opacity-50 flex flex-wrap items-center gap-2">
+                          {/* Bénéficiaire avec croix de suppression */}
+                          {code.assignedEmail && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-600/20 text-blue-300">
+                              📧 {code.assignedEmail}
+                              <button
+                                onClick={() => removeBeneficiaryFromExistingCode(code.id)}
+                                className="hover:text-white ml-1 font-bold"
+                                title="Retirer ce bénéficiaire"
+                              >×</button>
+                            </span>
+                          )}
+                          {code.maxUses && <span className="mr-2">🔢 Max: {code.maxUses}</span>}
+                          {code.expiresAt && <span className="mr-2">📅 {new Date(code.expiresAt).toLocaleDateString()}</span>}
                           <span>✓ {t('used')}: {code.used || 0}x</span>
                         </div>
+                        {/* Articles autorisés avec croix de suppression (mise à jour immédiate en DB) */}
+                        {code.courses && code.courses.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            <span className="text-white text-xs opacity-40 mr-1">Articles:</span>
+                            {code.courses.map(articleId => {
+                              const course = courses.find(c => c.id === articleId);
+                              const offer = offers.find(o => o.id === articleId);
+                              const name = course?.name?.split(' – ')[0] || offer?.name || articleId;
+                              const bgColor = course ? 'bg-purple-600/20' : offer?.isProduct ? 'bg-pink-600/20' : 'bg-blue-600/20';
+                              const textColor = course ? 'text-purple-300' : offer?.isProduct ? 'text-pink-300' : 'text-blue-300';
+                              return (
+                                <span key={articleId} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${bgColor} ${textColor}`}>
+                                  {name}
+                                  <button
+                                    onClick={() => removeArticleFromExistingCode(code.id, articleId)}
+                                    className="hover:text-white ml-1 font-bold"
+                                    title="Retirer cet article (mise à jour immédiate)"
+                                  >×</button>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {/* Edit button */}
