@@ -1106,8 +1106,9 @@ async def get_feature_flags():
             "updatedAt": None,
             "updatedBy": None
         }
-        await db.feature_flags.insert_one(default_flags)
-        return default_flags
+        await db.feature_flags.insert_one(default_flags.copy())  # .copy() pour éviter mutation
+        # Retourner sans _id
+        return {k: v for k, v in default_flags.items() if k != "_id"}
     return flags
 
 @api_router.put("/feature-flags")
