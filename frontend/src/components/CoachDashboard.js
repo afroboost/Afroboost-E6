@@ -344,12 +344,45 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     );
   };
   
-  // Supprimer un article (cours/produit) de la liste des autorisés
+  // Supprimer un article (cours/produit) de la liste des autorisés (formulaire de création)
   const removeAllowedArticle = (articleId) => {
     setNewCode(prev => ({
       ...prev,
       courses: prev.courses.filter(id => id !== articleId)
     }));
+  };
+  
+  // Supprimer un article d'un code promo EXISTANT (mise à jour immédiate en base)
+  const removeArticleFromExistingCode = async (codeId, articleId) => {
+    const code = discountCodes.find(c => c.id === codeId);
+    if (!code) return;
+    
+    const updatedCourses = (code.courses || []).filter(id => id !== articleId);
+    
+    try {
+      await axios.put(`${API}/discount-codes/${codeId}`, { courses: updatedCourses });
+      setDiscountCodes(prev => prev.map(c => 
+        c.id === codeId ? { ...c, courses: updatedCourses } : c
+      ));
+      console.log(`✅ Article ${articleId} retiré du code ${code.code}`);
+    } catch (error) {
+      console.error("Erreur suppression article:", error);
+      alert("❌ Erreur lors de la mise à jour");
+    }
+  };
+  
+  // Supprimer un bénéficiaire d'un code promo EXISTANT (mise à jour immédiate en base)
+  const removeBeneficiaryFromExistingCode = async (codeId) => {
+    try {
+      await axios.put(`${API}/discount-codes/${codeId}`, { assignedEmail: null });
+      setDiscountCodes(prev => prev.map(c => 
+        c.id === codeId ? { ...c, assignedEmail: null } : c
+      ));
+      console.log(`✅ Bénéficiaire retiré du code`);
+    } catch (error) {
+      console.error("Erreur suppression bénéficiaire:", error);
+      alert("❌ Erreur lors de la mise à jour");
+    }
   };
   
   // Mettre à jour un code promo individuellement
