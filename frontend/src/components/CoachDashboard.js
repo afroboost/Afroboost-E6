@@ -603,20 +603,33 @@ const CoachDashboard = ({ t, lang, onBack, onLogout }) => {
     }
   };
 
-  // Supprimer une offre
+  // Supprimer une offre - SUPPRESSION DÉFINITIVE + NETTOYAGE CODES PROMO
   const deleteOffer = async (offerId) => {
-    if (!window.confirm("⚠️ Supprimer définitivement cette offre ?\n\nCette action:\n• Supprime l'offre de la base\n• Retire l'offre des codes promo associés")) return;
+    if (!window.confirm("⚠️ SUPPRESSION DÉFINITIVE\n\nCette offre sera supprimée de la base de données.\nElle sera retirée de tous les codes promo.\n\nConfirmer la suppression ?")) return;
     try {
+      // 1. Supprimer en base de données (le backend nettoie aussi les codes promo)
       await axios.delete(`${API}/offers/${offerId}`);
-      setOffers(prevOffers => prevOffers.filter(o => o.id !== offerId));
-      // Nettoyer localement les références dans les codes promo
-      setDiscountCodes(codes => codes.map(c => ({
+      
+      // 2. Mettre à jour le state local
+      setOffers(prev => prev.filter(o => o.id !== offerId));
+      
+      // 3. Nettoyer localement les références dans les codes promo
+      setDiscountCodes(prev => prev.map(c => ({
         ...c,
         courses: c.courses ? c.courses.filter(id => id !== offerId) : []
       })));
+      
+      // 4. Appeler sanitizeData pour s'assurer que la base est propre
+      try {
+        await axios.post(`${API}/sanitize-data`);
+      } catch (sanitizeErr) {
+        console.warn("Sanitize warning:", sanitizeErr);
+      }
+      
+      console.log(`✅ Offre ${offerId} supprimée définitivement`);
     } catch (err) {
       console.error("Erreur suppression offre:", err);
-      alert("Erreur lors de la suppression");
+      alert("❌ Erreur lors de la suppression");
     }
   };
 
