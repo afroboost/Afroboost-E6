@@ -2722,6 +2722,8 @@ function App() {
 
   const renderDates = (course) => {
     const dates = getNextOccurrences(course.weekday);
+    const hasPlaylist = course.playlist && course.playlist.length > 0 && audioFeatureEnabled;
+    
     return (
       <div className="grid grid-cols-2 gap-2 mt-3">
         {dates.map((date, idx) => {
@@ -2740,8 +2742,37 @@ function App() {
                 }
               }}
               className={`session-btn px-3 py-2 rounded-lg text-sm font-medium ${isSelected ? 'selected' : ''}`}
-              style={{ color: 'white' }} data-testid={`date-btn-${course.id}-${idx}`}>
-              {formatDate(date, course.time, lang)} {isSelected && '✔'}
+              style={{ color: 'white', position: 'relative' }} data-testid={`date-btn-${course.id}-${idx}`}>
+              <span className="flex items-center justify-center gap-2">
+                {formatDate(date, course.time, lang)} {isSelected && '✔'}
+                {/* Icône Audio si playlist disponible */}
+                {hasPlaylist && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation(); // Ne pas interférer avec la sélection de date
+                      // Sélectionner ce cours si pas déjà sélectionné
+                      if (selectedCourse?.id !== course.id) {
+                        setSelectedCourse(course);
+                        setSelectedDates([dateISO]);
+                      }
+                      // Ouvrir le lecteur audio
+                      setShowAudioPlayer(true);
+                    }}
+                    className="audio-icon-session"
+                    style={{
+                      color: '#d91cd2',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      marginLeft: '4px',
+                      transition: 'transform 0.2s, filter 0.2s'
+                    }}
+                    title="Écouter l'ambiance audio"
+                    data-testid={`audio-icon-${course.id}-${idx}`}
+                  >
+                    🎧
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}
