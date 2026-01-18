@@ -491,6 +491,16 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Édition** : Champ `keywords` pré-rempli lors du clic sur "Modifier" une offre
   - **Recherche client** : Filtre par titre + description + mots-clés instantanément
   - **Tests** : Keywords persistence et search functionality vérifiés
+- [x] **Système de Cache Frontend (18 Jan 2026)**:
+  - **Cache mémoire** : TTL 5 minutes pour courses/offers, 10 min pour concept/paymentLinks
+  - **Invalidation** : Cache invalidé automatiquement en sortant du Mode Coach
+  - **Logs console** : `📦 Cache: ✓courses ✓offers ↓concept` (✓=cache hit, ↓=fetch)
+  - **Navigation fluide** : Onglets Tout/Cours/Shop sans re-téléchargement
+  - **Tests** : 14/14 tests backend pytest + 100% frontend passés
+- [x] **Refactoring CoachLoginModal (18 Jan 2026)**:
+  - **Extraction** : Composant extrait vers `/components/CoachLoginModal.js` (226 lignes)
+  - **App.js réduit** : De 3552 à 3444 lignes (-108 lignes)
+  - **Fonctionnalités** : Login, récupération mot de passe intactes
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
