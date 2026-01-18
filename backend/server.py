@@ -78,6 +78,7 @@ class Course(BaseModel):
     mapsUrl: Optional[str] = ""
     visible: bool = True
     archived: bool = False  # Archive au lieu de supprimer
+    playlist: Optional[List[str]] = None  # Liste des URLs audio pour ce cours
 
 class CourseCreate(BaseModel):
     name: str
@@ -87,6 +88,7 @@ class CourseCreate(BaseModel):
     mapsUrl: Optional[str] = ""
     visible: bool = True
     archived: bool = False
+    playlist: Optional[List[str]] = None  # Liste des URLs audio
 
 class Offer(BaseModel):
     model_config = ConfigDict(extra="ignore")
