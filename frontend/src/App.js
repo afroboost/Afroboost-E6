@@ -659,55 +659,60 @@ const HeroMediaWithAudio = ({
   // ========== ARCHITECTURE AUDIO "TOUJOURS ACTIVE" ==========
   // Le canal audio est ouvert dès le clic REJOINDRE, pas quand le coach envoie PLAY
   const startAudioChannel = useCallback(async () => {
-    console.log('[Audio] 🔊 OUVERTURE DU CANAL AUDIO (architecture toujours active)...');
+    console.log('[Audio] 🔊 OUVERTURE DU CANAL AUDIO AU CLIC...');
+    
+    // Vérifier que l'élément audio existe
+    if (!audioRef.current) {
+      console.error('[Audio] ❌ audioRef.current est NULL - élément audio manquant!');
+      return false;
+    }
     
     try {
       // ÉTAPE 1: Créer et activer l'AudioContext
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
         audioContextRef.current = new AudioContextClass();
-        console.log('[Audio] AudioContext créé');
+        console.log('[Audio] AudioContext créé, state:', audioContextRef.current.state);
       }
       
-      // ÉTAPE 2: Resume IMMÉDIAT (CRITIQUE pour mobile)
+      // ÉTAPE 2: Resume IMMÉDIAT (CRITIQUE pour Samsung/iPhone)
       if (audioContextRef.current.state === 'suspended') {
         await audioContextRef.current.resume();
-        console.log('[Audio] AudioContext resumed');
+        console.log('[Audio] AudioContext resumed, state:', audioContextRef.current.state);
       }
       
-      // ÉTAPE 3: Jouer un oscillateur silencieux pour activer le haut-parleur
+      // ÉTAPE 3: Jouer un oscillateur pour activer le haut-parleur (BIP audible)
       const oscillator = audioContextRef.current.createOscillator();
       const gainNode = audioContextRef.current.createGain();
-      gainNode.gain.setValueAtTime(0.01, audioContextRef.current.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContextRef.current.currentTime); // Volume audible
       oscillator.connect(gainNode);
       gainNode.connect(audioContextRef.current.destination);
-      oscillator.frequency.value = 440; // La note (audible brièvement)
+      oscillator.frequency.value = 440; // La 440Hz
       oscillator.start();
-      oscillator.stop(audioContextRef.current.currentTime + 0.05);
-      console.log('[Audio] Oscillateur joué (bip court)');
+      oscillator.stop(audioContextRef.current.currentTime + 0.1); // 100ms
+      console.log('[Audio] 🔔 BIP 440Hz joué (100ms)');
       
-      // ÉTAPE 4: Préparer l'élément audio avec une source silencieuse
-      if (audioRef.current) {
-        audioRef.current.src = SILENT_AUDIO_SRC;
-        audioRef.current.loop = true; // Boucle sur le silence
-        audioRef.current.volume = 0.01;
-        audioRef.current.muted = false;
-        
-        // ÉTAPE 5: JOUER IMMÉDIATEMENT (ouvre le canal)
-        const playPromise = audioRef.current.play();
-        if (playPromise) {
-          await playPromise;
-          console.log('[Audio] ✅ CANAL AUDIO OUVERT - élément audio en lecture');
-        }
-      }
+      // ÉTAPE 4: Charger et jouer la source silencieuse IMMÉDIATEMENT
+      audioRef.current.src = SILENT_AUDIO_SRC;
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.01;
+      audioRef.current.muted = false;
+      
+      // ÉTAPE 5: PLAY IMMÉDIAT - CRITIQUE pour ouvrir le canal
+      console.log('[Audio] Tentative audioRef.play()...');
+      await audioRef.current.play();
+      console.log('[Audio] ✅ CANAL AUDIO OUVERT - audioRef en lecture (silence en boucle)');
       
       setAudioUnlocked(true);
-      console.log('[Audio] ✅ Architecture audio "toujours active" initialisée');
       return true;
       
     } catch (e) {
-      console.error('[Audio] ❌ Erreur ouverture canal:', e);
-      setAudioUnlocked(true); // Marquer quand même pour permettre le retry
+      console.error('[Audio] ❌ Erreur ouverture canal:', e.name, e.message);
+      // Même en cas d'erreur, marquer comme déverrouillé pour permettre retry
+      setAudioUnlocked(true);
+      return false;
+    }
+  }, []);
       return false;
     }
   }, []);
