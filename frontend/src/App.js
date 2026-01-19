@@ -1416,7 +1416,19 @@ const HeroMediaWithAudio = ({
               boxShadow: '0 0 50px rgba(217, 28, 210, 0.3)'
             }}>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <span style={{ fontSize: '64px' }}>🎧</span>
+                <div style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  borderRadius: '50%', 
+                  background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  boxShadow: '0 0 30px rgba(217, 28, 210, 0.5)'
+                }}>
+                  <span style={{ fontSize: '36px' }}>♪</span>
+                </div>
                 <h2 style={{ color: '#fff', fontSize: '24px', marginTop: '16px' }}>Rejoindre le Live</h2>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginTop: '8px' }}>
                   Entrez le code de session donné par votre coach
