@@ -1117,11 +1117,21 @@ const HeroMediaWithAudio = ({
             break;
             
           case "SESSION_END":
+            // ========== SESSION TERMINÉE: Quitter automatiquement ==========
+            console.log('[Silent Disco] Session terminée par le coach');
             setIsPlaying(false);
             setWaitingForCoach(false);
+            setLiveSessionActive(false);
             if (audioRef.current) {
               audioRef.current.pause();
             }
+            // Quitter automatiquement le mode live
+            leaveLiveSession();
+            break;
+            
+          case "SESSION_ACTIVE":
+            // Le coach a démarré une session - rendre le bouton visible
+            setLiveSessionActive(true);
             break;
             
           default:
