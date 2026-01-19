@@ -1176,3 +1176,58 @@ HeroMediaWithAudio
   - Lignes 2921-3116: Console DJ redesignée pour mobile
 - `/app/frontend/src/App.js`:
   - Lignes 1190, 1454: z-index: 500 pour menu settings
+
+
+---
+
+## Réparation Sonore Mobile & Design Minimaliste (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. FIX DESIGN HÉRO (CRITIQUE)
+- **Flexbox:** `justifyContent: 'space-around'` pour distribution verticale parfaite
+- **Overflow:** `overflow: 'hidden'` pour garantir qu'aucun élément ne sorte du cadre
+- **Tailles responsive:** Utilisation de `clamp()` pour icône casque, titre et bouton
+  - Icône casque: `fontSize: 'clamp(48px, 12vw, 80px)'`
+  - Indicateur lecture: `width/height: 'clamp(60px, 15vw, 80px)'`
+- **Résultat:** Testé sur 320px - `bodyScrollWidth == bodyClientWidth == 320` (aucun débordement)
+
+#### 2. BOUTON PLAYLIST MINIMALISTE
+- **Style:** `background: 'transparent'`, `border: 'none'`
+- **Couleur:** Violet discret `rgba(217, 28, 210, 0.8)`
+- **Hover:** `opacity: 0.7` au lieu d'un fond coloré
+
+#### 3. forceAudioPlay() - DERNIÈRE CHANCE AUDIO
+- **Objectif:** Maintenir le canal audio mobile ouvert avec un silence en boucle
+- **Implémentation:**
+  - Crée un `AudioContext` persistant (`silenceContextRef`)
+  - Joue un oscillateur à 1Hz pendant 1 seconde
+  - Répète toutes les 900ms via `setInterval`
+- **Logs console:**
+  - `[ForceAudio] 🔊 Activation du maintien de canal audio...`
+  - `[ForceAudio] ♪ Silence joué pour maintenir canal actif` (répété)
+  - `[ForceAudio] ✅ Canal audio maintenu ouvert en boucle`
+- **Cleanup:** `stopForceAudio()` appelé dans `leaveLiveSession()`
+
+#### 4. RESPONSIVE CONSOLE DJ
+- **Bouton DÉMARRER:** `width/height: 'clamp(120px, 40vw, 160px)'`
+- **Icône:** `fontSize: 'clamp(36px, 10vw, 60px)'`
+- **Texte:** `fontSize: 'clamp(10px, 3vw, 14px)'`
+
+### Tests validés (iteration_24.json)
+- ✅ Test 1: 320px STRICT - aucun débordement horizontal
+- ✅ Test 2: Icône casque visible et non coupée
+- ✅ Test 3: Log '[ForceAudio] ✅ Canal audio maintenu ouvert en boucle'
+- ✅ Test 4: Log '[ForceAudio] ♪ Silence joué' (plusieurs fois)
+- ✅ Test 5: Bouton Playlist sans bordure (minimaliste)
+- ✅ Test 6: Bouton DÉMARRER responsive avec clamp()
+- ✅ Test 7: Message 'En attente du signal coach' visible
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`:
+  - Lignes 1481-1483: `justifyContent: 'space-around'`, `overflow: 'hidden'`
+  - Lignes 725-776: `forceAudioPlay()`, `stopForceAudio()`
+  - Lignes 1661: Icône casque avec clamp()
+- `/app/frontend/src/components/CoachDashboard.js`:
+  - Lignes 3136-3137: Bouton Playlist minimaliste
+  - Lignes 2956-2957: Bouton DÉMARRER responsive
