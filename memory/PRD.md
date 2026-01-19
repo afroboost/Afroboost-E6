@@ -705,3 +705,43 @@ Fonctionnalité de synchronisation audio en temps réel entre le Coach (DJ) et l
 ### P2: Multi-pages
 - [ ] react-router-dom pour navigation
 
+
+---
+
+## Corrections UI - 19 Janvier 2026 (Session 2)
+
+### Corrections appliquées
+
+#### 1. FIX REACT IMPORT (CRITIQUE)
+- **Fichier:** `/app/frontend/src/components/CoachDashboard.js`
+- **Problème:** `useCallback is not defined` - bloquait l'accès au dashboard admin
+- **Solution:** Ajout de `useCallback` dans l'import React
+
+#### 2. REPOSITIONNEMENT BOUTON LIVE
+- **Fichier:** `/app/frontend/src/App.js`
+- **Changements:**
+  - Position: haut droite (top: 12px, right: 60px)
+  - Largeur max: 160px (actuel: 79px)
+  - Design minimaliste (fond semi-transparent noir, bordure rose)
+  - Ne masque plus le bouton "Son" de la vidéo
+
+#### 3. ALIGNEMENT COACHS (DASHBOARD)
+- **Fichier:** `/app/frontend/src/components/CoachDashboard.js`
+- **Changements:**
+  - Layout vertical (`flex-col`) sur mobile
+  - Layout horizontal (`sm:flex-row`) sur desktop
+  - Bouton "Supprimer" pleine largeur sur mobile (`w-full sm:w-auto`)
+  - Email avec `word-break: break-word` pour éviter débordement
+
+#### 4. VALIDATION URLS AUDIO
+- **Fichier:** `/app/frontend/src/components/CoachDashboard.js`
+- **Changements:**
+  - Alerte explicite si URL sans extension audio (.mp3, .wav, .ogg, etc.)
+  - Confirmation requise pour ajouter une URL non-audio
+
+### Tests validés
+- ✅ Compilation frontend réussie
+- ✅ Bouton LIVE visible et bien positionné (79px largeur, haut droite)
+- ✅ Bouton Son accessible (bas droite, non masqué)
+- ✅ Pas d'erreur React (écran rouge disparu)
+
