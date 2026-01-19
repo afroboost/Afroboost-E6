@@ -651,6 +651,7 @@ const HeroMediaWithAudio = ({
   const [audioUnlocked, setAudioUnlocked] = useState(false); // Audio déverrouillé sur mobile
   const [audioLoadError, setAudioLoadError] = useState(false); // Erreur chargement après 5s
   const audioLoadTimeoutRef = useRef(null); // Timeout pour erreur 5s
+  const [liveSessionActive, setLiveSessionActive] = useState(false); // Session active (coach a démarré)
 
   // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile (CRITIQUE pour iOS/Android) ==========
   const unlockAudioForMobile = useCallback(() => {
