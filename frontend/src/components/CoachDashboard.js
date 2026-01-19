@@ -1861,14 +1861,17 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
 
             {/* Ajouter une URL */}
             <div className="mb-6">
-              <label className="block text-white text-sm mb-2">Ajouter un morceau (URL MP3/Stream)</label>
+              <label className="block text-white text-sm mb-2">Ajouter un morceau (URL MP3/Stream/Cloud)</label>
               <div className="flex gap-2">
                 <input
                   type="url"
                   value={newAudioUrl}
-                  onChange={(e) => setNewAudioUrl(e.target.value)}
-                  placeholder="https://example.com/music.mp3"
-                  className="flex-1 px-3 py-2 rounded-lg neon-input text-sm"
+                  onChange={(e) => {
+                    setNewAudioUrl(e.target.value);
+                    setAudioUrlError(""); // Reset error on change
+                  }}
+                  placeholder="https://example.com/music.mp3 ou lien Google Drive"
+                  className={`flex-1 px-3 py-2 rounded-lg neon-input text-sm ${audioUrlError ? 'border-red-500' : ''}`}
                   onKeyPress={(e) => e.key === 'Enter' && addAudioUrl()}
                   data-testid="audio-url-input"
                 />
@@ -1884,8 +1887,18 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                   + Ajouter
                 </button>
               </div>
+              
+              {/* Affichage erreur rouge */}
+              {audioUrlError && (
+                <div className="mt-2 p-2 rounded-lg flex items-center gap-2" 
+                     style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.5)' }}>
+                  <span style={{ color: '#ef4444' }}>❌</span>
+                  <span className="text-red-400 text-sm">{audioUrlError}</span>
+                </div>
+              )}
+              
               <p className="text-white/40 text-xs mt-2">
-                Formats supportés : MP3, WAV, OGG, streams M3U/M3U8, Soundcloud, Spotify
+                ✅ Formats: MP3, WAV, OGG | ☁️ Cloud: Google Drive, Dropbox (conversion automatique)
               </p>
             </div>
 
