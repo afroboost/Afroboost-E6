@@ -1918,7 +1918,7 @@ const HeroMediaWithAudio = ({
                 clearTimeout(audioLoadTimeoutRef.current);
                 audioLoadTimeoutRef.current = null;
               }
-              initWebAudio();
+              // La connexion audio est gérée par le useEffect liveConnected
             }}
             onPause={() => setIsPlaying(false)}
             onError={(e) => {
