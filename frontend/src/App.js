@@ -971,12 +971,13 @@ const HeroMediaWithAudio = ({
     // Stocker le sessionId pour la reconnexion
     currentSessionIdRef.current = sessionId;
     
-    // ========== AUDIO UNLOCK (CLIC PHYSIQUE UNIQUEMENT) ==========
+    // ========== ARCHITECTURE AUDIO "TOUJOURS ACTIVE" ==========
     if (!isReconnect) {
-      console.log('[Silent Disco] 🔊 Clic physique détecté - Déverrouillage audio mobile...');
-      await unlockAudioForMobile();
-      // Maintenir le canal audio ouvert
-      forceAudioPlay();
+      console.log('[Silent Disco] 🔊 OUVERTURE DU CANAL AUDIO AU CLIC...');
+      // Ouvrir le canal audio IMMÉDIATEMENT (ne pas attendre le coach)
+      await startAudioChannel();
+      // Démarrer le keep-alive
+      startKeepAlive();
     }
     
     // Nettoyer la connexion précédente
