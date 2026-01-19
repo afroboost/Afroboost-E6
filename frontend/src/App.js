@@ -834,6 +834,9 @@ const HeroMediaWithAudio = ({
   const joinLiveSession = useCallback(async (sessionId, isReconnect = false) => {
     if (!sessionId) return;
     
+    // Stocker le sessionId pour la reconnexion
+    currentSessionIdRef.current = sessionId;
+    
     // ========== AUDIO UNLOCK: Déverrouiller le haut-parleur mobile ==========
     if (!isReconnect) {
       console.log('[Silent Disco] Déverrouillage audio mobile...');
