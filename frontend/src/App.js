@@ -884,9 +884,43 @@ const HeroMediaWithAudio = ({
             if (msg.data.track_index !== undefined) {
               setCurrentTrackIndex(msg.data.track_index);
             }
-            // Si la session était déjà en lecture, synchroniser
+            // ========== SYNC IMMÉDIAT: Si session déjà en cours (PLAY actif) ==========
             if (msg.data.session_state?.playing) {
               setWaitingForCoach(false);
+              console.log('[Silent Disco] Session en cours détectée - synchronisation immédiate');
+              
+              // Récupérer la position actuelle et synchroniser
+              if (audioRef.current && msg.data.session_state?.position !== undefined) {
+                const serverTime = msg.data.session_state?.server_timestamp 
+                  ? new Date(msg.data.session_state.server_timestamp).getTime() 
+                  : Date.now();
+                const now = Date.now();
+                const latency = (now - serverTime) / 1000;
+                const targetPosition = (msg.data.session_state.position || 0) + latency;
+                
+                console.log(`[Silent Disco] Sync immédiat: position=${targetPosition.toFixed(2)}s`);
+                
+                // Démarrer la lecture immédiatement
+                audioRef.current.currentTime = Math.max(0, targetPosition);
+                const playPromise = audioRef.current.play();
+                if (playPromise) {
+                  playPromise
+                    .then(() => {
+                      console.log('[Silent Disco] ✅ Audio synchronisé avec session en cours');
+                      setIsPlaying(true);
+                    })
+                    .catch(err => {
+                      console.error('[Silent Disco] Erreur sync initial:', err);
+                      // Retry
+                      setTimeout(() => {
+                        audioRef.current?.play().catch(() => {});
+                        setIsPlaying(true);
+                      }, 300);
+                    });
+                }
+              }
+            } else {
+              setWaitingForCoach(true);
             }
             break;
             
