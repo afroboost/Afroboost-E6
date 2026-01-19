@@ -949,21 +949,6 @@ const HeroMediaWithAudio = ({
     };
   }, []);
 
-  // ========== AUDIO CONTEXT: Connecter l'élément audio au contexte APRÈS montage du mode Live ==========
-  useEffect(() => {
-    if (liveConnected && audioRef.current && audioContextRef.current && !sourceNodeRef.current) {
-      // Attendre un tick pour s'assurer que le DOM est prêt
-      const timer = setTimeout(() => {
-        const success = connectAudioToContext();
-        if (success) {
-          console.log('[WebAudio] ✅ Audio connecté après montage Live');
-        }
-      }, 50);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [liveConnected, connectAudioToContext]);
-
   // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
   const joinLiveSession = useCallback(async (sessionId, isReconnect = false) => {
     if (!sessionId) return;
@@ -975,9 +960,8 @@ const HeroMediaWithAudio = ({
     if (!isReconnect) {
       console.log('[Silent Disco] 🔊 Clic physique détecté - Déverrouillage audio mobile...');
       await unlockAudioForMobile();
-      // ========== FORCE AUDIO PLAY: Oscillateur silencieux en boucle ==========
+      // Maintenir le canal audio ouvert
       forceAudioPlay();
-      // NOTE: connectAudioToContext() sera appelé APRÈS le montage du composant Live via useEffect
     }
     
     // Nettoyer la connexion précédente
