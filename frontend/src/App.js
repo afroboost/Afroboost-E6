@@ -3162,9 +3162,17 @@ function App() {
           }}>{concept.description || t('conceptDefault')}</p>
         </div>
 
-        {/* Hero Media - YouTube, Vimeo, Image, Video - Only show if URL is valid */}
+        {/* Hero Media - YouTube, Vimeo, Image, Video - avec permutation Audio */}
+        {/* Utilise HeroMediaWithAudio pour basculer entre vidéo et lecteur audio */}
         {concept.heroImageUrl && concept.heroImageUrl.trim() !== '' && (
-          <MediaDisplay url={concept.heroImageUrl} className="hero-media-container mb-8" />
+          <HeroMediaWithAudio 
+            videoUrl={concept.heroImageUrl}
+            isAudioMode={isAudioMode}
+            selectedCourse={selectedCourse}
+            audioFeatureEnabled={audioFeatureEnabled}
+            onCloseAudio={() => setIsAudioMode(false)}
+            className="hero-media-container mb-8"
+          />
         )}
 
         {/* Barre de Recherche + Navigation par onglets (Tout, Cours, Shop) */}
