@@ -747,6 +747,8 @@ const HeroMediaWithAudio = ({
             
           case "SESSION_START":
             setLiveCourseName(msg.data.course_name || '');
+            setIsSyncing(false);
+            setLastSyncTime(Date.now());
             break;
             
           case "SESSION_END":
@@ -759,6 +761,10 @@ const HeroMediaWithAudio = ({
           default:
             break;
         }
+        
+        // Mettre à jour le temps de sync
+        setLastSyncTime(Date.now());
+        setIsSyncing(false);
       } catch (e) {
         console.error('[Silent Disco Participant] Parse error:', e);
       }
@@ -767,18 +773,28 @@ const HeroMediaWithAudio = ({
     ws.onerror = (error) => {
       console.error('[Silent Disco Participant] WebSocket error:', error);
       setLiveConnected(false);
+      setIsSyncing(false);
     };
     
     ws.onclose = () => {
       console.log('[Silent Disco Participant] Connection closed');
       setLiveConnected(false);
       setLiveWebSocket(null);
+      setIsSyncing(false);
+      
+      // Reconnexion automatique après 2 secondes si on était en mode live
+      if (isLiveMode && sessionId) {
+        console.log('[Silent Disco] Tentative de reconnexion dans 2s...');
+        reconnectTimeoutRef.current = setTimeout(() => {
+          joinLiveSession(sessionId, true);
+        }, 2000);
+      }
     };
     
     setLiveWebSocket(ws);
     setIsLiveMode(true);
     setShowJoinLive(false);
-  };
+  }, [liveWebSocket, isLiveMode]);
 
   const leaveLiveSession = () => {
     if (liveWebSocket) {
