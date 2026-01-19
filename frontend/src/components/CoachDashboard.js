@@ -137,7 +137,7 @@ const MediaDisplay = ({ url, className }) => {
   );
 };
 
-const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
+const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser, audioFeatureEnabled = false }) => {
   const [tab, setTab] = useState("reservations");
   const [reservations, setReservations] = useState([]);
   const [reservationPagination, setReservationPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
