@@ -329,6 +329,56 @@ silent_disco_manager = SilentDiscoManager()
 
 # ==================== WEBSOCKET ENDPOINTS ====================
 
+# ========== WEBSOCKET NOTIFICATIONS GLOBALES ==========
+@app.websocket("/ws/notifications")
+async def websocket_notifications(websocket: WebSocket):
+    """WebSocket pour recevoir les notifications globales SESSION_START/SESSION_END"""
+    await handle_notifications_websocket(websocket)
+
+@app.websocket("/api/ws/notifications")
+async def websocket_notifications_api(websocket: WebSocket):
+    """WebSocket notifications via /api prefix for Kubernetes ingress"""
+    await handle_notifications_websocket(websocket)
+
+async def handle_notifications_websocket(websocket: WebSocket):
+    """
+    WebSocket global pour notifications temps réel.
+    Les clients reçoivent SESSION_START/SESSION_END sans avoir à rejoindre une session.
+    """
+    try:
+        await websocket.accept()
+        await notification_manager.subscribe(websocket)
+        
+        # Envoyer l'état initial (y a-t-il une session active?)
+        has_active = any(
+            state.get("course_name") for state in silent_disco_manager.session_states.values()
+        )
+        await websocket.send_json({
+            "type": "SESSION_ACTIVE" if has_active else "NO_ACTIVE_SESSION",
+            "data": {"has_active": has_active}
+        })
+        
+        # Garder la connexion ouverte et répondre aux pings
+        while True:
+            try:
+                message = await websocket.receive_json()
+                if message.get("type") == "PING":
+                    await websocket.send_json({"type": "PONG"})
+                elif message.get("type") == "SUBSCRIBE":
+                    # Confirmation de souscription
+                    await websocket.send_json({"type": "SUBSCRIBED", "data": {"events": ["SESSION_START", "SESSION_END"]}})
+            except WebSocketDisconnect:
+                break
+            except Exception as e:
+                logger.warning(f"[Notifications WS] Error: {e}")
+                break
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.error(f"[Notifications WS] Connection error: {e}")
+    finally:
+        notification_manager.unsubscribe(websocket)
+
 # WebSocket sans préfixe /api (pour connexion directe)
 @app.websocket("/ws/session/{session_id}")
 async def websocket_session(websocket: WebSocket, session_id: str):
