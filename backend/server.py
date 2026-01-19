@@ -74,6 +74,53 @@ async def api_favicon():
 # ==================== SILENT DISCO - WEBSOCKET MANAGER ====================
 # Gestionnaire de connexions WebSocket pour la synchronisation audio temps réel
 
+# ========== NOTIFICATION MANAGER: Broadcast global SESSION_START/SESSION_END ==========
+class NotificationManager:
+    """
+    Gère les notifications globales vers tous les clients connectés.
+    Utilisé pour informer instantanément de SESSION_START/SESSION_END.
+    """
+    def __init__(self):
+        self.global_subscribers: Set[WebSocket] = set()
+    
+    async def subscribe(self, websocket: WebSocket):
+        """Ajoute un client aux notifications globales"""
+        self.global_subscribers.add(websocket)
+        logger.info(f"[Notifications] Client subscribed. Total: {len(self.global_subscribers)}")
+    
+    def unsubscribe(self, websocket: WebSocket):
+        """Retire un client des notifications globales"""
+        self.global_subscribers.discard(websocket)
+        logger.info(f"[Notifications] Client unsubscribed. Total: {len(self.global_subscribers)}")
+    
+    async def broadcast_session_event(self, event_type: str, data: dict = None):
+        """
+        Broadcast un événement SESSION_START ou SESSION_END à tous les clients.
+        Appelé par le SilentDiscoManager quand le coach démarre/termine.
+        """
+        message = {
+            "type": event_type,
+            "data": data or {},
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        disconnected = []
+        for ws in self.global_subscribers:
+            try:
+                await ws.send_json(message)
+            except Exception as e:
+                logger.warning(f"[Notifications] Failed to send to client: {e}")
+                disconnected.append(ws)
+        
+        # Nettoyer les connexions mortes
+        for ws in disconnected:
+            self.unsubscribe(ws)
+        
+        logger.info(f"[Notifications] Broadcast {event_type} to {len(self.global_subscribers)} clients")
+
+# Instance globale du gestionnaire de notifications
+notification_manager = NotificationManager()
+
 class SilentDiscoManager:
     """
     Gère les sessions de Silent Disco avec synchronisation temps réel.
