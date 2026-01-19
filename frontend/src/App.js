@@ -836,37 +836,156 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
-        {/* Bouton REJOINDRE LE LIVE - Haut droite, compact */}
+        {/* Menu "..." en haut à droite (40px hitbox pour iPhone) */}
         {audioFeatureEnabled && (
-          <div style={{
+          <div className="settings-menu-container" style={{
             position: 'absolute',
-            top: '12px',
-            right: '60px',
-            zIndex: 20
+            top: '8px',
+            right: '8px',
+            zIndex: 25
           }}>
             <button
-              onClick={() => setShowJoinLive(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSettingsMenu(!showSettingsMenu);
+              }}
               style={{
-                background: 'rgba(0, 0, 0, 0.7)',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'rgba(0, 0, 0, 0.6)',
                 backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(217, 28, 210, 0.5)',
-                borderRadius: '16px',
-                padding: '8px 12px',
-                maxWidth: '160px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 color: '#fff',
-                fontWeight: 600,
-                fontSize: '12px',
+                fontSize: '18px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 12px rgba(217, 28, 210, 0.3)',
+                justifyContent: 'center'
+              }}
+              data-testid="settings-menu-btn"
+            >
+              ⋮
+            </button>
+            
+            {/* Menu déroulant */}
+            {showSettingsMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '48px',
+                right: '0',
+                background: 'rgba(20, 20, 30, 0.95)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(217, 28, 210, 0.3)',
+                padding: '8px',
+                minWidth: '180px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+              }}>
+                {/* Volume */}
+                <div style={{ padding: '8px 12px' }}>
+                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', marginBottom: '6px' }}>Volume</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>🔈</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={audioVolume}
+                      onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
+                      style={{
+                        flex: 1,
+                        height: '4px',
+                        borderRadius: '2px',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span style={{ fontSize: '14px' }}>🔊</span>
+                  </div>
+                </div>
+                
+                {/* Mute Vidéo */}
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: isMuted ? 'rgba(217, 28, 210, 0.2)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {isMuted ? '🔇' : '🔊'} {isMuted ? 'Activer le son' : 'Couper le son'}
+                </button>
+                
+                {/* Infos */}
+                <button
+                  onClick={() => alert('Afroboost Silent Disco\n\nRejoignez une session Live pour vous synchroniser avec le coach.')}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  ℹ️ Infos
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Bouton REJOINDRE LE LIVE - Centré en bas */}
+        {audioFeatureEnabled && (
+          <div style={{
+            position: 'absolute',
+            bottom: '16px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20
+          }}>
+            <button
+              onClick={() => {
+                initWebAudio();
+                setShowJoinLive(true);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '12px 24px',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 20px rgba(217, 28, 210, 0.5)',
                 transition: 'all 0.2s ease'
               }}
               data-testid="join-live-btn"
             >
-              <span style={{ fontSize: '14px' }}>🎧</span>
-              <span>LIVE</span>
+              <span style={{ fontSize: '18px' }}>🎧</span>
+              REJOINDRE LE LIVE
             </button>
           </div>
         )}
