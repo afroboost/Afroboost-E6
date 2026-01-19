@@ -912,3 +912,54 @@ Le système audio était bloqué car les URLs Cloud (Google Drive, Dropbox) ne s
 ### Fichiers modifiés
 - `/app/frontend/src/components/CoachDashboard.js` : Console Live, code 4 chiffres, prévisualisation audio
 
+
+---
+
+## Monétisation Admin - Système d'Abonnement & Commissions (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. CHAMP "ABONNEMENT ACTIF" (Coach)
+- Nouveau champ `subscriptionActive` (boolean) dans la collection `coach_subscriptions`
+- Champ `subscriptionEndDate` pour future gestion automatique
+- Badge visuel "✓ Actif" (vert) ou "✗ Inactif" (rouge) dans la liste des coachs
+- Bouton toggle "▶ Activer" / "⏸ Désactiver" pour chaque coach
+
+#### 2. BLOCAGE ACCÈS DASHBOARD
+- Vérification à la connexion Google OAuth dans `/api/auth/google/callback`
+- Si `subscriptionActive: false` → Message d'erreur "⛔ Votre abonnement n'est pas actif"
+- Super Admin (contact.artboost@gmail.com) toujours autorisé
+- Session stocke `subscription_active` pour vérifications futures
+
+#### 3. COMMISSION 10% SUR TRANSACTIONS TWINT
+- Calcul automatique à la création de réservation (`POST /api/reservations`)
+- Champ `commission` ajouté à chaque réservation:
+  ```json
+  {
+    "rate": 0.10,
+    "adminAmount": 5.00,
+    "coachAmount": 45.00,
+    "totalAmount": 50.00
+  }
+  ```
+- Endpoint `GET /api/admin/commissions` pour statistiques:
+  - Filtres: day, week, month, year, all
+  - Totaux: revenue, commission admin, part coach
+  - Liste des 20 dernières transactions
+
+### Endpoints API
+- `PUT /api/coaches/{email}` : Met à jour l'abonnement
+- `GET /api/admin/commissions?period=month` : Statistiques commissions
+
+### Tests validés
+- ✅ Compilation frontend réussie
+- ✅ Toggle abonnement coach fonctionne
+- ✅ Endpoint commissions retourne les données
+
+### Fichiers modifiés
+- `/app/backend/server.py` : Commission 10%, endpoint PUT coaches, endpoint commissions
+- `/app/frontend/src/components/CoachDashboard.js` : UI gestion abonnements
+
+### Note importante
+⚠️ La commission est calculée et stockée mais le split réel de paiement Twint doit être fait manuellement. Twint ne supporte pas le split automatique.
+
