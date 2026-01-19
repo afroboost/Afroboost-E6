@@ -1537,3 +1537,61 @@ Pour activer TWINT:
 - `/app/frontend/src/App.js`: WebSocket global, handler PLAY nettoyé
 - `/app/backend/server.py`: NotificationManager, endpoint /api/ws/notifications
 
+
+---
+
+## Correction Audio & UI Radicale (19 Janvier 2026 - Update 3)
+
+### Architecture Audio Simplifiée
+
+#### UN SEUL AudioContext
+- **Avant:** Création de multiples contextes audio (tempContext, silenceContext, audioContext)
+- **Après:** UN SEUL `audioContextRef.current` créé dans `unlockAudioForMobile()` et réutilisé partout
+
+#### Flux Audio Mobile (CRITIQUE iOS)
+```
+1. Clic "REJOINDRE LE LIVE" (interaction utilisateur)
+   ↓
+2. unlockAudioForMobile()
+   - Crée audioContextRef.current
+   - resume() immédiat
+   - Joue oscillateur silencieux 0.1s
+   ↓
+3. forceAudioPlay()
+   - Utilise le MÊME audioContextRef.current
+   - Oscillateur 0.1s en boucle (100ms interval)
+   ↓
+4. Mode Live se monte (liveConnected = true)
+   ↓
+5. useEffect connecte l'élément <audio> au contexte
+   - connectAudioToContext()
+   - createMediaElementSource(audioRef.current)
+   - connect(audioContext.destination)
+   ↓
+6. Son sort du haut-parleur
+```
+
+### Suppression Espace Noir
+- **Structure:** `{hasImage ? <img /> : null}` (rendu conditionnel strict)
+- **Layout:** `justifyContent: hasImage ? 'space-between' : 'flex-start'`
+- **Résultat:** Aucun div vide entre titre et bouton Play
+
+### Fonctions Supprimées
+- `initWebAudio()` - remplacé par `connectAudioToContext()`
+- `silenceContextRef` - oscillateur utilise maintenant le contexte principal
+
+### Fonctions Ajoutées
+- `connectAudioToContext()` - connecte l'élément audio au contexte principal
+- `cleanupAudio()` - nettoyage complet lors de la déconnexion
+
+### Test iPhone Requis
+Pour valider le son mobile:
+1. Ouvrir https://livejam-coach.preview.emergentagent.com sur iPhone
+2. Quand le coach démarre → bouton REJOINDRE apparaît
+3. Cliquer REJOINDRE → le son DOIT sortir
+
+### Notes TWINT & Commission
+- TWINT activé: `payment_methods=["card", "twint"]`
+- Commission 10% calculée côté serveur (server.py:1136-1150)
+- Stockée dans `reservation.commission.adminAmount`
+
