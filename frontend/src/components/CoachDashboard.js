@@ -193,6 +193,31 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [playlistUrls, setPlaylistUrls] = useState([]);
   const [newAudioUrl, setNewAudioUrl] = useState("");
   const [savingPlaylist, setSavingPlaylist] = useState(false);
+  const [audioUrlError, setAudioUrlError] = useState(""); // Erreur d'URL audio
+
+  // ========== UTILITAIRE: Convertir URLs Cloud en liens directs ==========
+  const convertCloudUrlToDirect = (url) => {
+    if (!url) return url;
+    
+    // Google Drive: /file/d/ID/view -> lien direct
+    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+    }
+    
+    // Google Drive: open?id=
+    const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+    if (driveOpenMatch) {
+      return `https://drive.google.com/uc?export=download&id=${driveOpenMatch[1]}`;
+    }
+    
+    // Dropbox: dl=0 -> dl=1
+    if (url.includes('dropbox.com')) {
+      return url.replace('dl=0', 'dl=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    }
+    
+    return url;
+  };
 
   // ========== SILENT DISCO: WebSocket Management ==========
   const startLiveSession = useCallback((course) => {
