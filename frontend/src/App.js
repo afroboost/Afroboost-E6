@@ -567,6 +567,16 @@ const HeroMediaWithAudio = ({
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioVolume, setAudioVolume] = useState(0.7);
+  
+  // ========== SILENT DISCO LIVE STATE ==========
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [liveSessionId, setLiveSessionId] = useState('');
+  const [liveWebSocket, setLiveWebSocket] = useState(null);
+  const [liveConnected, setLiveConnected] = useState(false);
+  const [liveParticipants, setLiveParticipants] = useState(0);
+  const [liveCourseName, setLiveCourseName] = useState('');
+  const [showJoinLive, setShowJoinLive] = useState(false);
+  const [joinSessionInput, setJoinSessionInput] = useState('');
 
   // Reset track index when course changes
   useEffect(() => {
