@@ -1766,237 +1766,12 @@ const HeroMediaWithAudio = ({
 
           {/* Audio element caché */}
           <audio
-                position: 'absolute',
-                top: '48px',
-                right: '0',
-                background: 'rgba(20, 20, 30, 0.95)',
-                backdropFilter: 'blur(12px)',
-                borderRadius: '12px',
-                border: '1px solid rgba(217, 28, 210, 0.3)',
-                padding: '8px',
-                minWidth: '180px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-                zIndex: 500 // ÉLEVÉ pour passer au-dessus de tous les éléments
-              }}>
-                {/* Volume */}
-                <div style={{ padding: '8px 12px' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', marginBottom: '6px' }}>Volume</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '14px' }}>🔈</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={audioVolume}
-                      onChange={(e) => {
-                        const vol = parseFloat(e.target.value);
-                        setAudioVolume(vol);
-                        if (audioRef.current) audioRef.current.volume = vol;
-                      }}
-                      style={{
-                        flex: 1,
-                        height: '4px',
-                        borderRadius: '2px',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%, rgba(255,255,255,0.2) 100%)`,
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <span style={{ fontSize: '14px' }}>🔊</span>
-                  </div>
-                </div>
-                
-                {/* Mute */}
-                <button
-                  onClick={() => {
-                    setIsMuted(!isMuted);
-                    if (audioRef.current) audioRef.current.volume = isMuted ? audioVolume : 0;
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: isMuted ? 'rgba(217, 28, 210, 0.2)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  {isMuted ? '🔇' : '🔊'} {isMuted ? 'Réactiver' : 'Couper le son'}
-                </button>
-                
-                {/* Infos */}
-                <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '4px' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
-                    Session: {liveSessionId.slice(0, 20)}...
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Bouton quitter en haut à droite */}
-          <button
-            onClick={leaveLiveSession}
-            style={{
-              position: 'absolute',
-              top: '8px',
-              right: '8px',
-              background: 'rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '50%',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#fff',
-              fontSize: '18px'
-            }}
-            data-testid="leave-live-btn"
-          >
-            ✕
-          </button>
-
-          {/* Badge EN DIRECT avec point rouge animé */}
-          <div style={{
-            position: 'absolute',
-            top: '12px',
-            left: '12px',
-            background: 'rgba(220, 38, 38, 0.9)',
-            padding: '6px 14px',
-            borderRadius: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
-            <span style={{ 
-              width: '10px', 
-              height: '10px', 
-              borderRadius: '50%', 
-              background: '#ff3b3b',
-              boxShadow: '0 0 8px #ff3b3b',
-              animation: 'pulse 1s infinite' 
-            }}></span>
-            <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>EN DIRECT</span>
-          </div>
-
-          {/* Indicateur de synchronisation */}
-          {isSyncing && (
-            <div style={{
-              position: 'absolute',
-              top: '48px',
-              left: '12px',
-              background: 'rgba(59, 130, 246, 0.9)',
-              padding: '4px 10px',
-              borderRadius: '12px',
-              color: '#fff',
-              fontSize: '10px'
-            }}>
-              ⏳ Synchronisation...
-            </div>
-          )}
-
-          {/* ========== TITRE DU COURS (ÉPURÉ - sans badge LIVE doublon) ========== */}
-          <h3 style={{
-            color: '#fff',
-            fontSize: 'clamp(16px, 4vw, 22px)',
-            fontWeight: 700,
-            textAlign: 'center',
-            margin: '0 0 8px 0',
-            textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-            flexShrink: 0
-          }}>
-            {liveCourseName || 'Silent Disco Live'}
-          </h3>
-
-          {/* ========== MINIATURE DU COURS (image réelle de l'offre) ========== */}
-          <div style={{
-            width: 'clamp(120px, 35vw, 160px)',
-            height: 'clamp(120px, 35vw, 160px)',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: isPlaying 
-              ? '0 0 30px rgba(217, 28, 210, 0.6)' 
-              : '0 4px 20px rgba(0,0,0,0.4)',
-            border: isPlaying 
-              ? '3px solid rgba(217, 28, 210, 0.8)' 
-              : '2px solid rgba(255,255,255,0.2)',
-            flexShrink: 0,
-            background: liveCourseImage 
-              ? `url(${liveCourseImage}) center/cover no-repeat` 
-              : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-            animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
-          }} data-testid="live-course-thumbnail">
-            {/* Pas d'icône fallback - juste le fond dégradé si pas d'image */}
-          </div>
-
-          <p style={{
-            color: 'rgba(255, 255, 255, 0.7)',
-            fontSize: '13px',
-            margin: '8px 0',
-            flexShrink: 0
-          }}>
-            {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
-          </p>
-
-          {/* Indicateur de lecture - bouton stylé */}
-          <div style={{
-            width: 'clamp(60px, 15vw, 80px)',
-            height: 'clamp(60px, 15vw, 80px)',
-            borderRadius: '50%',
-            background: isPlaying 
-              ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' 
-              : 'rgba(255, 255, 255, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: isPlaying ? '0 0 30px rgba(217, 28, 210, 0.7)' : 'none',
-            transition: 'all 0.3s',
-            flexShrink: 0
-          }}>
-            <span style={{ fontSize: 'clamp(24px, 6vw, 32px)', color: '#fff' }}>
-              {isPlaying ? '♪' : '⏸'}
-            </span>
-          </div>
-
-          <p style={{
-            color: 'rgba(255, 255, 255, 0.5)',
-            fontSize: '11px',
-            textAlign: 'center',
-            maxWidth: '95%',
-            margin: '8px 0 0 0',
-            flexShrink: 0
-          }}>
-            {audioError ? (
-              <span style={{ color: '#ef4444' }}>❌ {audioError}</span>
-            ) : audioLoadError ? (
-              <span style={{ color: '#f59e0b' }}>⚠️ Chargement audio lent</span>
-            ) : waitingForCoach ? (
-              <span style={{ color: '#22c55e' }}>● En attente du coach...</span>
-            ) : isPlaying ? (
-              <span style={{ color: '#d91cd2' }}>● Audio en cours</span>
-            ) : (
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>● En pause</span>
-            )}
-          </p>
-
-          {/* Audio element avec Web Audio API pour canal Media mobile */}
-          <audio
             ref={audioRef}
             src={convertCloudUrlToDirect(playlist[currentTrackIndex])}
             onPlay={() => {
               setIsPlaying(true);
               setAudioError(null);
               setAudioLoadError(false);
-              // Annuler le timeout d'erreur si l'audio démarre
               if (audioLoadTimeoutRef.current) {
                 clearTimeout(audioLoadTimeoutRef.current);
                 audioLoadTimeoutRef.current = null;
@@ -2013,10 +1788,19 @@ const HeroMediaWithAudio = ({
             onCanPlay={() => {
               setAudioError(null);
               setAudioLoadError(false);
-              // Annuler le timeout si l'audio est prêt
               if (audioLoadTimeoutRef.current) {
                 clearTimeout(audioLoadTimeoutRef.current);
                 audioLoadTimeoutRef.current = null;
+              }
+            }}
+            onLoadStart={() => console.log('[Audio] Chargement démarré...')}
+            preload="auto"
+            crossOrigin="anonymous"
+          />
+        </div>
+      </div>
+    );
+  }
               }
             }}
             onLoadStart={() => {
