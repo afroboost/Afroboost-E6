@@ -4519,7 +4519,164 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
             </div>
           </div>
         )}
+
+        {/* === COACHES MANAGEMENT TAB (Super Admin Only) === */}
+        {tab === "coaches" && isSuperAdmin && (
+          <CoachesManagement 
+            API={API}
+            t={t}
+          />
+        )}
       </div>
+    </div>
+  );
+};
+
+// ========== COMPOSANT GESTION DES COACHS ==========
+const CoachesManagement = ({ API, t }) => {
+  const [coaches, setCoaches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newCoach, setNewCoach] = useState({ coachEmail: "", coachName: "", hasAudio: false });
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  useEffect(() => {
+    loadCoaches();
+  }, []);
+
+  const loadCoaches = async () => {
+    try {
+      const res = await axios.get(`${API}/coaches`);
+      setCoaches(res.data || []);
+    } catch (err) {
+      console.error("Error loading coaches:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addCoach = async (e) => {
+    e.preventDefault();
+    if (!newCoach.coachEmail) return;
+    try {
+      await axios.post(`${API}/coaches`, newCoach);
+      setNewCoach({ coachEmail: "", coachName: "", hasAudio: false });
+      setShowAddForm(false);
+      loadCoaches();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Erreur lors de l'ajout");
+    }
+  };
+
+  const deleteCoach = async (email) => {
+    if (!window.confirm(`Supprimer le coach ${email} ?`)) return;
+    try {
+      await axios.delete(`${API}/coaches/${encodeURIComponent(email)}`);
+      loadCoaches();
+    } catch (err) {
+      alert("Erreur lors de la suppression");
+    }
+  };
+
+  return (
+    <div className="card-gradient rounded-xl p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-semibold text-white" style={{ fontSize: '20px' }}>👥 Gestion des Coachs</h2>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium"
+        >
+          {showAddForm ? '✕ Fermer' : '+ Ajouter un Coach'}
+        </button>
+      </div>
+
+      {/* Formulaire d'ajout */}
+      {showAddForm && (
+        <form onSubmit={addCoach} className="mb-6 p-4 rounded-xl glass border border-purple-500/30">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-white text-sm mb-2">Email du Coach *</label>
+              <input
+                type="email"
+                required
+                value={newCoach.coachEmail}
+                onChange={e => setNewCoach({ ...newCoach, coachEmail: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg neon-input"
+                placeholder="coach@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-white text-sm mb-2">Nom du Coach</label>
+              <input
+                type="text"
+                value={newCoach.coachName}
+                onChange={e => setNewCoach({ ...newCoach, coachName: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg neon-input"
+                placeholder="Prénom Nom"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newCoach.hasAudio}
+                onChange={e => setNewCoach({ ...newCoach, hasAudio: e.target.checked })}
+              />
+              🎵 Accès Audio/Playlist
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium"
+          >
+            ✓ Enregistrer le Coach
+          </button>
+        </form>
+      )}
+
+      {/* Info */}
+      <div className="mb-6 p-3 rounded-lg bg-purple-900/20 border border-purple-500/20">
+        <p className="text-sm text-white/70">
+          💡 Les coachs enregistrés peuvent se connecter via Google OAuth. Ils verront uniquement leurs propres cours, offres et réservations.
+        </p>
+      </div>
+
+      {/* Liste des coachs */}
+      {loading ? (
+        <div className="text-center text-white/60 py-8">Chargement...</div>
+      ) : coaches.length === 0 ? (
+        <div className="text-center text-white/60 py-8">
+          Aucun coach enregistré. Le Super Admin ({`contact.artboost@gmail.com`}) a accès à toutes les données.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {coaches.map((coach) => (
+            <div
+              key={coach.coachEmail}
+              className="flex items-center justify-between p-4 rounded-xl glass border border-purple-500/20"
+            >
+              <div>
+                <p className="text-white font-medium">{coach.coachName || 'Sans nom'}</p>
+                <p className="text-white/60 text-sm">{coach.coachEmail}</p>
+                <div className="flex gap-2 mt-1">
+                  {coach.hasAudio && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-600/30 text-purple-300">🎵 Audio</span>
+                  )}
+                  {coach.hasVideo && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-600/30 text-blue-300">🎬 Vidéo</span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => deleteCoach(coach.coachEmail)}
+                className="px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 text-sm"
+              >
+                🗑️ Supprimer
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
