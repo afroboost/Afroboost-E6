@@ -747,6 +747,8 @@ const HeroMediaWithAudio = ({
   }, [audioVolume]);
 
   // ========== KEEP-ALIVE: Maintenir le canal audio ouvert ==========
+  const silenceIntervalRef = useRef(null);
+  
   const startKeepAlive = useCallback(() => {
     if (silenceIntervalRef.current) return;
     
