@@ -1794,57 +1794,46 @@ const HeroMediaWithAudio = ({
             </div>
           )}
 
-          {/* ===== ZONE CENTRALE: Titre + Miniature (si disponible) ===== */}
-          {/* DESIGN COMPACT: Si pas d'image, le bouton PLAY remonte sous le titre */}
-          <div style={{
-            flex: liveCourseImage ? 1 : 'none', // Ne prend pas d'espace flex si pas d'image
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: liveCourseImage ? 'center' : 'flex-start',
-            width: '100%',
-            gap: liveCourseImage ? '2vh' : '1vh' // Gap réduit si pas d'image
+          {/* ===== TITRE DU COURS - TOUJOURS PRÉSENT ===== */}
+          <h3 style={{
+            color: '#fff',
+            fontSize: 'clamp(18px, 5vw, 24px)',
+            fontWeight: 700,
+            textAlign: 'center',
+            margin: 0,
+            textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+            maxWidth: '90%'
           }}>
-            {/* Titre du cours */}
-            <h3 style={{
-              color: '#fff',
-              fontSize: 'clamp(18px, 5vw, 24px)',
-              fontWeight: 700,
-              textAlign: 'center',
-              margin: 0,
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-              maxWidth: '90%'
-            }}>
-              {liveCourseName || 'Silent Disco Live'}
-            </h3>
+            {liveCourseName || 'Silent Disco Live'}
+          </h3>
 
-            {/* Miniature UNIQUEMENT si image disponible - SUPPRIMÉ DU DOM si vide */}
-            {liveCourseImage && liveCourseImage.trim() !== '' && (
-              <div style={{
-                width: 'clamp(100px, 30vw, 140px)',
-                height: 'clamp(100px, 30vw, 140px)',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: isPlaying 
-                  ? '0 0 30px rgba(217, 28, 210, 0.6)' 
-                  : '0 4px 20px rgba(0,0,0,0.4)',
-                border: isPlaying 
-                  ? '3px solid rgba(217, 28, 210, 0.8)' 
-                  : '2px solid rgba(255,255,255,0.2)',
-                background: `url(${liveCourseImage}) center/cover no-repeat`,
-                animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
-              }} data-testid="live-course-thumbnail" />
-            )}
+          {/* ===== MINIATURE - RENDU CONDITIONNEL STRICT (NULL SI VIDE) ===== */}
+          {liveCourseImage && liveCourseImage.trim() !== '' ? (
+            <div style={{
+              width: 'clamp(100px, 30vw, 140px)',
+              height: 'clamp(100px, 30vw, 140px)',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              margin: '2vh 0',
+              boxShadow: isPlaying 
+                ? '0 0 30px rgba(217, 28, 210, 0.6)' 
+                : '0 4px 20px rgba(0,0,0,0.4)',
+              border: isPlaying 
+                ? '3px solid rgba(217, 28, 210, 0.8)' 
+                : '2px solid rgba(255,255,255,0.2)',
+              background: `url(${liveCourseImage}) center/cover no-repeat`,
+              animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
+            }} data-testid="live-course-thumbnail" />
+          ) : null}
 
-            {/* Info connexion */}
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '12px',
-              margin: 0
-            }}>
-              {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
-            </p>
-          </div>
+          {/* ===== INFO CONNEXION ===== */}
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.6)',
+            fontSize: '12px',
+            margin: liveCourseImage ? 0 : '1vh 0'
+          }}>
+            {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
+          </p>
 
           {/* ===== ZONE BAS: Bouton PLAY + Statut ===== */}
           <div style={{
@@ -1852,8 +1841,8 @@ const HeroMediaWithAudio = ({
             flexDirection: 'column',
             alignItems: 'center',
             gap: '2vh',
-            marginTop: '2vh',
-            paddingBottom: '2vh' // Padding pour ne pas coller au bord
+            marginTop: liveCourseImage ? '2vh' : '1vh',
+            paddingBottom: '2vh'
           }}>
             {/* Bouton PLAY/PAUSE */}
             <div style={{
