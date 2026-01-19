@@ -998,3 +998,44 @@ Le système audio était bloqué car les URLs Cloud (Google Drive, Dropbox) ne s
 - `/app/frontend/src/App.js` : Bouton LIVE pleine largeur, Menu 50px
 - `/app/frontend/src/App.css` : Styles tableaux scrollables
 
+
+---
+
+## Business Model & Flux Audio Activés (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. MOTEUR AUDIO ROBUSTE - Conversion Dropbox
+- URL Dropbox: `dl=0` → `raw=1` (plus fiable pour streaming)
+- URL Dropbox: `www.dropbox.com` → `dl.dropboxusercontent.com`
+- Ajout automatique de `raw=1` si manquant
+- OneDrive: `redir` → `download`
+
+#### 2. CONSOLE MAÎTRE (DJ) - WebSocket
+- Boutons: [DÉMARRER LA SÉANCE] et [PAUSE GÉNÉRALE]
+- Envoi WebSocket PLAY/PAUSE à tous les participants
+- Test validé: Coach → PLAY → Participant reçoit et joue
+
+#### 3. MONÉTISATION - Commission 10% + Verrou
+- Commission 10% calculée sur chaque réservation Twint
+- Champ `commission`: `{adminAmount, coachAmount, totalAmount}`
+- **Verrou abonnement**: Si `subscriptionActive: false`:
+  - Message "🔒 Abonnement requis" affiché
+  - Bouton "DÉMARRER" désactivé et grisé
+  - Super Admin (contact.artboost@gmail.com) toujours autorisé
+
+#### 4. ÉPURATION FINALE
+- Anciens boutons audio supprimés (fait précédemment)
+- Seule la zone Héro gère le son
+- Menu "⋮" avec 50px hitbox conservé
+
+### Tests validés
+- ✅ WebSocket: PLAY/PAUSE transmis aux participants
+- ✅ Bouton LIVE: 301px de large (pleine largeur mobile)
+- ✅ Menu "...": 50x50px hitbox
+- ✅ Compilation frontend réussie
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js` : Conversion Dropbox raw=1
+- `/app/frontend/src/components/CoachDashboard.js` : Verrou abonnement sur bouton DÉMARRER
+
