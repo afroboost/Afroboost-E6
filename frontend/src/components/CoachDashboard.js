@@ -372,35 +372,43 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   // Ajouter une URL à la playlist
   const addAudioUrl = () => {
     const url = newAudioUrl.trim();
+    setAudioUrlError(""); // Reset erreur
+    
     if (!url) return;
     
     // Validation basique de l'URL
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      alert("⚠️ URL invalide\n\nVeuillez entrer une URL valide commençant par http:// ou https://");
+      setAudioUrlError("URL invalide. Doit commencer par http:// ou https://");
       return;
     }
     
     // Vérifier si c'est un fichier audio reconnu
-    const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.wma'];
+    const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.webm'];
     const hasAudioExtension = audioExtensions.some(ext => url.toLowerCase().includes(ext));
+    const isCloudUrl = url.includes('drive.google.com') || url.includes('dropbox.com') || 
+                       url.includes('onedrive') || url.includes('icloud');
     const isStreamUrl = url.includes('.m3u') || url.includes('.m3u8') || url.includes('stream') ||
                         url.includes('audio') || url.includes('soundcloud') || url.includes('spotify');
     
-    if (!hasAudioExtension && !isStreamUrl) {
-      alert("⚠️ Format audio non reconnu\n\nCette URL ne contient pas d'extension audio valide (.mp3, .wav, .ogg, .m4a, etc.)\n\nAssurez-vous que le lien pointe vers un fichier audio.");
-      // Demander confirmation pour continuer quand même
-      if (!window.confirm("Voulez-vous quand même ajouter cette URL ?")) {
-        return;
-      }
-    }
-    
-    if (playlistUrls.includes(url)) {
-      alert("⚠️ Cette URL est déjà dans la playlist.");
+    if (!hasAudioExtension && !isCloudUrl && !isStreamUrl) {
+      setAudioUrlError("⚠️ Format non reconnu. Utilisez .mp3, .wav, .ogg ou un lien Google Drive/Dropbox");
       return;
     }
     
-    setPlaylistUrls([...playlistUrls, url]);
+    if (playlistUrls.includes(url)) {
+      setAudioUrlError("Cette URL est déjà dans la playlist");
+      return;
+    }
+    
+    // Convertir automatiquement les URLs Cloud
+    const convertedUrl = convertCloudUrlToDirect(url);
+    if (convertedUrl !== url) {
+      console.log('[Audio] URL convertie:', url, '->', convertedUrl);
+    }
+    
+    setPlaylistUrls([...playlistUrls, convertedUrl]);
     setNewAudioUrl("");
+    setAudioUrlError("");
   };
 
   // Supprimer une URL de la playlist
