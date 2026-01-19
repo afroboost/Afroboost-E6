@@ -654,71 +654,52 @@ const HeroMediaWithAudio = ({
   const [liveSessionActive, setLiveSessionActive] = useState(false); // Session active (coach a démarré)
 
   // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile (CRITIQUE pour iOS/Android) ==========
-  // Cette fonction crée l'AudioContext PRINCIPAL et connecte l'élément audio AU CLIC
+  // APPROCHE SIMPLIFIÉE: Pas de Web Audio API complexe, juste débloquer l'élément audio natif
   const unlockAudioForMobile = useCallback(() => {
     return new Promise((resolve) => {
       try {
         console.log('[AudioUnlock] 🔓 Démarrage du déverrouillage audio mobile...');
         
-        // RÉINITIALISER le sourceNode existant
-        if (sourceNodeRef.current) {
-          try {
-            sourceNodeRef.current.disconnect();
-          } catch (e) { /* ignore */ }
-          sourceNodeRef.current = null;
-        }
-        
-        // FERMER l'ancien contexte s'il existe
-        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-          try {
-            audioContextRef.current.close();
-          } catch (e) { /* ignore */ }
-        }
-        
-        // ÉTAPE 1: Créer l'AudioContext PRINCIPAL
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        audioContextRef.current = new AudioContextClass();
-        console.log('[AudioUnlock] 🎵 AudioContext PRINCIPAL créé, state:', audioContextRef.current.state);
-        
-        // ÉTAPE 2: resume() IMMÉDIAT (CRITIQUE - doit être dans le handler de clic)
-        audioContextRef.current.resume().then(() => {
-          console.log('[AudioUnlock] ✅ AudioContext resumed, state:', audioContextRef.current.state);
+        // MÉTHODE 1: Créer et jouer un Audio silencieux (débloque iOS Safari)
+        const silentAudio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////' + 
+          '//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==');
+        silentAudio.volume = 0.01;
+        silentAudio.play().then(() => {
+          console.log('[AudioUnlock] ✅ Audio silencieux joué - haut-parleur débloqué');
+          silentAudio.pause();
+        }).catch(e => {
+          console.warn('[AudioUnlock] Audio silencieux échoué:', e);
         });
         
-        // ÉTAPE 3: Jouer un oscillateur silencieux pour activer le haut-parleur
-        const oscillator = audioContextRef.current.createOscillator();
-        const gainNode = audioContextRef.current.createGain();
-        gainNode.gain.setValueAtTime(0.001, audioContextRef.current.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContextRef.current.destination);
-        oscillator.frequency.value = 1;
-        oscillator.start(audioContextRef.current.currentTime);
-        oscillator.stop(audioContextRef.current.currentTime + 0.1);
-        console.log('[AudioUnlock] 🔊 Oscillateur silencieux joué');
-        
-        // ÉTAPE 4: CONNECTER L'ÉLÉMENT AUDIO AU CONTEXTE (CRITIQUE - dans le handler de clic)
-        if (audioRef.current) {
-          audioRef.current.volume = audioVolume;
-          audioRef.current.muted = false;
-          audioRef.current.setAttribute('playsinline', 'true');
-          audioRef.current.setAttribute('webkit-playsinline', 'true');
-          
-          // CONNEXION CRITIQUE: source.connect(audioContext.destination)
-          try {
-            sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-            sourceNodeRef.current.connect(audioContextRef.current.destination);
-            console.log('[AudioUnlock] 🔗 CONNEXION ÉTABLIE: audioRef → AudioContext → destination');
-          } catch (e) {
-            // L'élément peut déjà être connecté à un autre contexte
-            console.warn('[AudioUnlock] Connexion audio:', e.message);
+        // MÉTHODE 2: AudioContext avec oscillateur (backup pour certains navigateurs)
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+            audioContextRef.current = new AudioContextClass();
           }
-        } else {
-          console.warn('[AudioUnlock] ⚠️ audioRef.current non disponible - connexion différée');
+          
+          // Resume le contexte
+          if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume();
+          }
+          
+          // Jouer un oscillateur silencieux
+          const oscillator = audioContextRef.current.createOscillator();
+          const gainNode = audioContextRef.current.createGain();
+          gainNode.gain.setValueAtTime(0.001, audioContextRef.current.currentTime);
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContextRef.current.destination);
+          oscillator.frequency.value = 1;
+          oscillator.start();
+          oscillator.stop(audioContextRef.current.currentTime + 0.1);
+          console.log('[AudioUnlock] ✅ Oscillateur Web Audio joué');
+        } catch (e) {
+          console.warn('[AudioUnlock] Web Audio fallback échoué:', e);
         }
         
         // Marquer comme déverrouillé
         setAudioUnlocked(true);
-        console.log('[AudioUnlock] ✅ Haut-parleur DÉVERROUILLÉ');
+        console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ');
         resolve(true);
         
       } catch (e) {
@@ -727,7 +708,7 @@ const HeroMediaWithAudio = ({
         resolve(false);
       }
     });
-  }, [audioVolume]);
+  }, []);
 
   // ========== CONNECTER L'AUDIO AU CONTEXTE (appelé après montage du composant Live) ==========
   const connectAudioToContext = useCallback(() => {
