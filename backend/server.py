@@ -1140,13 +1140,19 @@ async def process_google_session(request: Request, response: Response):
         picture = user_data.get("picture", "")
         session_token = user_data.get("session_token", "")
         
-        # ===== VÉRIFICATION CRITIQUE : Email autorisé uniquement =====
-        if email != AUTHORIZED_COACH_EMAIL.lower():
-            return {
-                "success": False,
-                "error": "access_denied",
-                "message": f"⛔ Accès réservé. Seul {AUTHORIZED_COACH_EMAIL} peut accéder à ce dashboard."
-            }
+        # ===== VÉRIFICATION : Déterminer le niveau d'accès =====
+        is_super_admin = email == AUTHORIZED_COACH_EMAIL.lower()
+        
+        # Si pas Super Admin, vérifier si l'email est enregistré comme coach
+        if not is_super_admin:
+            coach_record = await db.coach_subscriptions.find_one({"coachEmail": email}, {"_id": 0})
+            if not coach_record:
+                # L'utilisateur n'est ni Super Admin ni coach enregistré
+                return {
+                    "success": False,
+                    "error": "access_denied",
+                    "message": f"⛔ Accès refusé. Vous n'êtes pas enregistré comme coach. Contactez {AUTHORIZED_COACH_EMAIL}."
+                }
         
         # Créer ou mettre à jour l'utilisateur
         user_id = f"coach_{uuid.uuid4().hex[:12]}"
@@ -1159,6 +1165,7 @@ async def process_google_session(request: Request, response: Response):
                 {"$set": {
                     "name": name,
                     "picture": picture,
+                    "is_super_admin": is_super_admin,
                     "last_login": datetime.now(timezone.utc).isoformat()
                 }}
             )
@@ -1169,6 +1176,7 @@ async def process_google_session(request: Request, response: Response):
                 "name": name,
                 "picture": picture,
                 "is_coach": True,
+                "is_super_admin": is_super_admin,
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "last_login": datetime.now(timezone.utc).isoformat()
             })
@@ -1181,6 +1189,7 @@ async def process_google_session(request: Request, response: Response):
             "user_id": user_id,
             "email": email,
             "name": name,
+            "is_super_admin": is_super_admin,
             "session_token": session_token,
             "expires_at": expires_at.isoformat(),
             "created_at": datetime.now(timezone.utc).isoformat()
@@ -1204,7 +1213,8 @@ async def process_google_session(request: Request, response: Response):
                 "email": email,
                 "name": name,
                 "picture": picture,
-                "is_coach": True
+                "is_coach": True,
+                "is_super_admin": is_super_admin
             }
         }
         
