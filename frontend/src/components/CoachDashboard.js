@@ -308,6 +308,12 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
           setLiveParticipants(msg.data.count);
         } else if (msg.type === "STATE_SYNC") {
           setLiveParticipants(msg.data.participant_count || 0);
+          // Mettre à jour la liste des participants si disponible
+          if (msg.data.participants) {
+            setLiveParticipantsList(msg.data.participants);
+          }
+        } else if (msg.type === "PARTICIPANT_LIST") {
+          setLiveParticipantsList(msg.data.participants || []);
         }
       } catch (e) {
         console.error('[Silent Disco] Parse error:', e);
