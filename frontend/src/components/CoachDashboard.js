@@ -664,6 +664,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser, audioFeatureEnab
   useEffect(() => {
     const loadData = async () => {
       try {
+        // ========== VÉRIFIER LE STATUT DU SERVICE LIVE ==========
+        try {
+          const liveStatusResponse = await axios.get(`${API}/live-service-status?coach_email=${encodeURIComponent(coachEmail)}`);
+          setLiveServiceEnabled(liveStatusResponse.data.enabled);
+          console.log('[Dashboard] Service Live status:', liveStatusResponse.data);
+        } catch (err) {
+          console.warn('[Dashboard] Impossible de vérifier le statut du service Live:', err);
+          setLiveServiceEnabled(true); // Par défaut activé en cas d'erreur
+        }
+        
         // Construire les URLs selon le type d'utilisateur
         const reservationsUrl = isSuperAdmin 
           ? `${API}/reservations?page=1&limit=20`
