@@ -653,65 +653,122 @@ const HeroMediaWithAudio = ({
   const audioLoadTimeoutRef = useRef(null); // Timeout pour erreur 5s
   const [liveSessionActive, setLiveSessionActive] = useState(false); // Session active (coach a démarré)
 
-  // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile (CRITIQUE pour iOS/Android) ==========
-  // APPROCHE SIMPLIFIÉE: Pas de Web Audio API complexe, juste débloquer l'élément audio natif
-  const unlockAudioForMobile = useCallback(() => {
-    return new Promise((resolve) => {
-      try {
-        console.log('[AudioUnlock] 🔓 Démarrage du déverrouillage audio mobile...');
-        
-        // MÉTHODE 1: Créer et jouer un Audio silencieux (débloque iOS Safari)
-        const silentAudio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////' + 
-          '//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==');
-        silentAudio.volume = 0.01;
-        silentAudio.play().then(() => {
-          console.log('[AudioUnlock] ✅ Audio silencieux joué - haut-parleur débloqué');
-          silentAudio.pause();
-        }).catch(e => {
-          console.warn('[AudioUnlock] Audio silencieux échoué:', e);
-        });
-        
-        // MÉTHODE 2: AudioContext avec oscillateur (backup pour certains navigateurs)
-        try {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-            audioContextRef.current = new AudioContextClass();
-          }
-          
-          // Resume le contexte
-          if (audioContextRef.current.state === 'suspended') {
-            audioContextRef.current.resume();
-          }
-          
-          // Jouer un oscillateur silencieux
-          const oscillator = audioContextRef.current.createOscillator();
-          const gainNode = audioContextRef.current.createGain();
-          gainNode.gain.setValueAtTime(0.001, audioContextRef.current.currentTime);
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContextRef.current.destination);
-          oscillator.frequency.value = 1;
-          oscillator.start();
-          oscillator.stop(audioContextRef.current.currentTime + 0.1);
-          console.log('[AudioUnlock] ✅ Oscillateur Web Audio joué');
-        } catch (e) {
-          console.warn('[AudioUnlock] Web Audio fallback échoué:', e);
-        }
-        
-        // Marquer comme déverrouillé
-        setAudioUnlocked(true);
-        console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ');
-        resolve(true);
-        
-      } catch (e) {
-        console.warn('[AudioUnlock] ⚠️ Erreur:', e);
-        setAudioUnlocked(true);
-        resolve(false);
+  // ========== AUDIO SOURCE SILENCIEUSE (base64 MP3 de 1 seconde de silence) ==========
+  const SILENT_AUDIO_SRC = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7v/////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
+
+  // ========== ARCHITECTURE AUDIO "TOUJOURS ACTIVE" ==========
+  // Le canal audio est ouvert dès le clic REJOINDRE, pas quand le coach envoie PLAY
+  const startAudioChannel = useCallback(async () => {
+    console.log('[Audio] 🔊 OUVERTURE DU CANAL AUDIO (architecture toujours active)...');
+    
+    try {
+      // ÉTAPE 1: Créer et activer l'AudioContext
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+        audioContextRef.current = new AudioContextClass();
+        console.log('[Audio] AudioContext créé');
       }
-    });
+      
+      // ÉTAPE 2: Resume IMMÉDIAT (CRITIQUE pour mobile)
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+        console.log('[Audio] AudioContext resumed');
+      }
+      
+      // ÉTAPE 3: Jouer un oscillateur silencieux pour activer le haut-parleur
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+      gainNode.gain.setValueAtTime(0.01, audioContextRef.current.currentTime);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+      oscillator.frequency.value = 440; // La note (audible brièvement)
+      oscillator.start();
+      oscillator.stop(audioContextRef.current.currentTime + 0.05);
+      console.log('[Audio] Oscillateur joué (bip court)');
+      
+      // ÉTAPE 4: Préparer l'élément audio avec une source silencieuse
+      if (audioRef.current) {
+        audioRef.current.src = SILENT_AUDIO_SRC;
+        audioRef.current.loop = true; // Boucle sur le silence
+        audioRef.current.volume = 0.01;
+        audioRef.current.muted = false;
+        
+        // ÉTAPE 5: JOUER IMMÉDIATEMENT (ouvre le canal)
+        const playPromise = audioRef.current.play();
+        if (playPromise) {
+          await playPromise;
+          console.log('[Audio] ✅ CANAL AUDIO OUVERT - élément audio en lecture');
+        }
+      }
+      
+      setAudioUnlocked(true);
+      console.log('[Audio] ✅ Architecture audio "toujours active" initialisée');
+      return true;
+      
+    } catch (e) {
+      console.error('[Audio] ❌ Erreur ouverture canal:', e);
+      setAudioUnlocked(true); // Marquer quand même pour permettre le retry
+      return false;
+    }
   }, []);
 
-  // ========== FORCE AUDIO PLAY: Maintenir le canal audio ouvert ==========
+  // ========== CHANGER LA SOURCE AUDIO (quand le coach envoie une piste) ==========
+  const switchAudioSource = useCallback((newSrc, position = 0) => {
+    if (!audioRef.current) return;
+    
+    console.log('[Audio] 🔄 Changement de source vers:', newSrc?.substring(0, 50) + '...');
+    
+    // Convertir l'URL si nécessaire (Dropbox, etc.)
+    let audioSrc = newSrc;
+    if (audioSrc && audioSrc.includes('dropbox') && !audioSrc.includes('raw=1')) {
+      audioSrc = audioSrc.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
+      if (!audioSrc.includes('raw=1')) {
+        audioSrc = audioSrc.includes('?') ? `${audioSrc}&raw=1` : `${audioSrc}?raw=1`;
+      }
+    }
+    
+    // Changer la source
+    audioRef.current.loop = false;
+    audioRef.current.volume = audioVolume;
+    audioRef.current.src = audioSrc;
+    audioRef.current.currentTime = position;
+    
+    // Relancer la lecture (le canal est déjà ouvert)
+    audioRef.current.play().then(() => {
+      console.log('[Audio] ✅ Nouvelle source en lecture');
+      setIsPlaying(true);
+    }).catch(e => {
+      console.error('[Audio] Erreur lecture nouvelle source:', e);
+      // Retry
+      setTimeout(() => {
+        audioRef.current.play().catch(() => {});
+      }, 100);
+    });
+  }, [audioVolume]);
+
+  // ========== KEEP-ALIVE: Maintenir le canal audio ouvert ==========
   const silenceIntervalRef = useRef(null);
+  
+  const startKeepAlive = useCallback(() => {
+    if (silenceIntervalRef.current) return;
+    
+    console.log('[Audio] 🔄 Keep-alive audio démarré');
+    
+    silenceIntervalRef.current = setInterval(() => {
+      // S'assurer que l'AudioContext reste actif
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+    }, 1000);
+  }, []);
+  
+  const stopKeepAlive = useCallback(() => {
+    if (silenceIntervalRef.current) {
+      clearInterval(silenceIntervalRef.current);
+      silenceIntervalRef.current = null;
+      console.log('[Audio] Keep-alive arrêté');
+    }
+  }, []);
   
   const forceAudioPlay = useCallback(() => {
     console.log('[ForceAudio] 🔊 Maintien du canal audio...');
