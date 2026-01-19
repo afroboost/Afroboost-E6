@@ -1039,3 +1039,82 @@ Le système audio était bloqué car les URLs Cloud (Google Drive, Dropbox) ne s
 - `/app/frontend/src/App.js` : Conversion Dropbox raw=1
 - `/app/frontend/src/components/CoachDashboard.js` : Verrou abonnement sur bouton DÉMARRER
 
+
+
+---
+
+## Audio Mobile Unlock & Synchronisation (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. AUDIO CONTEXT UNLOCK (Critique Mobile)
+- **Objectif**: Déverrouiller le haut-parleur mobile dès la validation du code session
+- **Implémentation**: Fonction `unlockAudioForMobile()` dans `HeroMediaWithAudio`
+  - Crée un AudioContext temporaire
+  - Joue un oscillateur à 1Hz (inaudible) pendant 0.1s à volume 0.001
+  - Force `audioContext.resume()` pour iOS Safari
+  - Précharge l'élément audio avec `play()/pause()`
+- **État**: `audioUnlocked` = true après déverrouillage
+- **Log console**: `[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ - Prêt à recevoir audio`
+
+#### 2. SYNCHRONISATION FORCÉE
+- **Objectif**: Si un participant rejoint une session en cours (PLAY actif), synchroniser immédiatement
+- **Implémentation**: Dans le handler `STATE_SYNC`:
+  - Vérifie `msg.data.playing` (backend envoie le state directement dans data)
+  - Si true: calcule la position avec compensation de latence
+  - Déclenche `audioRef.current.play()` immédiatement
+- **Log console**: `[Silent Disco] Session en cours détectée - synchronisation immédiate`
+
+#### 3. LOGIQUE DROPBOX - raw=1
+- **Objectif**: S'assurer que toutes les URLs Dropbox finissent par `?raw=1`
+- **Implémentation**: Fonction `convertCloudUrlToDirect()`:
+  - Remplace `www.dropbox.com` → `dl.dropboxusercontent.com`
+  - Remplace `dl=0` et `dl=1` → `raw=1`
+  - Ajoute `?raw=1` si pas présent (bug corrigé: condition simplifiée)
+- **Timeout 5s**: Si l'audio ne charge pas après 5 secondes:
+  - `audioLoadError` = true
+  - Message: "⚠️ Chargement audio lent - vérifiez votre connexion"
+
+#### 4. UI FEEDBACK
+- **Message d'attente**: "🎧 Audio activé - En attente du signal coach..."
+  - Couleur: vert (#22c55e) pour indiquer que l'audio est prêt
+  - Affiché quand `waitingForCoach` = true et `audioUnlocked` = true
+- **Message erreur**: "❌ {audioError}" en rouge
+- **Message sync**: "🔊 Audio synchronisé avec le coach" quand `isPlaying` = true
+
+### Architecture technique
+
+```
+HeroMediaWithAudio
+├── États
+│   ├── waitingForCoach: boolean (attente du coach)
+│   ├── audioUnlocked: boolean (audio mobile déverrouillé)
+│   └── audioLoadError: boolean (erreur après 5s)
+├── Refs
+│   ├── audioRef: HTMLAudioElement
+│   ├── audioContextRef: AudioContext (Web Audio API)
+│   ├── currentSessionIdRef: string (pour reconnexion)
+│   └── audioLoadTimeoutRef: timeout 5s
+└── Fonctions
+    ├── unlockAudioForMobile(): Promise<boolean>
+    ├── joinLiveSession(sessionId, isReconnect): void
+    ├── initWebAudio(): void (canal Media)
+    └── leaveLiveSession(): void
+```
+
+### Tests validés (iteration_22.json)
+- ✅ Test 1: Bouton 'REJOINDRE LE LIVE' visible et cliquable
+- ✅ Test 2: Modal avec champ code de session
+- ✅ Test 3: Mode live avec badge 'EN DIRECT'
+- ✅ Test 4: Log '[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ' présent
+- ✅ Test 5: Texte 'En attente du signal coach' présent dans DOM
+- ✅ Test 6: WebSocket connecté et STATE_SYNC reçu
+- ✅ Test 7: Conversion Dropbox raw=1 fonctionnelle
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`:
+  - Fonction `unlockAudioForMobile()` améliorée (lignes 654-713)
+  - Handler `STATE_SYNC` avec sync immédiat (lignes 884-928)
+  - Handler `PLAY` avec timeout 5s (lignes 931-1000)
+  - UI feedback avec messages colorés (lignes 1652-1670)
+  - Correction `convertCloudUrlToDirect()` (lignes 574-584)
