@@ -2940,7 +2940,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser, audioFeatureEnab
             <h2 className="font-semibold text-white mb-6" style={{ fontSize: '20px' }}>{t('courses')}</h2>
             
             {/* ========== BOUTON CONSOLE LIVE ========== */}
-            {canAccessLiveConsole && audioFeatureEnabled && (
+            {canAccessLiveConsole && audioFeatureEnabled && liveServiceEnabled && (
               <div className="mb-6">
                 <button
                   onClick={() => setShowLiveConsole(!showLiveConsole)}
