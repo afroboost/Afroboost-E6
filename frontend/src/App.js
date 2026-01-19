@@ -654,7 +654,7 @@ const HeroMediaWithAudio = ({
   const [liveSessionActive, setLiveSessionActive] = useState(false); // Session active (coach a démarré)
 
   // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile (CRITIQUE pour iOS/Android) ==========
-  // Cette fonction crée l'AudioContext PRINCIPAL qui sera utilisé pour tout le flux audio
+  // Cette fonction crée l'AudioContext PRINCIPAL et connecte l'élément audio AU CLIC
   const unlockAudioForMobile = useCallback(() => {
     return new Promise((resolve) => {
       try {
@@ -675,38 +675,45 @@ const HeroMediaWithAudio = ({
           } catch (e) { /* ignore */ }
         }
         
-        // ÉTAPE 1: Créer l'AudioContext PRINCIPAL (le même pour tout)
+        // ÉTAPE 1: Créer l'AudioContext PRINCIPAL
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioContextRef.current = new AudioContextClass();
-        console.log('[AudioUnlock] 🎵 AudioContext PRINCIPAL créé');
+        console.log('[AudioUnlock] 🎵 AudioContext PRINCIPAL créé, state:', audioContextRef.current.state);
         
-        // Forcer le resume() immédiatement (iOS Safari)
-        if (audioContextRef.current.state === 'suspended') {
-          audioContextRef.current.resume();
-        }
+        // ÉTAPE 2: resume() IMMÉDIAT (CRITIQUE - doit être dans le handler de clic)
+        audioContextRef.current.resume().then(() => {
+          console.log('[AudioUnlock] ✅ AudioContext resumed, state:', audioContextRef.current.state);
+        });
         
-        // ÉTAPE 2: Jouer un son silencieux pour activer le haut-parleur
+        // ÉTAPE 3: Jouer un oscillateur silencieux pour activer le haut-parleur
         const oscillator = audioContextRef.current.createOscillator();
         const gainNode = audioContextRef.current.createGain();
-        
-        // Volume très bas mais pas 0 (iOS nécessite un son réel)
         gainNode.gain.setValueAtTime(0.001, audioContextRef.current.currentTime);
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContextRef.current.destination);
-        
-        oscillator.frequency.value = 1; // Fréquence très basse (inaudible)
+        oscillator.frequency.value = 1;
         oscillator.start(audioContextRef.current.currentTime);
         oscillator.stop(audioContextRef.current.currentTime + 0.1);
-        
         console.log('[AudioUnlock] 🔊 Oscillateur silencieux joué');
         
-        // ÉTAPE 3: Préparer l'élément audio
+        // ÉTAPE 4: CONNECTER L'ÉLÉMENT AUDIO AU CONTEXTE (CRITIQUE - dans le handler de clic)
         if (audioRef.current) {
           audioRef.current.volume = audioVolume;
           audioRef.current.muted = false;
           audioRef.current.setAttribute('playsinline', 'true');
           audioRef.current.setAttribute('webkit-playsinline', 'true');
+          
+          // CONNEXION CRITIQUE: source.connect(audioContext.destination)
+          try {
+            sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+            sourceNodeRef.current.connect(audioContextRef.current.destination);
+            console.log('[AudioUnlock] 🔗 CONNEXION ÉTABLIE: audioRef → AudioContext → destination');
+          } catch (e) {
+            // L'élément peut déjà être connecté à un autre contexte
+            console.warn('[AudioUnlock] Connexion audio:', e.message);
+          }
+        } else {
+          console.warn('[AudioUnlock] ⚠️ audioRef.current non disponible - connexion différée');
         }
         
         // Marquer comme déverrouillé
@@ -718,6 +725,9 @@ const HeroMediaWithAudio = ({
         console.warn('[AudioUnlock] ⚠️ Erreur:', e);
         setAudioUnlocked(true);
         resolve(false);
+      }
+    });
+  }, [audioVolume]);
       }
     });
   }, [audioVolume]);
