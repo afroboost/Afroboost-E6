@@ -659,6 +659,14 @@ const HeroMediaWithAudio = ({
       try {
         console.log('[AudioUnlock] 🔓 Démarrage du déverrouillage audio mobile...');
         
+        // RÉINITIALISER le sourceNode existant pour forcer un nouveau canal
+        if (sourceNodeRef.current) {
+          try {
+            sourceNodeRef.current.disconnect();
+          } catch (e) { /* ignore */ }
+          sourceNodeRef.current = null;
+        }
+        
         // ÉTAPE 1: Créer et résumer un AudioContext
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         const tempContext = new AudioContextClass();
@@ -682,10 +690,15 @@ const HeroMediaWithAudio = ({
         oscillator.start(tempContext.currentTime);
         oscillator.stop(tempContext.currentTime + 0.1); // 0.1 seconde
         
-        // ÉTAPE 3: Préparer l'élément audio pour lecture future
+        // ÉTAPE 3: Préparer l'élément audio pour lecture future via canal MEDIA
         if (audioRef.current) {
           audioRef.current.volume = audioVolume;
           audioRef.current.muted = false;
+          
+          // Forcer le canal Media en définissant les attributs
+          audioRef.current.setAttribute('playsinline', 'true');
+          audioRef.current.setAttribute('webkit-playsinline', 'true');
+          
           audioRef.current.load();
           
           // Tenter un play/pause immédiat pour débloquer (technique iOS)
@@ -695,7 +708,7 @@ const HeroMediaWithAudio = ({
               .then(() => {
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
-                console.log('[AudioUnlock] ✅ Audio element pré-activé');
+                console.log('[AudioUnlock] ✅ Audio element pré-activé via canal MEDIA');
               })
               .catch(() => {
                 // Ignorer les erreurs - l'important c'est la tentative
@@ -711,7 +724,7 @@ const HeroMediaWithAudio = ({
             tempContext.close().catch(() => {});
           }
           setAudioUnlocked(true);
-          console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ - Prêt à recevoir audio');
+          console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ - Canal Media actif');
           resolve(true);
         }, 150);
         
