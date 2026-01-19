@@ -1060,7 +1060,8 @@ const HeroMediaWithAudio = ({
     }
     
     const API_URL = process.env.REACT_APP_BACKEND_URL || '';
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Utiliser WSS si l'API est HTTPS (correct pour Kubernetes)
+    const wsProtocol = API_URL.startsWith('https') ? 'wss:' : 'ws:';
     const wsHost = API_URL.replace(/^https?:\/\//, '').replace('/api', '');
     const wsUrl = `${wsProtocol}//${wsHost}/api/ws/session/${sessionId}`;
     
