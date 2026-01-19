@@ -713,9 +713,6 @@ const HeroMediaWithAudio = ({
       return false;
     }
   }, []);
-      return false;
-    }
-  }, []);
 
   // ========== CHANGER LA SOURCE AUDIO (quand le coach envoie une piste) ==========
   const switchAudioSource = useCallback((newSrc, position = 0) => {
