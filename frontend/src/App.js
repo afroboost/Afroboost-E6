@@ -876,13 +876,14 @@ const HeroMediaWithAudio = ({
                 position: 'absolute',
                 top: '48px',
                 right: '0',
-                background: 'rgba(20, 20, 30, 0.95)',
+                background: 'rgba(20, 20, 30, 0.98)',
                 backdropFilter: 'blur(12px)',
                 borderRadius: '12px',
                 border: '1px solid rgba(217, 28, 210, 0.3)',
                 padding: '8px',
                 minWidth: '180px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.7)',
+                zIndex: 200
               }}>
                 {/* Volume */}
                 <div style={{ padding: '8px 12px' }}>
