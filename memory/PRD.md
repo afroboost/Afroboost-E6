@@ -1231,3 +1231,60 @@ HeroMediaWithAudio
 - `/app/frontend/src/components/CoachDashboard.js`:
   - Lignes 3136-3137: Bouton Playlist minimaliste
   - Lignes 2956-2957: Bouton DÉMARRER responsive
+
+
+---
+
+## Son PC, Correctif Crash Audio & Harmonisation Visuelle (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. HARMONISATION DE LA MINIATURE
+- **Remplacement:** L'icône casque 🎧 remplacée par une miniature du cours
+- **Source:** `liveCourseImage` transmis via WebSocket STATE_SYNC
+- **Fallback:** Si pas d'image, affiche icône 🎵 sur fond dégradé violet/rose
+- **Style:** Zone carrée `clamp(100px, 30vw, 140px)`, borderRadius 16px, effet glow quand isPlaying
+
+#### 2. NETTOYAGE UI CLIENT
+- **Badge LIVE:** Supprimé le doublon à droite du titre
+- **Badge EN DIRECT:** Unique, en haut à gauche (rouge clignotant)
+- **Design épuré:** Titre → Miniature → Info → Bouton Play/Pause parfaitement alignés
+
+#### 3. CORRECTIF CRASH AUDIO (ZÉRO ERREUR)
+- **Vérification ajoutée:** `if (audioContext && audioContext.state !== 'closed')` avant chaque `.close()`
+- **Emplacements corrigés:**
+  - App.js:709 (unlockAudioForMobile)
+  - App.js:788 (stopForceAudio)
+  - App.js:891 (cleanup useEffect)
+- **Résultat:** Aucune erreur rouge "Cannot close already closed AudioContext"
+
+#### 4. PLAYLIST DRAG & DROP
+- **Drag PC:** `draggable` avec `onDragStart`, `onDragOver`, `onDrop`
+- **Boutons Mobile:** ▲ (monter) et ▼ (descendre) pour accessibilité tactile
+- **Indicateur visuel:** "• Glissez pour réorganiser" + ring-2 ring-purple-500 sur zone de drop
+- **Sauvegarde:** L'ordre est sauvegardé via `savePlaylist()` existant
+
+### Tests validés (iteration_25.json)
+- ✅ Test 1: Miniature avec 🎵 au lieu de 🎧
+- ✅ Test 2: UN SEUL badge 'EN DIRECT'
+- ✅ Test 3: Aucune erreur crash audioContext
+- ✅ Test 4: '[ForceAudio] ✅ Canal audio maintenu ouvert en boucle'
+- ✅ Test 5: 'Glissez pour réorganiser' dans modal playlist
+- ✅ Test 6: Boutons ▲/▼ présents
+- ✅ Test 7: 'En attente du signal coach' affiché
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`:
+  - Ligne 647: `liveCourseImage` state ajouté
+  - Lignes 709, 788, 891: Vérifications `state !== 'closed'`
+  - Lignes 1683-1708: Miniature du cours
+  - Lignes 1670: Titre épuré sans badge LIVE
+- `/app/frontend/src/components/CoachDashboard.js`:
+  - Lignes 555-607: Drag & Drop avec handleDragStart/handleDrop/moveTrack
+  - Ligne 288: `course_image` dans SESSION_START
+  - Lignes 2139-2157: Boutons ▲/▼
+- `/app/backend/server.py`:
+  - Ligne 313: `course_image` dans session_states
+  - Ligne 237: `course_image` dans SESSION_START handler
+- `/app/frontend/src/App.css`:
+  - Lignes 519-527: Animation `pulse-glow` pour miniature
