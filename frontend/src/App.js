@@ -1323,45 +1323,16 @@ const HeroMediaWithAudio = ({
             {isPlaying ? '🔊 Audio synchronisé avec le coach' : '⏸ En attente du coach...'}
           </p>
 
-          {/* Contrôle du volume (le seul contrôle autorisé) */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            width: '60%',
-            maxWidth: '250px',
-            marginTop: '20px'
-          }}>
-            <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔈</span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={audioVolume}
-              onChange={(e) => {
-                const vol = parseFloat(e.target.value);
-                setAudioVolume(vol);
-                if (audioRef.current) audioRef.current.volume = vol;
-              }}
-              style={{
-                flex: 1,
-                height: '4px',
-                borderRadius: '2px',
-                appearance: 'none',
-                background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%, rgba(255,255,255,0.2) 100%)`,
-                cursor: 'pointer'
-              }}
-            />
-            <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔊</span>
-          </div>
-
-          {/* Audio element */}
+          {/* Audio element avec Web Audio API pour canal Media mobile */}
           <audio
             ref={audioRef}
             src={playlist[currentTrackIndex]}
-            onPlay={() => setIsPlaying(true)}
+            onPlay={() => {
+              setIsPlaying(true);
+              initWebAudio();
+            }}
             onPause={() => setIsPlaying(false)}
+            preload="auto"
           />
         </div>
       </div>
