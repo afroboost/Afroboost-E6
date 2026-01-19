@@ -1453,6 +1453,7 @@ async def process_google_session(request: Request, response: Response):
         
         # ===== VÉRIFICATION : Déterminer le niveau d'accès =====
         is_super_admin = email == AUTHORIZED_COACH_EMAIL.lower()
+        subscription_active = True  # Par défaut pour Super Admin
         
         # Si pas Super Admin, vérifier si l'email est enregistré comme coach
         if not is_super_admin:
@@ -1463,6 +1464,15 @@ async def process_google_session(request: Request, response: Response):
                     "success": False,
                     "error": "access_denied",
                     "message": f"⛔ Accès refusé. Vous n'êtes pas enregistré comme coach. Contactez {AUTHORIZED_COACH_EMAIL}."
+                }
+            
+            # Vérifier si l'abonnement est actif
+            subscription_active = coach_record.get("subscriptionActive", False)
+            if not subscription_active:
+                return {
+                    "success": False,
+                    "error": "subscription_expired",
+                    "message": "⛔ Votre abonnement n'est pas actif. Veuillez contacter l'administrateur pour renouveler votre accès."
                 }
         
         # Créer ou mettre à jour l'utilisateur
@@ -1477,6 +1487,7 @@ async def process_google_session(request: Request, response: Response):
                     "name": name,
                     "picture": picture,
                     "is_super_admin": is_super_admin,
+                    "subscription_active": subscription_active,
                     "last_login": datetime.now(timezone.utc).isoformat()
                 }}
             )
@@ -1488,6 +1499,7 @@ async def process_google_session(request: Request, response: Response):
                 "picture": picture,
                 "is_coach": True,
                 "is_super_admin": is_super_admin,
+                "subscription_active": subscription_active,
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "last_login": datetime.now(timezone.utc).isoformat()
             })
@@ -1501,6 +1513,7 @@ async def process_google_session(request: Request, response: Response):
             "email": email,
             "name": name,
             "is_super_admin": is_super_admin,
+            "subscription_active": subscription_active,
             "session_token": session_token,
             "expires_at": expires_at.isoformat(),
             "created_at": datetime.now(timezone.utc).isoformat()
@@ -1525,7 +1538,8 @@ async def process_google_session(request: Request, response: Response):
                 "name": name,
                 "picture": picture,
                 "is_coach": True,
-                "is_super_admin": is_super_admin
+                "is_super_admin": is_super_admin,
+                "subscription_active": subscription_active
             }
         }
         
