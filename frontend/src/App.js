@@ -1832,41 +1832,7 @@ const HeroMediaWithAudio = ({
           </div>
 
           {/* Audio element caché */}
-          <audio
-            ref={audioRef}
-            src={convertCloudUrlToDirect(playlist[currentTrackIndex])}
-            playsInline
-            webkit-playsinline="true"
-            onPlay={() => {
-              setIsPlaying(true);
-              setAudioError(null);
-              setAudioLoadError(false);
-              if (audioLoadTimeoutRef.current) {
-                clearTimeout(audioLoadTimeoutRef.current);
-                audioLoadTimeoutRef.current = null;
-              }
-              console.log('[Audio] ✅ Lecture démarrée!');
-            }}
-            onPause={() => setIsPlaying(false)}
-            onError={(e) => {
-              console.error('[Audio] Erreur de lecture:', e);
-              setAudioError('Impossible de lire ce fichier audio');
-              setIsPlaying(false);
-              setAudioLoadError(true);
-            }}
-            onCanPlay={() => {
-              console.log('[Audio] ✅ Prêt à jouer');
-              setAudioError(null);
-              setAudioLoadError(false);
-              if (audioLoadTimeoutRef.current) {
-                clearTimeout(audioLoadTimeoutRef.current);
-                audioLoadTimeoutRef.current = null;
-              }
-            }}
-            onLoadStart={() => console.log('[Audio] Chargement démarré...')}
-            preload="auto"
-            crossOrigin="anonymous"
-          />
+          {/* Audio géré par l'élément permanent - pas de doublon */}
         </div>
       </div>
     );
