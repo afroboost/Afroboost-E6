@@ -591,6 +591,15 @@ const HeroMediaWithAudio = ({
     }
   }, [audioVolume]);
 
+  // Cleanup WebSocket on unmount
+  useEffect(() => {
+    return () => {
+      if (liveWebSocket) {
+        liveWebSocket.close();
+      }
+    };
+  }, [liveWebSocket]);
+
   // Container style (mêmes dimensions 16:9 que MediaDisplay)
   const containerStyle = {
     position: 'relative',
