@@ -999,6 +999,42 @@ const HeroMediaWithAudio = ({
     };
   }, []);
 
+  // ========== AUDIO CONTEXT: Connecter l'élément audio au contexte APRÈS montage du mode Live ==========
+  useEffect(() => {
+    if (liveConnected && audioRef.current && !sourceNodeRef.current) {
+      // Attendre un tick pour s'assurer que le DOM est prêt
+      const timer = setTimeout(() => {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          
+          // Créer le contexte s'il n'existe pas
+          if (!audioContextRef.current) {
+            audioContextRef.current = new AudioContextClass();
+            console.log('[WebAudio] 🎵 AudioContext créé pour mode Live');
+          }
+          
+          // Reprendre si suspendu (iOS)
+          if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume().then(() => {
+              console.log('[WebAudio] ✅ AudioContext resumed');
+            });
+          }
+          
+          // Connecter l'élément audio au contexte
+          if (audioRef.current && !sourceNodeRef.current) {
+            sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+            sourceNodeRef.current.connect(audioContextRef.current.destination);
+            console.log('[WebAudio] 🔗 Élément audio connecté au destination');
+          }
+        } catch (e) {
+          console.warn('[WebAudio] Erreur connexion audio:', e);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [liveConnected]);
+
   // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
   const joinLiveSession = useCallback(async (sessionId, isReconnect = false) => {
     if (!sessionId) return;
