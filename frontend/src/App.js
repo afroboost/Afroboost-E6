@@ -1508,46 +1508,264 @@ const HeroMediaWithAudio = ({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'space-around', // SPACE-AROUND pour distribution verticale
-          padding: '16px 12px',
-          overflow: 'hidden', // CRITIQUE: Aucun élément ne sort du cadre
+          justifyContent: 'space-between', // SPACE-BETWEEN pour distribution verticale
+          padding: '3vh 4vw 5vh 4vw', // Unités relatives + padding-bottom augmenté
+          overflow: 'hidden',
           boxSizing: 'border-box',
-          position: 'relative'
+          position: 'relative',
+          minHeight: '100%'
         }}>
-          {/* Menu "..." en haut à droite (40px hitbox) */}
-          <div className="settings-menu-container" style={{
-            position: 'absolute',
-            top: '8px',
-            right: '56px',
-            zIndex: 25
+          
+          {/* ===== HEADER: Badge EN DIRECT + Menu ===== */}
+          <div style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '2vh'
           }}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowSettingsMenu(!showSettingsMenu);
-              }}
-              style={{
-                width: '40px',
-                height: '40px',
+            {/* Badge EN DIRECT - haut gauche */}
+            <div style={{
+              background: 'rgba(220, 38, 38, 0.9)',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 10px rgba(220, 38, 38, 0.5)'
+            }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
                 borderRadius: '50%',
-                background: 'rgba(0, 0, 0, 0.6)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#fff',
-                fontSize: '18px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              data-testid="live-settings-btn"
-            >
-              ⋮
-            </button>
+                background: '#fff',
+                animation: 'pulse 1s infinite'
+              }}></span>
+              <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>EN DIRECT</span>
+            </div>
             
-            {/* Menu déroulant Live */}
-            {showSettingsMenu && (
+            {/* Bouton Menu + Quitter */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSettingsMenu(!showSettingsMenu);
+                }}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: 'rgba(0, 0, 0, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#fff',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                data-testid="live-settings-btn"
+              >
+                ⋮
+              </button>
+              <button
+                onClick={leaveLiveSession}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  border: '1px solid rgba(239, 68, 68, 0.5)',
+                  color: '#ef4444',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                data-testid="leave-live-btn"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Menu déroulant (si ouvert) */}
+          {showSettingsMenu && (
+            <div style={{
+              position: 'absolute',
+              top: '60px',
+              right: '4vw',
+              background: 'rgba(20, 20, 30, 0.98)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '12px',
+              border: '1px solid rgba(217, 28, 210, 0.3)',
+              padding: '8px',
+              minWidth: '160px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.7)',
+              zIndex: 500
+            }}>
+              <div style={{ padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', marginBottom: '4px' }}>Volume</p>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={audioVolume}
+                  onChange={(e) => {
+                    const vol = parseFloat(e.target.value);
+                    setAudioVolume(vol);
+                    if (audioRef.current) audioRef.current.volume = vol;
+                  }}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <button
+                onClick={() => { setIsMuted(!isMuted); setShowSettingsMenu(false); }}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#fff',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '13px'
+                }}
+              >
+                {isMuted ? '🔊 Activer le son' : '🔇 Couper le son'}
+              </button>
+            </div>
+          )}
+
+          {/* ===== ZONE CENTRALE: Titre + Miniature (si disponible) ===== */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            gap: '2vh'
+          }}>
+            {/* Titre du cours */}
+            <h3 style={{
+              color: '#fff',
+              fontSize: 'clamp(18px, 5vw, 24px)',
+              fontWeight: 700,
+              textAlign: 'center',
+              margin: 0,
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+              maxWidth: '90%'
+            }}>
+              {liveCourseName || 'Silent Disco Live'}
+            </h3>
+
+            {/* Miniature UNIQUEMENT si image disponible - sinon rien */}
+            {liveCourseImage && (
               <div style={{
+                width: 'clamp(100px, 30vw, 140px)',
+                height: 'clamp(100px, 30vw, 140px)',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                boxShadow: isPlaying 
+                  ? '0 0 30px rgba(217, 28, 210, 0.6)' 
+                  : '0 4px 20px rgba(0,0,0,0.4)',
+                border: isPlaying 
+                  ? '3px solid rgba(217, 28, 210, 0.8)' 
+                  : '2px solid rgba(255,255,255,0.2)',
+                background: `url(${liveCourseImage}) center/cover no-repeat`,
+                animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
+              }} data-testid="live-course-thumbnail" />
+            )}
+
+            {/* Info connexion */}
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '12px',
+              margin: 0
+            }}>
+              {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
+            </p>
+          </div>
+
+          {/* ===== ZONE BAS: Bouton PLAY + Statut ===== */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '2vh',
+            marginTop: '2vh',
+            paddingBottom: '2vh' // Padding pour ne pas coller au bord
+          }}>
+            {/* Bouton PLAY/PAUSE */}
+            <div style={{
+              width: 'clamp(70px, 18vw, 90px)',
+              height: 'clamp(70px, 18vw, 90px)',
+              borderRadius: '50%',
+              background: isPlaying 
+                ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' 
+                : 'rgba(255, 255, 255, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: isPlaying ? '0 0 40px rgba(217, 28, 210, 0.7)' : '0 4px 20px rgba(0,0,0,0.3)',
+              transition: 'all 0.3s',
+              border: isPlaying ? 'none' : '2px solid rgba(255,255,255,0.2)'
+            }}>
+              <span style={{ fontSize: 'clamp(28px, 7vw, 36px)', color: '#fff' }}>
+                {isPlaying ? '♪' : '⏸'}
+              </span>
+            </div>
+
+            {/* Message de statut */}
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.5)',
+              fontSize: '12px',
+              textAlign: 'center',
+              margin: 0
+            }}>
+              {audioError ? (
+                <span style={{ color: '#ef4444' }}>❌ {audioError}</span>
+              ) : audioLoadError ? (
+                <span style={{ color: '#f59e0b' }}>⚠️ Chargement audio lent</span>
+              ) : waitingForCoach ? (
+                <span style={{ color: '#22c55e' }}>● En attente du coach...</span>
+              ) : isPlaying ? (
+                <span style={{ color: '#d91cd2' }}>● Audio en cours</span>
+              ) : (
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>● En pause</span>
+              )}
+            </p>
+
+            {/* Alerte si audio bloqué (waitingForCoach mais pas de son) */}
+            {waitingForCoach && !audioUnlocked && (
+              <button
+                onClick={async () => {
+                  await unlockAudioForMobile();
+                  forceAudioPlay();
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '20px',
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  border: '1px solid #f59e0b',
+                  color: '#f59e0b',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  animation: 'pulse 1.5s infinite'
+                }}
+                data-testid="unlock-audio-btn"
+              >
+                ⚠️ Touchez pour activer le son
+              </button>
+            )}
+          </div>
+
+          {/* Audio element caché */}
+          <audio
                 position: 'absolute',
                 top: '48px',
                 right: '0',
