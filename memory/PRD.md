@@ -589,6 +589,22 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Footer mis à jour** : Lien "Connexion Coach" visible à côté d'Instagram
   - **Widget WhatsApp** : Non gêné (bien séparé en bas à droite)
   - **Paramètres vidéo** : Non modifiés dans "Concept & Visuel"
+- [x] **Silent Disco Live - Phase 1 (19 Jan 2026)**:
+  - **Backend WebSocket** : Endpoint `/ws/session/{session_id}` pour synchronisation temps réel
+  - **SilentDiscoManager** : Gestion des connexions, états de session, diffusion des commandes
+  - **Console DJ Coach** : Interface Live Control dans l'onglet "Cours" (Super Admin)
+    - Sélection du cours pour démarrer une session
+    - Boutons Play/Pause/Navigation pistes synchronisés
+    - Affichage du nombre de participants connectés
+    - Code de session à partager aux participants
+  - **Récepteur Participant** : Mode passif dans HeroMediaWithAudio
+    - Bouton "🎧 REJOINDRE LE LIVE" superposé sur la vidéo héro
+    - Modal pour entrer le code de session
+    - Synchronisation automatique avec le coach (< 500ms de latency)
+    - Seul le contrôle du volume est autorisé (pas de navigation)
+    - Badge "LIVE" rouge + compteur de participants
+  - **Synchronisation** : Commandes PLAY, PAUSE, SEEK, TRACK_CHANGE avec timestamp serveur
+  - **Fix Mobile** : Cartes de coachs responsive (flex-col sur mobile)
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
@@ -599,10 +615,13 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 - [x] ~~**Archivage cours**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Espace Dédié Coachs**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Permutation Vidéo/Audio**~~ - ✅ COMPLÉTÉ
+- [x] ~~**Silent Disco Live Phase 1**~~ - ✅ COMPLÉTÉ
 - [ ] **Optimisation Backend MongoDB** - Appliquer pagination et projection sur les requêtes pour améliorer les performances en production.
 - [ ] Tests automatisés pour les composants extraits
 
 ### P2 - Backlog
+- [ ] **Silent Disco Phase 2** : Drag & Drop playlist + Speed Control
+- [ ] **Silent Disco Phase 3** : Micro externe via Web Audio API + Media Session API
 - [ ] Créer pages dédiées: /boutique, /profil (routing Vercel)
 - [ ] Envoi Email via mailto: avec sujet personnalisé
 - [ ] Envoi Instagram via ig.me
