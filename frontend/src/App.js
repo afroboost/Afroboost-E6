@@ -1450,7 +1450,8 @@ const HeroMediaWithAudio = ({
                 border: '1px solid rgba(217, 28, 210, 0.3)',
                 padding: '8px',
                 minWidth: '180px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                zIndex: 500 // ÉLEVÉ pour passer au-dessus de tous les éléments
               }}>
                 {/* Volume */}
                 <div style={{ padding: '8px 12px' }}>
