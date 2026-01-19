@@ -1288,3 +1288,62 @@ HeroMediaWithAudio
   - Ligne 237: `course_image` dans SESSION_START handler
 - `/app/frontend/src/App.css`:
   - Lignes 519-527: Animation `pulse-glow` pour miniature
+
+
+---
+
+## Nettoyage Radical Interface & Stripe Checkout (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. SUPPRESSION VISUELLE DÉFINITIVE
+- **Icône casque supprimée:** Bouton "REJOINDRE LE LIVE" affiche un point vert clignotant (#22c55e)
+- **Badge LIVE doublon supprimé:** Seul "EN DIRECT" en haut à gauche (rouge)
+- **Modal nettoyé:** Affiche icône ♪ au lieu de 🎧
+- **Message épuré:** "● En attente du coach..." sans emoji 🎧
+
+#### 2. MINIATURE SYNCHRONISÉE
+- **Source:** `liveCourseImage` transmis via WebSocket
+- **Affichage:** Zone carrée clamp(120px, 35vw, 160px) avec background-image
+- **Fallback:** Fond dégradé sombre (pas d'icône 🎵 visible)
+- **data-testid:** `live-course-thumbnail`
+
+#### 3. SON PC & STABILITÉ (ZÉRO CRASH)
+- **Vérifications `state !== 'closed'`:** 3 emplacements (App.js:709, 788, 891)
+- **Son PC aligné:** Même logique que mobile avec unlockAudioForMobile()
+- **Aucune erreur rouge:** "Cannot close already closed AudioContext" éliminée
+
+#### 4. STRIPE CHECKOUT SÉCURISÉ
+- **Endpoint création:** `POST /api/stripe/create-checkout`
+  - Crée une session Stripe Checkout
+  - Retourne URL de paiement + session_id + reservation_code
+  - Commission 10% admin calculée
+- **Endpoint statut:** `GET /api/stripe/checkout-status/{session_id}`
+  - Vérifie le paiement
+  - Crée la réservation si payé
+- **Webhook:** `POST /api/webhook/stripe`
+  - Reçoit `checkout.session.completed`
+  - Valide la réservation automatiquement
+  - Génère le QR Code uniquement après paiement confirmé
+- **Fallback:** Si Stripe échoue, utilise les liens de paiement manuels
+
+### Tests validés (iteration_26.json)
+- ✅ Test 1: Bouton REJOINDRE sans 🎧 (point vert)
+- ✅ Test 2: Modal avec ♪
+- ✅ Test 3: Aucune erreur crash audioContext
+- ✅ Test 4: ForceAudio maintenu en boucle
+- ✅ Test 5: UN SEUL badge 'EN DIRECT'
+- ✅ Test 6: Lecteur sans icône casque
+- ✅ Test 7: API Stripe fonctionnelle
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`:
+  - Lignes 1382-1388: Point vert dans bouton REJOINDRE
+  - Ligne 1430: Icône ♪ dans modal
+  - Lignes 1702-1721: Miniature sans emoji
+  - Lignes 709, 788, 891: Vérifications audioContext.state
+  - Lignes 3455-3508: Handler retour Stripe
+  - Lignes 4112-4140: Création checkout Stripe
+- `/app/backend/server.py`:
+  - Lignes 2562-2740: Endpoints Stripe (create-checkout, webhook, status)
+  - Ligne 17: Import StripeCheckout
