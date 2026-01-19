@@ -1406,3 +1406,82 @@ Pour activer TWINT:
 1. Accédez à https://dashboard.stripe.com/account/payments/settings
 2. Activez "TWINT" dans les méthodes de paiement
 3. Modifiez server.py ligne 2608: `payment_methods=["card", "twint"]`
+
+
+---
+
+## Gestion Dynamique du Bouton Live & Son Mobile Garanti (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. CYCLE DE VIE DU BOUTON "REJOINDRE LE LIVE"
+- **Masqué par défaut:** `liveSessionActive` initialisé à `useState(false)` (App.js:654)
+- **Polling automatique:** Vérifie `/api/silent-disco/active-sessions` toutes les 5s (App.js:922-943)
+- **Apparition:** Le bouton apparaît UNIQUEMENT quand `has_active: true` (coach a démarré)
+- **Disparition:** Disparaît immédiatement via WebSocket `SESSION_END` (App.js:1173-1184)
+- **Condition rendu:** `{audioFeatureEnabled && liveSessionActive && ...}` (App.js:1414)
+- **data-testid:** `join-live-btn`
+
+#### 2. SUPPRESSION ESPACE NOIR (LECTEUR LIVE)
+- **Condition stricte:** `{liveCourseImage && liveCourseImage.trim() !== '' && ...}` (App.js:1746)
+- **Layout adaptatif:** `flex: liveCourseImage ? 1 : 'none'` - supprime l'espace si pas d'image
+- **Gap réduit:** `gap: liveCourseImage ? '2vh' : '1vh'` - design compact sans image
+- **Miniature supprimée du DOM:** Le div thumbnail n'est pas rendu si pas d'image (pas juste caché)
+
+#### 3. SON MOBILE - `audioContext.resume()` À CHAQUE PLAY
+- **Nouveau code:** Ajouté dans le handler `case "PLAY":` (App.js:1067-1083)
+- **Logique:**
+  1. Vérifie si `audioContextRef.current.state === 'suspended'`
+  2. Si oui, appelle `audioContextRef.current.resume()`
+  3. Sinon, crée un nouveau `AudioContext` si nécessaire
+- **Console log:** `[Silent Disco] audioContext.resume() forcé sur PLAY`
+- **Compatibilité:** Fonctionne même si le participant rejoint en avance
+
+#### 4. TWINT ACTIVÉ (SUISSE)
+- **Déjà configuré:** `payment_methods=["card", "twint"]` (server.py:2632)
+- **Note:** Nécessite activation dans le Dashboard Stripe
+
+### Tests validés (iteration_28.json)
+- ✅ Test 1: GET /api/silent-disco/active-sessions retourne has_active: false
+- ✅ Test 2: Structure réponse correcte (has_active: bool, active_sessions: list)
+- ✅ Test 3: AUDIO_SERVICE_ENABLED feature flag accessible
+- ✅ Test 4: Stripe checkout endpoint existe
+- ✅ Test 5: CODE REVIEW - audioContext.resume() dans handler PLAY
+- ✅ Test 6: CODE REVIEW - Image cover conditionnelle (pas d'espace noir)
+- ✅ Test 7: CODE REVIEW - TWINT dans payment_methods
+- ✅ Test 8: CODE REVIEW - liveSessionActive initialisé à false
+- ✅ Test 9: CODE REVIEW - Bouton REJOINDRE conditionnel
+- ✅ Test 10: FRONTEND - Bouton REJOINDRE absent du DOM sans session active
+- ✅ Test 11: FRONTEND - Bouton menu ⋮ visible sur hero vidéo
+- ✅ Test 12: FRONTEND - Pas de conteneur thumbnail vide
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`:
+  - Ligne 654: `useState(false)` pour liveSessionActive
+  - Lignes 922-943: useEffect polling active-sessions
+  - Lignes 1057-1083: Handler PLAY avec audioContext.resume()
+  - Ligne 1414: Condition bouton REJOINDRE
+  - Lignes 1721-1770: Zone centrale avec layout adaptatif
+  - Ligne 1746: Condition miniature stricte
+- `/app/backend/server.py`:
+  - Lignes 385-401: Endpoint /api/silent-disco/active-sessions
+  - Ligne 2632: payment_methods=["card", "twint"]
+
+### Test files créés
+- `/app/tests/test_silent_disco_features.py`: 9 tests pytest
+- `/app/test_reports/iteration_28.json`: Rapport de test complet
+
+---
+
+## Prochaines Tâches (P1)
+
+### Engagement
+- [ ] Notification push quand le coach démarre la séance
+- [ ] Barre de progression pour la piste audio en cours
+
+### UX/UI
+- [ ] QR code pour le code de session (partage facile)
+- [ ] Mode plein écran pour le lecteur mobile
+
+### Admin
+- [ ] Dashboard revenus avec graphiques commissions/mois
