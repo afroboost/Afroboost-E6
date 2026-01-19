@@ -68,6 +68,280 @@ async def api_favicon():
     from starlette.responses import Response
     return Response(status_code=204)
 
+# ==================== SILENT DISCO - WEBSOCKET MANAGER ====================
+# Gestionnaire de connexions WebSocket pour la synchronisation audio temps réel
+
+class SilentDiscoManager:
+    """
+    Gère les sessions de Silent Disco avec synchronisation temps réel.
+    - Le Coach (DJ) envoie des commandes (PLAY, PAUSE, SEEK, TRACK_CHANGE)
+    - Les Participants reçoivent ces commandes et synchronisent leur lecteur
+    """
+    def __init__(self):
+        # Connexions actives par session: {session_id: {websocket: user_info}}
+        self.active_connections: Dict[str, Dict[WebSocket, dict]] = {}
+        # État actuel de chaque session: {session_id: {playing, track_index, position, timestamp}}
+        self.session_states: Dict[str, dict] = {}
+        # Coach actif par session: {session_id: websocket}
+        self.session_coaches: Dict[str, WebSocket] = {}
+    
+    async def connect(self, websocket: WebSocket, session_id: str, user_info: dict):
+        """Connecte un utilisateur à une session"""
+        await websocket.accept()
+        
+        if session_id not in self.active_connections:
+            self.active_connections[session_id] = {}
+            self.session_states[session_id] = {
+                "playing": False,
+                "track_index": 0,
+                "position": 0.0,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "course_id": None,
+                "course_name": None
+            }
+        
+        self.active_connections[session_id][websocket] = user_info
+        
+        # Si c'est le coach (Super Admin), l'enregistrer
+        if user_info.get("is_coach", False):
+            self.session_coaches[session_id] = websocket
+        
+        # Envoyer l'état actuel au nouvel arrivant
+        await self.send_state_to_client(websocket, session_id)
+        
+        # Notifier tous les participants du nouveau compteur
+        await self.broadcast_participant_count(session_id)
+        
+        logger.info(f"[Silent Disco] {user_info.get('email', 'Anonymous')} joined session {session_id}")
+    
+    def disconnect(self, websocket: WebSocket, session_id: str):
+        """Déconnecte un utilisateur d'une session"""
+        if session_id in self.active_connections:
+            if websocket in self.active_connections[session_id]:
+                user_info = self.active_connections[session_id].pop(websocket)
+                logger.info(f"[Silent Disco] {user_info.get('email', 'Anonymous')} left session {session_id}")
+            
+            # Si c'était le coach, le retirer
+            if self.session_coaches.get(session_id) == websocket:
+                del self.session_coaches[session_id]
+            
+            # Si plus personne dans la session, nettoyer
+            if not self.active_connections[session_id]:
+                del self.active_connections[session_id]
+                if session_id in self.session_states:
+                    del self.session_states[session_id]
+    
+    async def send_state_to_client(self, websocket: WebSocket, session_id: str):
+        """Envoie l'état actuel de la session à un client"""
+        if session_id in self.session_states:
+            state = self.session_states[session_id]
+            participant_count = len(self.active_connections.get(session_id, {}))
+            await websocket.send_json({
+                "type": "STATE_SYNC",
+                "data": {
+                    **state,
+                    "participant_count": participant_count,
+                    "server_time": datetime.now(timezone.utc).isoformat()
+                }
+            })
+    
+    async def broadcast_participant_count(self, session_id: str):
+        """Diffuse le nombre de participants à tous"""
+        if session_id in self.active_connections:
+            count = len(self.active_connections[session_id])
+            await self.broadcast(session_id, {
+                "type": "PARTICIPANT_COUNT",
+                "data": {"count": count}
+            })
+    
+    async def broadcast(self, session_id: str, message: dict, exclude: WebSocket = None):
+        """Diffuse un message à tous les participants d'une session"""
+        if session_id in self.active_connections:
+            disconnected = []
+            for ws in self.active_connections[session_id]:
+                if ws != exclude:
+                    try:
+                        await ws.send_json(message)
+                    except Exception as e:
+                        logger.warning(f"[Silent Disco] Failed to send to client: {e}")
+                        disconnected.append(ws)
+            
+            # Nettoyer les connexions mortes
+            for ws in disconnected:
+                self.disconnect(ws, session_id)
+    
+    async def handle_coach_command(self, session_id: str, command: dict, coach_ws: WebSocket):
+        """
+        Traite une commande du coach et la diffuse aux participants.
+        Seul le coach enregistré peut envoyer des commandes.
+        """
+        # Vérifier que c'est bien le coach
+        if self.session_coaches.get(session_id) != coach_ws:
+            await coach_ws.send_json({
+                "type": "ERROR",
+                "data": {"message": "Vous n'êtes pas le coach de cette session"}
+            })
+            return
+        
+        cmd_type = command.get("type")
+        cmd_data = command.get("data", {})
+        server_timestamp = datetime.now(timezone.utc).isoformat()
+        
+        # Mettre à jour l'état de la session
+        if cmd_type == "PLAY":
+            self.session_states[session_id]["playing"] = True
+            self.session_states[session_id]["position"] = cmd_data.get("position", 0.0)
+            self.session_states[session_id]["timestamp"] = server_timestamp
+        
+        elif cmd_type == "PAUSE":
+            self.session_states[session_id]["playing"] = False
+            self.session_states[session_id]["position"] = cmd_data.get("position", 0.0)
+            self.session_states[session_id]["timestamp"] = server_timestamp
+        
+        elif cmd_type == "SEEK":
+            self.session_states[session_id]["position"] = cmd_data.get("position", 0.0)
+            self.session_states[session_id]["timestamp"] = server_timestamp
+        
+        elif cmd_type == "TRACK_CHANGE":
+            self.session_states[session_id]["track_index"] = cmd_data.get("track_index", 0)
+            self.session_states[session_id]["position"] = 0.0
+            self.session_states[session_id]["timestamp"] = server_timestamp
+        
+        elif cmd_type == "SESSION_START":
+            self.session_states[session_id]["course_id"] = cmd_data.get("course_id")
+            self.session_states[session_id]["course_name"] = cmd_data.get("course_name")
+            self.session_states[session_id]["playing"] = False
+            self.session_states[session_id]["track_index"] = 0
+            self.session_states[session_id]["position"] = 0.0
+        
+        elif cmd_type == "SESSION_END":
+            self.session_states[session_id]["playing"] = False
+        
+        # Diffuser la commande à tous les participants (sauf le coach)
+        broadcast_message = {
+            "type": cmd_type,
+            "data": {
+                **cmd_data,
+                "server_timestamp": server_timestamp,
+                "session_state": self.session_states[session_id]
+            }
+        }
+        
+        await self.broadcast(session_id, broadcast_message, exclude=None)
+        logger.info(f"[Silent Disco] Coach command {cmd_type} broadcast to session {session_id}")
+    
+    def get_session_info(self, session_id: str) -> dict:
+        """Retourne les informations sur une session"""
+        return {
+            "session_id": session_id,
+            "participant_count": len(self.active_connections.get(session_id, {})),
+            "has_coach": session_id in self.session_coaches,
+            "state": self.session_states.get(session_id, {})
+        }
+
+# Instance globale du gestionnaire Silent Disco
+silent_disco_manager = SilentDiscoManager()
+
+# ==================== WEBSOCKET ENDPOINTS ====================
+
+@app.websocket("/ws/session/{session_id}")
+async def websocket_session(websocket: WebSocket, session_id: str):
+    """
+    WebSocket endpoint pour la synchronisation Silent Disco.
+    
+    Connexion: Envoyer un message JSON initial avec user_info:
+    {"type": "JOIN", "data": {"email": "...", "name": "...", "is_coach": true/false}}
+    
+    Commandes Coach (is_coach=true):
+    - {"type": "PLAY", "data": {"position": 0.0}}
+    - {"type": "PAUSE", "data": {"position": 45.2}}
+    - {"type": "SEEK", "data": {"position": 30.0}}
+    - {"type": "TRACK_CHANGE", "data": {"track_index": 1}}
+    - {"type": "SESSION_START", "data": {"course_id": "...", "course_name": "..."}}
+    - {"type": "SESSION_END", "data": {}}
+    """
+    user_info = {"email": "anonymous", "name": "Participant", "is_coach": False}
+    
+    try:
+        # Attendre le message de connexion initial
+        await websocket.accept()
+        initial_msg = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+        
+        if initial_msg.get("type") == "JOIN":
+            user_info = initial_msg.get("data", user_info)
+        
+        # Enregistrer la connexion
+        if session_id not in silent_disco_manager.active_connections:
+            silent_disco_manager.active_connections[session_id] = {}
+            silent_disco_manager.session_states[session_id] = {
+                "playing": False,
+                "track_index": 0,
+                "position": 0.0,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "course_id": None,
+                "course_name": None
+            }
+        
+        silent_disco_manager.active_connections[session_id][websocket] = user_info
+        
+        # Si c'est le coach (Super Admin), l'enregistrer
+        if user_info.get("is_coach", False):
+            silent_disco_manager.session_coaches[session_id] = websocket
+            logger.info(f"[Silent Disco] Coach {user_info.get('email')} connected to session {session_id}")
+        else:
+            logger.info(f"[Silent Disco] Participant {user_info.get('email')} joined session {session_id}")
+        
+        # Envoyer l'état actuel
+        await silent_disco_manager.send_state_to_client(websocket, session_id)
+        await silent_disco_manager.broadcast_participant_count(session_id)
+        
+        # Boucle de réception des messages
+        while True:
+            try:
+                message = await websocket.receive_json()
+                msg_type = message.get("type")
+                
+                if msg_type == "PING":
+                    await websocket.send_json({"type": "PONG", "data": {"server_time": datetime.now(timezone.utc).isoformat()}})
+                
+                elif msg_type in ["PLAY", "PAUSE", "SEEK", "TRACK_CHANGE", "SESSION_START", "SESSION_END"]:
+                    # Commandes du coach uniquement
+                    await silent_disco_manager.handle_coach_command(session_id, message, websocket)
+                
+                elif msg_type == "GET_STATE":
+                    await silent_disco_manager.send_state_to_client(websocket, session_id)
+                
+            except WebSocketDisconnect:
+                break
+            except Exception as e:
+                logger.error(f"[Silent Disco] Error processing message: {e}")
+                break
+    
+    except asyncio.TimeoutError:
+        logger.warning("[Silent Disco] Connection timeout - no JOIN message received")
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.error(f"[Silent Disco] WebSocket error: {e}")
+    finally:
+        silent_disco_manager.disconnect(websocket, session_id)
+        await silent_disco_manager.broadcast_participant_count(session_id)
+
+@api_router.get("/silent-disco/sessions")
+async def get_active_sessions():
+    """Retourne la liste des sessions Silent Disco actives"""
+    sessions = []
+    for session_id in silent_disco_manager.active_connections:
+        sessions.append(silent_disco_manager.get_session_info(session_id))
+    return sessions
+
+@api_router.get("/silent-disco/session/{session_id}")
+async def get_session_info(session_id: str):
+    """Retourne les informations d'une session spécifique"""
+    if session_id not in silent_disco_manager.active_connections:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return silent_disco_manager.get_session_info(session_id)
+
 # ==================== MODELS ====================
 
 class Course(BaseModel):
