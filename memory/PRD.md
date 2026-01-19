@@ -1118,3 +1118,61 @@ HeroMediaWithAudio
   - Handler `PLAY` avec timeout 5s (lignes 931-1000)
   - UI feedback avec messages colorés (lignes 1652-1670)
   - Correction `convertCloudUrlToDirect()` (lignes 574-584)
+
+
+---
+
+## Silent Disco & Business Ready (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. DROITS CONSOLE DJ - Coach Bassi
+- **Liste des coachs autorisés:** `AUTHORIZED_DJ_COACHES = ['bassicustomshoes@gmail.com']`
+- **Condition d'accès:** `canAccessLiveConsole = isSuperAdmin || AUTHORIZED_DJ_COACHES.includes(email)`
+- **Abonnement:** Les coachs DJ autorisés ont `subscriptionActive: true` automatiquement
+
+#### 2. MICRO DJ avec Mixage
+- **Bouton:** "🎤 Activer mon Micro" dans la Console DJ
+- **Mixage Web Audio API:**
+  - Quand micro actif → Musique baissée à 50%
+  - Quand micro désactivé → Musique remonte à 100%
+- **Fonctions:** `toggleMicrophone()`, `micGainNode`, `musicGainNode`
+
+#### 3. GESTION PARTICIPANTS
+- **Liste des connectés** avec compteur en temps réel
+- **Bouton [Mute]:** Couper le son d'un participant
+- **Bouton [Exclure]:** Expulser un participant de la session
+- **Fonctions:** `muteParticipant()`, `kickParticipant()`
+
+#### 4. DESIGN MOBILE PIXEL PERFECT
+- **iPhone SE (320px):** Interface testée sans débordement horizontal
+- **Bouton PLAY/PAUSE:** Centré, 160x160px, icône 6xl
+- **Navigation pistes:** Boutons compacts (⏮ / ⏭) sur une ligne
+- **Volume:** Slider compact avec icônes réduites
+- **max-width: 100%** sur la console DJ
+
+#### 5. INTERFACE CLAIRE
+- **Bouton Playlist:** "🎵 Playlist" explicite sur les cartes de cours
+- **Texte visible sur desktop:** "Playlist" affiché en plus de l'icône
+
+#### 6. FIX Z-INDEX
+- **Menu settings:** z-index: 500 (au-dessus du bouton REJOINDRE)
+- **Bouton REJOINDRE:** z-index: 100
+
+### Tests validés (iteration_23.json)
+- ✅ Test 1: Interface 320px sans débordement (bodyScrollWidth=bodyClientWidth=320)
+- ✅ Test 2: Bouton REJOINDRE centré (button center = viewport center)
+- ✅ Test 3: Message "En attente du signal coach" après connexion
+- ✅ Test 4: Log "[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ"
+- ✅ Test 5: Console DJ accessible pour bassicustomshoes@gmail.com
+- ✅ Test 6: Bouton "🎤 Activer mon Micro" visible
+- ✅ Test 7: Bouton "Playlist" sur les cartes
+
+### Fichiers modifiés
+- `/app/frontend/src/components/CoachDashboard.js`:
+  - Ligne 172: `AUTHORIZED_DJ_COACHES = ['bassicustomshoes@gmail.com']`
+  - Lignes 400-461: `toggleMicrophone()` avec Web Audio API
+  - Lignes 3067-3080: Liste participants avec Mute/Exclure
+  - Lignes 2921-3116: Console DJ redesignée pour mobile
+- `/app/frontend/src/App.js`:
+  - Lignes 1190, 1454: z-index: 500 pour menu settings
