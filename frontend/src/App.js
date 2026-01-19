@@ -1104,6 +1104,13 @@ const HeroMediaWithAudio = ({
               
               console.log(`[Silent Disco] PLAY sync: position=${targetPosition.toFixed(2)}s, latency=${(latency * 1000).toFixed(0)}ms`);
               
+              // S'assurer que l'AudioContext est actif (au cas où)
+              if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+                audioContextRef.current.resume().then(() => {
+                  console.log('[Silent Disco] AudioContext resumed avant lecture');
+                });
+              }
+              
               // Charger et jouer
               audioRef.current.load();
               audioRef.current.currentTime = Math.min(targetPosition, audioRef.current.duration || 9999);
