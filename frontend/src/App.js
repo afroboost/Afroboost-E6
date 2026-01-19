@@ -931,6 +931,12 @@ const HeroMediaWithAudio = ({
           case "PLAY":
             // ========== RE-SYNC IMMÉDIAT: Rattraper le retard ==========
             setWaitingForCoach(false);
+            setAudioLoadError(false); // Reset erreur
+            
+            // Annuler le timeout précédent s'il existe
+            if (audioLoadTimeoutRef.current) {
+              clearTimeout(audioLoadTimeoutRef.current);
+            }
             
             if (audioRef.current) {
               // Forcer le rechargement du flux audio pour garantir la lecture
@@ -944,7 +950,17 @@ const HeroMediaWithAudio = ({
                   audioSrc = audioSrc.includes('?') ? `${audioSrc}&raw=1` : `${audioSrc}?raw=1`;
                 }
                 audioRef.current.src = audioSrc;
+                console.log('[Silent Disco] URL Dropbox corrigée avec raw=1');
               }
+              
+              // ========== TIMEOUT 5S: Erreur si audio ne charge pas ==========
+              audioLoadTimeoutRef.current = setTimeout(() => {
+                if (!isPlaying && audioRef.current && audioRef.current.readyState < 3) {
+                  console.error('[Silent Disco] ❌ Audio non chargé après 5 secondes');
+                  setAudioLoadError(true);
+                  setAudioError('Impossible de charger le flux audio. Vérifiez votre connexion.');
+                }
+              }, 5000);
               
               // Synchroniser la position avec compensation de latence
               const serverTime = new Date(msg.data.server_timestamp).getTime();
