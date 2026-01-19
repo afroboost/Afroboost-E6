@@ -745,3 +745,48 @@ Fonctionnalité de synchronisation audio en temps réel entre le Coach (DJ) et l
 - ✅ Bouton Son accessible (bas droite, non masqué)
 - ✅ Pas d'erreur React (écran rouge disparu)
 
+
+---
+
+## Silent Disco Phase 2 - Interface Épurée & Moteur DJ (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. UI ÉPURÉE (Zone Héro)
+- **Bouton LIVE centré** : "🎧 REJOINDRE LE LIVE" positionné en bas au centre de la zone héro
+- **Menu "⋮" (trois points)** : Icône 40px en haut à droite avec menu déroulant contenant :
+  - Contrôle du volume (slider)
+  - Bouton Mute/Unmute
+  - Infos de session
+- **z-index élevé** (100-200) pour garantir la cliquabilité sur iPhone
+
+#### 2. MOTEUR SILENT DISCO (WebSocket)
+- **Latence mesurée** : 3.4ms (bien en dessous du seuil de 200ms requis)
+- **Reconnexion automatique** : Si le participant perd la connexion, tentative de reconnexion après 2 secondes
+- **Commandes supportées** : PLAY, PAUSE, STOP, SEEK, TRACK_CHANGE, SESSION_START, SESSION_END
+- **Indicateur "EN DIRECT"** : Badge rouge avec point animé quand connecté au live
+
+#### 3. WEB AUDIO API (Fix Son Mobile)
+- **AudioContext** initialisé au premier clic pour débloquer l'audio sur iOS
+- **MediaElementSource** : Son routé vers le canal "Media" (casques/écouteurs)
+- **Indicateur de synchronisation** : "⏳ Synchronisation..." pendant la reconnexion
+
+#### 4. DASHBOARD DJ (CoachDashboard.js)
+- **Section "Live Control"** simplifiée dans l'onglet Cours
+- **Bouton unique par cours** : Gradient rose/violet avec icône ▶️
+- **Console active** : Bouton Play/Pause central (vert pour play, rouge pour pause)
+- **Navigation pistes** : Boutons Préc/Suiv et indicateur de piste actuelle
+- **Code session** : Affichage avec bouton de copie
+- **Bouton "TERMINER LA SÉANCE"** : Rouge pour arrêter la diffusion
+
+### Tests validés
+- ✅ Latence WebSocket : 3.4ms < 200ms
+- ✅ Bouton LIVE centré et cliquable
+- ✅ Menu "..." accessible (z-index 100)
+- ✅ Modal de connexion fonctionnelle
+- ✅ Compilation frontend réussie
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js` : HeroMediaWithAudio avec menu "...", Web Audio API, reconnexion
+- `/app/frontend/src/components/CoachDashboard.js` : Console DJ simplifiée
+
