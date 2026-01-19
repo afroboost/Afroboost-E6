@@ -623,30 +623,55 @@ const HeroMediaWithAudio = ({
   // Sync volume with audio element
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = audioVolume;
+      audioRef.current.volume = isMuted ? 0 : audioVolume;
     }
-  }, [audioVolume]);
+  }, [audioVolume, isMuted]);
 
-  // Cleanup WebSocket on unmount
+  // Cleanup WebSocket et AudioContext on unmount
   useEffect(() => {
     return () => {
       if (liveWebSocket) {
         liveWebSocket.close();
       }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, [liveWebSocket]);
 
-  // ========== SILENT DISCO: Rejoindre une session Live ==========
-  const joinLiveSession = (sessionId) => {
+  // Fermer le menu quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showSettingsMenu && !e.target.closest('.settings-menu-container')) {
+        setShowSettingsMenu(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showSettingsMenu]);
+
+  // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
+  const joinLiveSession = useCallback((sessionId, isReconnect = false) => {
     if (!sessionId) return;
     
-    const API = process.env.REACT_APP_BACKEND_URL || '';
+    // Nettoyer la connexion précédente
+    if (liveWebSocket) {
+      liveWebSocket.close();
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    
+    const API_URL = process.env.REACT_APP_BACKEND_URL || '';
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = API.replace(/^https?:\/\//, '').replace('/api', '');
-    // Utiliser /api/ws/ pour passer par l'ingress Kubernetes
+    const wsHost = API_URL.replace(/^https?:\/\//, '').replace('/api', '');
     const wsUrl = `${wsProtocol}//${wsHost}/api/ws/session/${sessionId}`;
     
-    console.log('[Silent Disco Participant] Connecting to:', wsUrl);
+    console.log(`[Silent Disco] ${isReconnect ? 'Reconnexion' : 'Connexion'} à:`, wsUrl);
+    setIsSyncing(true);
     
     const ws = new WebSocket(wsUrl);
     
