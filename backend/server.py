@@ -79,6 +79,7 @@ class Course(BaseModel):
     visible: bool = True
     archived: bool = False  # Archive au lieu de supprimer
     playlist: Optional[List[str]] = None  # Liste des URLs audio pour ce cours
+    authorEmail: Optional[str] = None  # Email du coach propriétaire (None = tous les coachs)
 
 class CourseCreate(BaseModel):
     name: str
@@ -89,6 +90,7 @@ class CourseCreate(BaseModel):
     visible: bool = True
     archived: bool = False
     playlist: Optional[List[str]] = None  # Liste des URLs audio
+    authorEmail: Optional[str] = None  # Email du coach propriétaire
 
 class Offer(BaseModel):
     model_config = ConfigDict(extra="ignore")
