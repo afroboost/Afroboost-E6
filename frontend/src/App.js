@@ -1404,8 +1404,11 @@ const HeroMediaWithAudio = ({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
+          justifyContent: 'space-around', // SPACE-AROUND pour distribution verticale
+          padding: '16px 12px',
+          overflow: 'hidden', // CRITIQUE: Aucun élément ne sort du cadre
+          boxSizing: 'border-box',
+          position: 'relative'
         }}>
           {/* Menu "..." en haut à droite (40px hitbox) */}
           <div className="settings-menu-container" style={{
