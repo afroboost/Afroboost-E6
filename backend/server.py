@@ -314,7 +314,8 @@ async def handle_websocket_session(websocket: WebSocket, session_id: str):
                 "position": 0.0,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "course_id": None,
-                "course_name": None
+                "course_name": None,
+                "course_image": None  # Image de couverture du cours
             }
         
         silent_disco_manager.active_connections[session_id][websocket] = user_info
