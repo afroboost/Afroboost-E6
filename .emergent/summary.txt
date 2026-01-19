@@ -1,198 +1,145 @@
 <analysis>**original_problem_statement:**
-L'utilisateur a demandé plusieurs corrections critiques et améliorations majeures, après une série de refontes de l'interface utilisateur. La tâche actuelle consiste à répondre à une demande de refonte de la logique de réservation pour permettre la sélection de plusieurs dates, tout en s'assurant que les corrections de style et de gestion des données précédentes sont maintenues.
+L'utilisateur a demandé de transformer l'application en une plateforme de Silent Disco. La phase actuelle consiste à implémenter la synchronisation en temps réel entre le coach (DJ) et les participants via WebSockets.
 
-**Exigences spécifiques de la tâche actuelle (P0) :**
-1.  **Logique de Sélection Multiple :**
-    *   Transformer l'état  (chaîne) en  (tableau) dans .
-    *   Implémenter une logique de bascule (toggle) : un clic sur une date l'ajoute au tableau si elle n'y est pas, ou la retire si elle y est déjà.
-    *   Mettre à jour le style pour que toutes les dates sélectionnées aient une bordure rose et un effet de lueur.
-    *   Calculer le prix total en multipliant le prix de l'offre par le nombre de dates sélectionnées.
-2.  **Corrections de Style (récurrent) :**
-    *   La barre de défilement des horaires doit être rose () et fine (4px).
-    *   Le texte de la section shop doit être blanc pur ().
-    *   Ajouter  au conteneur des offres pour corriger le problème de glow coupé.
-3.  **Nettoyage et Synchronisation des Données (maintenir les acquis) :**
-    *   La suppression d'un contact ou d'une offre via l'icône poubelle doit déclencher une suppression définitive en base de données () et nettoyer toutes les références associées dans les codes promo.
-    *   Une fonction de sanitization () doit purger les données fantômes au chargement du tableau de bord du coach.
+**Phases du projet Silent Disco :**
+1.  **Synchronisation de base (En cours) :** Mettre en place la communication WebSocket pour que les commandes (Play/Pause) du coach soient répercutées en temps réel sur les lecteurs des participants.
+2.  **Console DJ Avancée (Futur) :** Permettre au coach de réorganiser la playlist en direct et de contrôler le tempo.
+3.  **Mixage Micro (Futur) :** Ajouter une option pour que le coach puisse parler par-dessus la musique.
+4.  **Lecture en arrière-plan (Futur) :** Utiliser la Media Session API pour que la musique continue lorsque l'écran du téléphone est verrouillé.
 
 **PRODUCT REQUIREMENTS:**
-1.  **Génération de Codes Promo en Série :** (Terminé et amélioré)
-2.  **Système de Réservation Principal :** (En cours d'amélioration avec la sélection multiple)
-3.  **Agent IA Flottant :** (Existant)
-4.  **Mode Coach Avancé :** (Existant et amélioré avec la personnalisation de l'identité)
-5.  **Notifications Coach :** (Terminé)
-6.  **Affiche Événement :** (Terminé)
-7.  **Recherche et Filtrage Améliorés :** (Terminé et corrigé)
-8.  **Architecture Persistante & Scalable :** (En cours)
+- **Système de Réservation Principal :** Fonctionnel.
+- **Performances et Caching :** Implémentés.
+- **Assistant IA (ChatWidget) :** Fonctionnel.
+- **Mode Coach Avancé :** Espace dédié avec filtrage des données par coach.
+- **Service Audio :** Le lecteur a été déplacé dans la section héro et permute avec la vidéo.
+- **Silent Disco (Phase 1) :** Les fondations backend (WebSocket) et frontend (console DJ, lecteur récepteur) sont en place mais non testées de bout en bout.
 
 **User's preferred language**: Français
 
 **what currently exists?**
-Une application full-stack React + FastAPI + MongoDB. L'agent a récemment implémenté une série de corrections critiques concernant la gestion des données, notamment la suppression définitive (hard delete) synchronisée entre le frontend et le backend, et un script de nettoyage des données fantômes. L'UI de la page d'accueil a été refondue avec une navigation par onglets minimaliste, et le panneau d'administration permet désormais de personnaliser le nom et le logo de l'application. La logique de visibilité des offres () a été corrigée et est maintenant appliquée sur l'ensemble du site client.
+Une application full-stack (React/FastAPI/MongoDB) de réservation de cours. Le fichier  a été refactorisé en plusieurs composants. Un espace coach multi-tenant a été créé, filtrant les données par utilisateur. Le lecteur audio a été intégré dans la section principale et permute avec la vidéo d'accueil. Les bases de la fonctionnalité Silent Disco (Phase 1) ont été posées : un endpoint WebSocket a été créé côté backend, une console DJ a été ajoutée au tableau de bord du coach, et le lecteur client a été adapté pour fonctionner en mode récepteur live.
 
 **Last working item**:
--   **Last item agent was working:** L'agent a commencé à implémenter la fonctionnalité de sélection de dates multiples demandée par l'utilisateur. Il a modifié l'état  en  (un tableau) dans  et a commencé à mettre à jour les fonctions qui en dépendent.
+-   **Last item agent was working:** Implémentation de la Phase 1 de la fonctionnalité Silent Disco. L'agent a mis en place le backend WebSocket, la console DJ pour le coach, et le lecteur récepteur pour le client. Un correctif visuel pour la gestion des coachs sur mobile a également été appliqué. La session a été interrompue par une limite de mémoire, puis l'agent a rencontré un problème avec l'outil de capture d'écran qui n'arrivait pas à cliquer sur un bouton animé.
 -   **Status:** IN PROGRESS
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** both. Ce changement affecte en profondeur la logique de réservation. Le testing agent frontend devra valider la nouvelle interaction de sélection (toggle, style, calcul de prix). Le testing agent backend devra valuer que la nouvelle structure de réservation (avec un tableau de dates) est correctement enregistrée et gérée.
+-   **Agent Testing Done:** N (Partiel, l'agent a vérifié l'apparition de certains éléments mais n'a pas pu finaliser le test de bout en bout.)
+-   **Which testing method agent to use?** both. C'est une fonctionnalité complexe nécessitant la validation de la communication en temps réel.
+    -   **Backend testing agent:** Simuler plusieurs clients se connectant au WebSocket pour vérifier que les commandes du coach sont bien diffusées à tous.
+    -   **Frontend testing agent:** Simuler le parcours complet : le coach envoie une commande depuis son tableau de bord, et le client reçoit la commande et son lecteur audio réagit en conséquence.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Finaliser la sélection de dates multiples (P0)**
-    -   **Description:** La logique de réservation principale doit être modifiée pour permettre aux utilisateurs de sélectionner plusieurs dates pour un même cours.
-    -   **Attempted fixes:** L'agent a commencé à modifier , en changeant  en  pour  et en mettant à jour les fonctions de réinitialisation.
+-   **Issue 1: Finaliser et tester la synchronisation Silent Disco (Phase 1) (P0)**
+    -   **Description:** L'implémentation WebSocket est en place mais n'a jamais été testée de bout en bout. Le flux complet (Coach envoie commande -> Serveur diffuse -> Client reçoit et exécute) doit être validé. L'erreur de l'outil de test sur le bouton animé REJOINDRE LE LIVE doit être résolue pour permettre les tests automatisés.
+    -   **Attempted fixes:** Le code backend et frontend a été écrit. Un correctif CSS pour la responsivité a été appliqué dans .
     -   **Next debug checklist:**
-        1.  ** - :** Modifier cette fonction (ou en créer une nouvelle) pour implémenter la logique de toggle : ajouter/retirer une date de l'array .
-        2.  ** - JSX/CSS:** Mettre à jour la logique de rendu pour appliquer la classe  à tous les éléments de date dont la valeur est présente dans l'array .
-        3.  ** - :** Modifier cette fonction pour qu'elle multiplie le prix de l'offre par .
-        4.  ** - :** Adapter la fonction de soumission pour gérer un tableau de dates. Il faut décider si cela crée une seule réservation avec un tableau de dates ou plusieurs réservations distinctes. Le backend devra être adapté en conséquence.
-        5.  **:** Mettre à jour le modèle Pydantic  et l'endpoint de création de réservation pour accepter un tableau de dates.
-    -   **Why fix this issue and what will be achieved with the fix?** Répondre à une demande de fonctionnalité majeure de l'utilisateur qui améliorera considérablement l'expérience de réservation pour les cours.
+        1.  **Vérifier la connexion WebSocket client :** Dans  (composant ), s'assurer que le client se connecte bien au WebSocket en cliquant sur REJOINDRE LE LIVE. Ajouter des logs pour suivre la connexion, la réception des messages et les erreurs.
+        2.  **Vérifier l'envoi des commandes coach :** Dans , confirmer que les clics sur PLAY SYNC / PAUSE SYNC envoient les messages corrects au serveur via WebSocket.
+        3.  **Test de bout en bout :** Simuler un coach et un client. Le coach envoie une commande, et on vérifie que le lecteur du client réagit correctement (lecture/pause/synchronisation du temps).
+        4.  **Résoudre le problème de test :** Pour le bouton animé, soit désactiver temporairement la classe CSS  durant les tests, soit utiliser un  plus stable.
+        5.  **Confirmer le correctif UI :** Prendre une capture d'écran de l'onglet Coaches sur une vue mobile pour vérifier que le problème de débordement des boutons est bien résolu.
+    -   **Why fix this issue and what will be achieved with the fix?** C'est la fonctionnalité prioritaire demandée par l'utilisateur. La correction permettra de livrer la première version de l'expérience Silent Disco.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** both
     -   **Blocked on other issue:** Non.
 
--   **Issue 2: Vérifier les corrections de style récurrentes (P1)**
-    -   **Description:** L'utilisateur a signalé à plusieurs reprises des problèmes de style mineurs qui ne semblent pas être corrigés de manière persistante.
-    -   **Attempted fixes:** L'agent a ajouté du CSS à plusieurs reprises pour la scrollbar, le texte du shop et le padding du conteneur des offres.
-    -   **Next debug checklist:**
-        1.  **:** Inspecter les styles pour , le texte de la section shop, et le conteneur des offres.
-        2.  Utiliser des sélecteurs plus spécifiques ou  (avec prudence) pour garantir que les styles ne sont pas écrasés.
-        3.  Prendre une capture d'écran ciblée de chaque élément pour une validation visuelle explicite avant de terminer.
-    -   **Why fix this issue and what will be achieved with the fix?** Garantir la satisfaction de l'utilisateur et finaliser l'esthétique ultra-minimaliste demandée.
-    -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on other issue:** Non.
-
 **In progress Task List**:
--   **Task 1: Implémentation de la sélection de dates multiples (P0)**
-    -   **Where to resume:** Dans , après avoir modifié l'état . La prochaine étape est de modifier la logique de gestion des clics sur les dates et le calcul du prix total.
-    -   **What will be achieved with this?** Une fonctionnalité de réservation plus flexible et puissante pour les utilisateurs finaux.
+-   **Task 1: Implémenter la Phase 1 de la Silent Disco (P0)**
+    -   **Where to resume:** Le code est déjà présent dans  (backend),  (console DJ), et  (lecteur récepteur). La prochaine étape est de lancer un test complet de bout en bout et de déboguer la logique de synchronisation.
+    -   **What will be achieved with this?** Une synchronisation audio fonctionnelle en temps réel entre le coach et les participants.
     -   **Status:** IN PROGRESS
     -   **Should Test frontend/backend/both after fix?** both
     -   **Blocked on something:** Non.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P1: Refactoring de :** Extraire des composants logiques (ex: , , ) de  pour réduire sa taille et améliorer la maintenabilité.
-    -   **P1: Optimisation des requêtes Backend:** Revoir les requêtes MongoDB dans  pour ajouter de la pagination et des projections, comme suggéré dans les rapports précédents.
+    -   **P1: Silent Disco - Console DJ Avancée :** Implémenter le réarrangement de la playlist par glisser-déposer et le contrôle du tempo dans .
+    -   **P1: Silent Disco - Mixage Micro :** Ajouter une option Activer Micro pour le coach afin de mixer sa voix avec la musique.
+    -   **P1: Silent Disco - Lecture en Arrière-Plan :** Utiliser la Media Session API pour assurer la continuité de l'audio sur mobile.
 -   **Future Tasks:**
-    -   **P2: Dashboard Analytics pour le Coach:** Créer une vue de statistiques sur les réservations et les revenus.
-    -   **P2: Créer des pages dédiées:** Utiliser  pour scinder l'application en plusieurs pages (ex: , ).
-    -   **P2: Sauvegarde/Restauration de la planification:** Permettre au coach de sauvegarder et restaurer un planning de cours hebdomadaire.
+    -   **P2: Dashboard Analytics pour le Coach :** Créer une vue de statistiques sur les réservations et les revenus.
+    -   **P2: Créer des pages dédiées :** Utiliser  pour scinder l'application en plusieurs pages.
+    -   **P2: Sauvegarde/Restauration de la planification :** Permettre au coach de sauvegarder et restaurer un planning.
+    -   **P2: Indicateur visuel pour le statut du cache.**
 
 **Completed work in this session**
--   **Refonte UI et Navigation:** Mise en place d'une navigation par onglets (Tout, Cours, Shop) avec une esthétique minimaliste (micro).
--   **Personnalisation Admin:** Ajout de champs dans le Mode Coach pour modifier dynamiquement le nom de l'application et l'URL du logo, avec persistance en base de données et mise à jour du .
--   **Sélecteur de Variantes Interactif:** Transformation des variantes de produits en chips cliquables avec validation avant l'ajout au panier.
--   **Correction Critique de la Visibilité:** La logique de filtrage a été réparée pour s'assurer que les offres marquées comme invisibles () n'apparaissent jamais côté client, y compris dans les résultats de recherche.
--   **Suppression Définitive Synchronisée (Hard Delete):**
-    -   Les boutons de suppression dans le Mode Coach appellent désormais des endpoints  qui exécutent  dans MongoDB.
-    -   La suppression d'une offre ou d'un contact nettoie automatiquement toutes les références à cet élément dans les codes promo existants.
--   **Script de Nettoyage des Données:**
-    -   Un endpoint  a été créé pour purger les données fantômes (ID invalides) des codes promo.
-    -   Cette fonction est appelée automatiquement au chargement du CoachDashboard et peut être déclenchée manuellement via un bouton Nettoyer.
--   **Amélioration des Codes Promo:**
-    -   La génération en série crée désormais des entrées distinctes en base de données.
-    -   L'interface permet la multi-sélection des contacts bénéficiaires.
-    -   La liste des articles autorisés inclut les cours ET les produits.
-    -   L'édition individuelle des codes générés est possible.
--   **Scanner QR Code:** La présence et la fonctionnalité du scanner dans l'onglet Réservations ont été confirmées et maintenues.
-
-**Earlier issues found/mentioned but not fixed**
--   **Issue 1: Problèmes de style persistants**
-    -   **Debug checklist:**
-        1.  Vérifier les règles CSS dans  pour la scrollbar (), le texte du shop ( dans la section shop) et le padding du conteneur des offres.
-        2.  Utiliser les outils de développement du navigateur pour inspecter les éléments et voir quelles règles sont appliquées ou écrasées.
-        3.  Prendre des captures d'écran ciblées pour prouver que chaque correction est bien appliquée.
-    -   **Why to solve this issue and what will be achieved with this?** Pour répondre aux exigences précises de l'utilisateur et achever la refonte esthétique.
-    -   **Should Test frontend/backend/both after fix:** frontend
-    -   **Is recurring issue?** Y
-
-**Known issue recurrence from previous fork**
--   **Problème de glow coupé :** Ce bug visuel était déjà présent dans les forks précédents. L'instruction  est la solution demandée par l'utilisateur.
--   **Recurrence count:** 3+
--   **Status:** IN PROGRESS (l'utilisateur l'a mentionné de nouveau dans le dernier prompt).
+-   **Lecteur Audio Client :** Fonctionnalité initiale terminée et testée.
+-   **Icône Audio dans les Sessions :** Ajout d'une icône 🎧 dans les créneaux horaires comme raccourci vers le lecteur.
+-   **Refactoring de  :** Extraction de , , , et  dans des composants dédiés.
+-   **Espace Coach Multi-Tenant :** Implémentation d'un tableau de bord où chaque coach ne voit que ses propres données.
+-   **Permutation Vidéo/Audio :** Le lecteur audio a été intégré à la section héro, en remplacement de la vidéo lorsqu'il est actif. Un lien Connexion Coach a été ajouté au pied de page.
+-   **Début de la Silent Disco (Phase 1) :** Création du backend WebSocket, de la console DJ et du lecteur client récepteur. Un correctif de responsivité a été appliqué.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React (, ), CSS (y compris les styles de scrollbar et les animations).
--   **Backend:** FastAPI, Pydantic.
--   **Database:** MongoDB.
--   **State Management:** Gestion complexe de l'état local dans  et .
--   **Data Synchronization:** Logique cruciale pour maintenir la cohérence entre l'interface et la base de données lors des suppressions.
+-   **Communication en temps réel :** FastAPI WebSockets.
+-   **Architecture par composants :** Refactoring d'un composant monolithique en plusieurs composants réutilisables.
+-   **Contrôle d'accès basé sur les rôles (RBAC) :** Différenciation entre Super Admin et Coach pour l'accès aux données et à l'interface.
 
 **key DB schema**
--   ** (collection ):** Ajout de  et .
--   **:** Le modèle doit être mis à jour pour accepter un tableau de dates () au lieu d'une seule date.
--   **:** Le modèle est stable, mais la logique de service autour ( pour le nettoyage) est critique.
+-   , : Ajout du champ .
+-   : Gère maintenant tous les coachs enregistrés, avec un drapeau .
 
 **All files of reference**
--   : Fichier central pour la logique de réservation (multi-date) et le rendu client.
--   : Contient toute la logique de gestion admin (suppressions, nettoyage).
--   : Contient les endpoints API, y compris ceux pour la suppression et la sanitization.
--   : Fichier clé pour les corrections de style récurrentes.
+-   
+-   
+-   
 
 **Areas that need refactoring**:
--   ** (CRITICAL):** Ce fichier est extrêmement volumineux et contient trop de logiques différentes (rendu, gestion d'état, appels API, etc.). Il doit être décomposé en composants plus petits et gérables pour éviter les régressions et faciliter la maintenance.
--   **:** Ce composant est également très grand et pourrait bénéficier d'une décomposition en sous-composants (par onglet, par exemple).
+- L'utilisation d'une bibliothèque de gestion d'état (ex: Redux, Zustand) a été suggérée pour réduire le prop drilling dans , mais c'est une tâche future et non prioritaire.
 
 **key api endpoints**
--   : (NOUVEAU) Exécute le script de nettoyage des données fantômes.
--   : (MODIFIÉ) Supprime une offre et nettoie les références dans les codes promo.
--   : (NOUVEAU) Supprime un contact et nettoie les références dans les codes promo.
--   : (À MODIFIER) Devra accepter un tableau de dates.
+-   : **Nouveau**, pour la synchronisation de la Silent Disco.
+-   , , : **Nouveaux**, pour récupérer les données filtrées par coach.
+-   , , : **Nouveaux**, pour la gestion des coachs par le Super Admin.
+-   : Modifié pour retourner le drapeau .
+-   : Modifié pour autoriser la connexion de n'importe quel coach enregistré.
 
 **Critical Info for New Agent**
 -   **Langue :** Répondez exclusivement en **Français**.
--   **Priorité Absolue :** Implémentez la logique de **sélection de dates multiples**. C'est une modification majeure de la fonctionnalité principale.
--   **Règles Inviolables de l'Utilisateur :** Ne touchez JAMAIS au Splash Screen, à la logique Stripe, et maintenez les icônes de navigation en style micro.
--   **Logique de Suppression :** Toute nouvelle fonctionnalité de suppression doit suivre le modèle hard delete + sanitization. La confirmation de l'utilisateur est requise avant toute suppression.
--   **Problèmes de Style :** Soyez très attentif aux corrections de style demandées (scrollbar, texte, glow). Elles sont une source de frustration pour l'utilisateur. Validez-les visuellement et explicitement.
--   **Refactoring:** Gardez à l'esprit la nécessité de refactoriser . Bien que la tâche actuelle soit une nouvelle fonctionnalité, toute opportunité de ne pas ajouter à la complexité de ce fichier doit être saisie.
+-   **Tâche en cours (P0) :** Finaliser et tester la Phase 1 de la fonctionnalité Silent Disco. La priorité absolue est de valider le flux de communication WebSocket de bout en bout.
+-   **Problème de Test :** L'outil de capture d'écran a échoué à cause d'un bouton animé (). Il faudra probablement contourner ce problème pour permettre les tests.
+-   **Structure du Code :** La logique clé se trouve dans  (backend),  (lecteur client ), et  (console DJ).
 
 **documents and test reports created in this job**
--    (mis à jour)
--   
+-    (mis à jour plusieurs fois)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **Utilisateur (dernière demande) :** Demande la mise en place de la sélection de dates multiples, et réitère les corrections de style et les règles de nettoyage des données. (NON COMMENCÉ)
-2.  **Agent :** Finit la tâche de correction de la suppression réelle et synchronisée.
-3.  **Utilisateur :** Signale que la suppression n'est pas synchronisée (les données supprimées réapparaissent) et que les boutons ne sont pas connectés aux bons endpoints. (CORRIGÉ)
-4.  **Agent :** Finit la tâche de nettoyage des données fantômes.
-5.  **Utilisateur :** Demande un nettoyage radical et une synchronisation totale, en créant une fonction  pour purger les données fantômes. (CORRIGÉ)
-6.  **Agent :** Finit la tâche d'amélioration des codes promo (génération en série, etc.).
-7.  **Utilisateur :** Demande le rétablissement du scanner QR, et une logique de sécurité anti-suppression (archivage par défaut, suppression réelle sur confirmation). (CORRIGÉ)
-8.  **Agent :** Finit les corrections pour le déploiement (erreur favicon).
-9.  **Utilisateur :** Lance l'agent de déploiement, qui échoue à cause d'une erreur 404 sur . (CORRIGÉ)
-10. **Agent :** Finit la correction de la régression sur la visibilité des offres.
+1.  **Utilisateur (Terminé) :** Demande de refactoriser .
+2.  **Agent (Terminé) :** A extrait plusieurs composants de  et a vérifié que tout fonctionnait.
+3.  **Utilisateur (Terminé) :** Demande de créer un espace coach dédié avec des données filtrées.
+4.  **Agent (Terminé) :** A implémenté la logique backend et frontend pour le tableau de bord multi-tenant.
+5.  **Utilisateur (Terminé) :** Demande de permuter l'affichage Vidéo/Audio et d'ajouter un lien de connexion coach.
+6.  **Agent (Terminé) :** A déplacé le lecteur audio dans la section héro et a ajouté le lien dans le pied de page.
+7.  **Utilisateur (Clarification) :** A demandé la fonctionnalité Silent Disco avec synchronisation en temps réel.
+8.  **Agent (Clarification) :** A demandé des précisions sur le périmètre.
+9.  **Utilisateur (En cours) :** A défini le périmètre de la Phase 1 : synchronisation WebSocket, console DJ de base, et correctif UI.
+10. **Agent (En cours) :** A commencé l'implémentation, a créé le code nécessaire mais a été interrompu par une erreur mémoire et un problème de test avant de pouvoir valider le fonctionnement.
 
 **Project Health Check:**
--   **Broken:** Non. L'application est fonctionnelle, mais la nouvelle fonctionnalité de sélection multiple n'est pas encore implémentée.
--   **Mocked:** Aucune.
+-   **Broken:** La fonctionnalité Silent Disco est incomplète et non testée. Le reste de l'application est fonctionnel.
+-   **Mocked:** Non applicable.
 
 **3rd Party Integrations**
+-   FastAPI usage: websockets [--version | <uri>] (récemment ajouté)
 -   EmailJS ()
--   Twilio (utilisé via l'API  pour WhatsApp)
+-   Twilio (via l'API )
 -   OpenAI ()
--   
--   
--   
+-   Google Auth (bibliothèque  côté backend)
 
 **Testing status**
 -   **Testing agent used after significant changes:** YES
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** Des tests ont été ajoutés par le testing agent dans .
--   **Known regressions:** La régression de la visibilité des offres a été corrigée. Les problèmes de style sont récurrents mais ne sont pas des régressions fonctionnelles.
+-   **Test files created:** Non
+-   **Known regressions:** Aucune régression connue, mais la nouvelle fonctionnalité WebSocket n'est pas testée.
 
 **Credentials to test flow:**
--   **Accès Coach:** 3 clics rapides sur le texte de copyright en pied de page.
-    -   Email: 
-    -   Mot de passe: 
+-   **Super Admin :** Se connecter via Google OAuth avec l'email . L'accès se fait via 3 clics rapides sur le copyright dans le pied de page.
+-   **Coach :** Se connecter via le lien Connexion Coach dans le pied de page en utilisant Google OAuth avec un autre email de coach enregistré.
 
 **What agent forgot to execute**
-L'agent n'a pas oublié de tâches. Il était en train de commencer la nouvelle demande de l'utilisateur (sélection de dates multiples) lorsque la session s'est terminée. La tâche est donc en cours, mais à un stade très précoce.</analysis>
+L'agent a été interrompu avant de pouvoir effectuer le test de bout en bout de la fonctionnalité WebSocket Silent Disco. Il n'a pas non plus résolu le problème de test lié au bouton animé, ce qui bloque la validation automatisée de l'interface. La tâche principale est donc de reprendre là où l'agent s'est arrêté : tester et déboguer le flux de synchronisation.</analysis>
