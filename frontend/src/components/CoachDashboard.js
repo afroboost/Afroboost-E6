@@ -551,6 +551,61 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     setPlaylistUrls(playlistUrls.filter(url => url !== urlToRemove));
   };
 
+  // ========== DRAG & DROP PLAYLIST ==========
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Style visuel pour l'élément traîné
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '1';
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    // Réorganiser la liste
+    const newPlaylist = [...playlistUrls];
+    const [draggedItem] = newPlaylist.splice(draggedIndex, 1);
+    newPlaylist.splice(dropIndex, 0, draggedItem);
+    
+    setPlaylistUrls(newPlaylist);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    
+    console.log('[Playlist] Ordre modifié:', newPlaylist.map((_, i) => i + 1));
+  };
+
+  // Déplacer une piste vers le haut ou le bas (pour mobile/accessibilité)
+  const moveTrack = (index, direction) => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= playlistUrls.length) return;
+    
+    const newPlaylist = [...playlistUrls];
+    [newPlaylist[index], newPlaylist[newIndex]] = [newPlaylist[newIndex], newPlaylist[index]];
+    setPlaylistUrls(newPlaylist);
+  };
+
   // Sauvegarder la playlist dans la base de données
   const savePlaylist = async () => {
     if (!selectedCourseForAudio) return;
