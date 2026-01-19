@@ -9,7 +9,7 @@ import asyncio
 import websockets
 import json
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://livemix-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://livejam-coach.preview.emergentagent.com')
 
 class TestSilentDiscoWebSocket:
     """Test Silent Disco WebSocket functionality"""

@@ -11,7 +11,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://livemix-1.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://livejam-coach.preview.emergentagent.com').rstrip('/')
 
 class TestReservationPagination:
     """Test reservation pagination endpoints"""
