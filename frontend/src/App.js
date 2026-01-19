@@ -836,13 +836,13 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
-        {/* Menu "..." en haut à droite (40px hitbox pour iPhone) */}
+        {/* Menu "..." en haut à droite (40px hitbox pour iPhone) - z-index élevé */}
         {audioFeatureEnabled && (
           <div className="settings-menu-container" style={{
             position: 'absolute',
             top: '8px',
             right: '8px',
-            zIndex: 25
+            zIndex: 100
           }}>
             <button
               onClick={(e) => {
@@ -853,15 +853,17 @@ const HeroMediaWithAudio = ({
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                background: 'rgba(0, 0, 0, 0.6)',
+                background: 'rgba(0, 0, 0, 0.8)',
                 backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                border: '1px solid rgba(217, 28, 210, 0.5)',
                 color: '#fff',
-                fontSize: '18px',
+                fontSize: '20px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+                pointerEvents: 'auto'
               }}
               data-testid="settings-menu-btn"
             >
