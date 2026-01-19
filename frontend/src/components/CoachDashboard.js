@@ -5020,8 +5020,9 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
 const CoachesManagement = ({ API, t }) => {
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newCoach, setNewCoach] = useState({ coachEmail: "", coachName: "", hasAudio: false });
+  const [newCoach, setNewCoach] = useState({ coachEmail: "", coachName: "", hasAudio: false, subscriptionActive: true });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [updatingCoach, setUpdatingCoach] = useState(null);
 
   useEffect(() => {
     loadCoaches();
@@ -5043,11 +5044,25 @@ const CoachesManagement = ({ API, t }) => {
     if (!newCoach.coachEmail) return;
     try {
       await axios.post(`${API}/coaches`, newCoach);
-      setNewCoach({ coachEmail: "", coachName: "", hasAudio: false });
+      setNewCoach({ coachEmail: "", coachName: "", hasAudio: false, subscriptionActive: true });
       setShowAddForm(false);
       loadCoaches();
     } catch (err) {
       alert(err.response?.data?.detail || "Erreur lors de l'ajout");
+    }
+  };
+
+  const toggleSubscription = async (coach) => {
+    setUpdatingCoach(coach.coachEmail);
+    try {
+      await axios.put(`${API}/coaches/${encodeURIComponent(coach.coachEmail)}`, {
+        subscriptionActive: !coach.subscriptionActive
+      });
+      loadCoaches();
+    } catch (err) {
+      alert("Erreur lors de la mise à jour");
+    } finally {
+      setUpdatingCoach(null);
     }
   };
 
