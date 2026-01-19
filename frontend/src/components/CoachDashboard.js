@@ -2918,19 +2918,19 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                         )}
                       </div>
                     ) : (
-                      // ========== CONSOLE DJ ACTIVE ==========
-                      <div className="space-y-5">
+                      // ========== CONSOLE DJ ACTIVE - DESIGN MOBILE OPTIMISÉ ==========
+                      <div className="space-y-4" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                         
-                        {/* En-tête avec code session */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(139, 92, 246, 0.2))' }}>
-                          <div className="text-center sm:text-left">
+                        {/* En-tête avec code session - Responsive */}
+                        <div className="flex flex-col items-center gap-3 p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(139, 92, 246, 0.2))' }}>
+                          <div className="text-center">
                             <p className="text-white/60 text-xs uppercase tracking-wider">Session en cours</p>
-                            <p className="text-white font-bold text-xl">{liveSession.course.name}</p>
+                            <p className="text-white font-bold text-lg">{liveSession.course.name}</p>
                           </div>
                           <div className="text-center">
                             <p className="text-white/60 text-xs uppercase tracking-wider">Code Session</p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-4xl font-mono font-black text-pink-400 tracking-widest">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-3xl sm:text-4xl font-mono font-black text-pink-400 tracking-widest">
                                 {liveSession.sessionId}
                               </span>
                               <button
@@ -2947,85 +2947,158 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           </div>
                         </div>
 
-                        {/* Contrôles principaux */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          
-                          {/* DÉMARRER LE FLUX / PAUSE TOUT */}
+                        {/* BOUTON PLAY/PAUSE PRINCIPAL - Centré */}
+                        <div className="flex justify-center">
                           <button
                             onClick={handleLivePlayPause}
-                            className="flex items-center justify-center gap-3 p-6 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                             style={{
+                              width: '160px',
+                              height: '160px',
                               background: liveIsPlaying 
                                 ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
                                 : 'linear-gradient(135deg, #22c55e, #16a34a)',
                               boxShadow: liveIsPlaying 
-                                ? '0 0 30px rgba(239, 68, 68, 0.5)' 
-                                : '0 0 30px rgba(34, 197, 94, 0.5)'
+                                ? '0 0 40px rgba(239, 68, 68, 0.6)' 
+                                : '0 0 40px rgba(34, 197, 94, 0.6)'
                             }}
                             data-testid="live-play-pause-main"
                           >
-                            <span className="text-4xl">{liveIsPlaying ? '⏸' : '▶'}</span>
-                            <span className="text-white font-black text-xl">
+                            <span className="text-6xl">{liveIsPlaying ? '⏸' : '▶'}</span>
+                            <span className="text-white font-black text-sm text-center">
                               {liveIsPlaying ? 'PAUSE TOUT' : 'DÉMARRER LE FLUX'}
                             </span>
                           </button>
+                        </div>
 
-                          {/* VOLUME GÉNÉRAL */}
-                          <div className="p-4 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
-                            <p className="text-white/60 text-xs uppercase tracking-wider mb-3 text-center">Volume Général</p>
-                            <div className="flex items-center gap-3">
-                              <span className="text-xl">🔈</span>
-                              <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.05"
-                                value={liveVolume}
-                                onChange={(e) => {
-                                  const vol = parseFloat(e.target.value);
-                                  setLiveVolume(vol);
-                                  if (liveAudioRef.current) {
-                                    liveAudioRef.current.volume = vol;
-                                  }
-                                }}
-                                className="flex-1 h-3 rounded-full appearance-none cursor-pointer"
-                                style={{
-                                  background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${liveVolume * 100}%, rgba(255,255,255,0.2) ${liveVolume * 100}%, rgba(255,255,255,0.2) 100%)`
-                                }}
-                                data-testid="live-volume-slider"
-                              />
-                              <span className="text-xl">🔊</span>
-                              <span className="text-white font-mono text-sm w-12 text-right">{Math.round(liveVolume * 100)}%</span>
-                            </div>
+                        {/* MICRO DJ - Nouveau bouton */}
+                        <button
+                          onClick={toggleMicrophone}
+                          className="w-full flex items-center justify-center gap-3 p-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+                          style={{
+                            background: micEnabled 
+                              ? 'linear-gradient(135deg, #f59e0b, #d97706)' 
+                              : 'rgba(255, 255, 255, 0.05)',
+                            border: micEnabled 
+                              ? '2px solid #f59e0b' 
+                              : '1px solid rgba(255, 255, 255, 0.2)',
+                            boxShadow: micEnabled ? '0 0 20px rgba(245, 158, 11, 0.4)' : 'none'
+                          }}
+                          data-testid="toggle-microphone"
+                        >
+                          <span className="text-2xl">{micEnabled ? '🎤' : '🎙️'}</span>
+                          <span className="text-white font-bold">
+                            {micEnabled ? 'MICRO ACTIF (Musique à 50%)' : '🎤 Activer mon Micro'}
+                          </span>
+                          {micEnabled && (
+                            <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                          )}
+                        </button>
+
+                        {/* VOLUME + NAVIGATION - Layout mobile optimisé */}
+                        <div className="p-3 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
+                          <p className="text-white/60 text-xs uppercase tracking-wider mb-2 text-center">Volume Général</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🔈</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={liveVolume}
+                              onChange={(e) => {
+                                const vol = parseFloat(e.target.value);
+                                setLiveVolume(vol);
+                                if (liveAudioRef.current) {
+                                  liveAudioRef.current.volume = vol;
+                                }
+                              }}
+                              className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                              style={{
+                                background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${liveVolume * 100}%, rgba(255,255,255,0.2) ${liveVolume * 100}%, rgba(255,255,255,0.2) 100%)`
+                              }}
+                              data-testid="live-volume-slider"
+                            />
+                            <span className="text-lg">🔊</span>
+                            <span className="text-white font-mono text-xs w-10 text-right">{Math.round(liveVolume * 100)}%</span>
                           </div>
                         </div>
 
-                        {/* Navigation pistes */}
-                        <div className="flex items-center justify-center gap-4 p-3 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
+                        {/* Navigation pistes - Compacte pour mobile */}
+                        <div className="flex items-center justify-between gap-2 p-3 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
                           <button
                             onClick={() => handleLiveTrackChange(liveTrackIndex - 1)}
                             disabled={liveTrackIndex === 0}
-                            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                           >
-                            ⏮ Précédent
+                            ⏮
                           </button>
-                          <div className="text-center px-4">
-                            <p className="text-white/60 text-xs">Piste actuelle</p>
-                            <p className="text-white font-bold text-lg">{liveTrackIndex + 1} / {liveSession.course.playlist?.length}</p>
+                          <div className="text-center flex-1">
+                            <p className="text-white/60 text-xs">Piste</p>
+                            <p className="text-white font-bold">{liveTrackIndex + 1} / {liveSession.course.playlist?.length}</p>
                           </div>
                           <button
                             onClick={() => handleLiveTrackChange(liveTrackIndex + 1)}
                             disabled={liveTrackIndex >= (liveSession.course.playlist?.length || 1) - 1}
-                            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                           >
-                            Suivant ⏭
+                            ⏭
                           </button>
+                        </div>
+
+                        {/* Liste des participants connectés */}
+                        <div className="p-3 rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-white/60 text-xs uppercase tracking-wider flex items-center gap-2">
+                              <span>👥</span> Participants connectés
+                            </p>
+                            <span className="px-2 py-1 rounded-full text-xs bg-pink-500/20 text-pink-400 font-bold">
+                              {liveParticipants}
+                            </span>
+                          </div>
+                          {liveParticipantsList.length > 0 ? (
+                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                              {liveParticipantsList.map((participant, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                                  <span className="text-white text-sm truncate flex-1">
+                                    {participant.name || `Participant ${idx + 1}`}
+                                  </span>
+                                  <div className="flex gap-1">
+                                    <button
+                                      onClick={() => muteParticipant(participant.id)}
+                                      className="p-1 rounded text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+                                      title="Mute"
+                                    >
+                                      🔇
+                                    </button>
+                                    <button
+                                      onClick={() => kickParticipant(participant.id)}
+                                      className="p-1 rounded text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                                      title="Exclure"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-white/40 text-xs text-center py-2">
+                              En attente de participants...
+                            </p>
+                          )}
                         </div>
 
                         {/* Bouton terminer */}
                         <button
-                          onClick={endLiveSession}
-                          className="w-full py-4 rounded-xl font-bold text-red-400 transition-all hover:bg-red-600/30"
+                          onClick={() => {
+                            // Désactiver le micro avant de terminer
+                            if (micEnabled) {
+                              toggleMicrophone();
+                            }
+                            endLiveSession();
+                          }}
+                          className="w-full py-3 rounded-xl font-bold text-red-400 transition-all hover:bg-red-600/30 text-sm"
                           style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
                           data-testid="end-live-session"
                         >
@@ -3037,6 +3110,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           ref={liveAudioRef}
                           src={convertCloudUrlToDirect(liveSession.course.playlist?.[liveTrackIndex])}
                           onTimeUpdate={(e) => setLivePosition(e.target.currentTime)}
+                          onError={() => alert('⚠️ Flux audio interrompu - Vérifiez l\'URL')}
                           style={{ display: 'none' }}
                         />
                       </div>
