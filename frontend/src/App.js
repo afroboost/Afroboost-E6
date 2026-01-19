@@ -552,8 +552,11 @@ const LanguageSelector = ({ lang, setLang }) => {
   );
 };
 
-// ========== HERO MEDIA WITH AUDIO SWITCH ==========
-// Composant qui permute entre vidéo héro et lecteur audio intégré
+// ========== HERO MEDIA WITH AUDIO SWITCH + SILENT DISCO LIVE ==========
+// Composant qui permute entre :
+// 1. Vidéo héro normale
+// 2. Lecteur audio local (mode solo)
+// 3. Récepteur Silent Disco Live (synchronisé avec le Coach DJ)
 // Garde les mêmes dimensions pour éviter le CLS (Cumulative Layout Shift)
 const HeroMediaWithAudio = ({ 
   videoUrl, 
