@@ -1485,3 +1485,55 @@ Pour activer TWINT:
 
 ### Admin
 - [ ] Dashboard revenus avec graphiques commissions/mois
+
+---
+
+## Réparation Son Mobile & WebSocket Global (19 Janvier 2026 - Update 2)
+
+### Corrections critiques implémentées
+
+#### 1. AUDIO MOBILE - audioContext.resume() RETIRÉ du handler PLAY
+- **Problème:** Les navigateurs mobiles (iOS Safari) INTERDISENT le réveil audio via signal réseau
+- **Solution:** `audioContext.resume()` est appelé **UNIQUEMENT** au clic physique sur "REJOINDRE LE LIVE"
+- **Code:** Handler PLAY (App.js:1057-1085) ne contient plus `audioContext.resume()`
+- **Commentaire ajouté:** "NOTE: audioContext.resume() est appelé UNIQUEMENT au clic physique"
+- **Audio unlock:** `unlockAudioForMobile()` et `forceAudioPlay()` restent dans `joinLiveSession` (clic physique)
+
+#### 2. WEBSOCKET GLOBAL - Polling supprimé
+- **Ancien comportement:** Polling `/api/silent-disco/active-sessions` toutes les 5 secondes
+- **Nouveau comportement:** WebSocket global `/api/ws/notifications` pour écouter `SESSION_START`/`SESSION_END`
+- **Backend ajouté:**
+  - `NotificationManager` (server.py:74-120): Classe pour broadcast global
+  - Endpoint WebSocket `/api/ws/notifications` (server.py:330-380)
+  - `broadcast_session_event()` appelé dans `SESSION_START` et `SESSION_END`
+- **Frontend modifié:** 
+  - Connexion `wss://...api/ws/notifications` au chargement
+  - Écoute `SESSION_START` → `setLiveSessionActive(true)`
+  - Écoute `SESSION_END` / `NO_ACTIVE_SESSION` → `setLiveSessionActive(false)`
+- **Résultat:** Bouton apparaît/disparaît en <1 seconde (plus de délai 5s)
+
+#### 3. ESPACE NOIR SUPPRIMÉ
+- **Condition renforcée:** `liveCourseImage && liveCourseImage.trim() !== ''`
+- **Layout adaptatif:** `flex: liveCourseImage ? 1 : 'none'`
+- **Miniature supprimée du DOM si vide** (pas `display: none`)
+
+#### 4. TWINT CONFIRMÉ
+- **Configuration:** `payment_methods=["card", "twint"]` (server.py:2739)
+
+### Tests validés (iteration_29.json)
+- ✅ 13/13 tests pytest backend passés (100%)
+- ✅ 3/3 vérifications frontend passées (100%)
+- ✅ Code review: audioContext.resume() NON présent dans handler PLAY
+- ✅ Code review: Audio unlock uniquement dans joinLiveSession (clic physique)
+- ✅ Code review: WebSocket global remplace polling
+- ✅ Code review: TWINT configuré
+
+### Note importante - Vidéo YouTube
+- L'URL `https://www.youtube.com/watch?v=uHpPs1O6gUM` affiche "Video unavailable"
+- Ce n'est PAS un problème de code - la vidéo peut être privée/géobloquée
+- **Action utilisateur:** Mettre à jour l'URL via le panneau "Concept & Visuel" si besoin
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`: WebSocket global, handler PLAY nettoyé
+- `/app/backend/server.py`: NotificationManager, endpoint /api/ws/notifications
+
