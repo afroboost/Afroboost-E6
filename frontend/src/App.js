@@ -1024,13 +1024,6 @@ const HeroMediaWithAudio = ({
       return () => clearTimeout(timer);
     }
   }, [liveConnected, connectAudioToContext]);
-          console.warn('[WebAudio] Erreur connexion audio:', e);
-        }
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [liveConnected]);
 
   // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
   const joinLiveSession = useCallback(async (sessionId, isReconnect = false) => {
