@@ -1012,32 +1012,18 @@ const HeroMediaWithAudio = ({
 
   // ========== AUDIO CONTEXT: Connecter l'élément audio au contexte APRÈS montage du mode Live ==========
   useEffect(() => {
-    if (liveConnected && audioRef.current && !sourceNodeRef.current) {
+    if (liveConnected && audioRef.current && audioContextRef.current && !sourceNodeRef.current) {
       // Attendre un tick pour s'assurer que le DOM est prêt
       const timer = setTimeout(() => {
-        try {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          
-          // Créer le contexte s'il n'existe pas
-          if (!audioContextRef.current) {
-            audioContextRef.current = new AudioContextClass();
-            console.log('[WebAudio] 🎵 AudioContext créé pour mode Live');
-          }
-          
-          // Reprendre si suspendu (iOS)
-          if (audioContextRef.current.state === 'suspended') {
-            audioContextRef.current.resume().then(() => {
-              console.log('[WebAudio] ✅ AudioContext resumed');
-            });
-          }
-          
-          // Connecter l'élément audio au contexte
-          if (audioRef.current && !sourceNodeRef.current) {
-            sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-            sourceNodeRef.current.connect(audioContextRef.current.destination);
-            console.log('[WebAudio] 🔗 Élément audio connecté au destination');
-          }
-        } catch (e) {
+        const success = connectAudioToContext();
+        if (success) {
+          console.log('[WebAudio] ✅ Audio connecté après montage Live');
+        }
+      }, 50);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [liveConnected, connectAudioToContext]);
           console.warn('[WebAudio] Erreur connexion audio:', e);
         }
       }, 100);
