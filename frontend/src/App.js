@@ -1189,13 +1189,12 @@ const HeroMediaWithAudio = ({
       setLiveConnected(false);
       setLiveWebSocket(null);
       setIsSyncing(false);
-      // Note: la reconnexion est gérée par useEffect
     };
     
     setLiveWebSocket(ws);
     setIsLiveMode(true);
     setShowJoinLive(false);
-  }, [liveWebSocket, unlockAudioForMobile, forceAudioPlay, isPlaying]);
+  }, [liveWebSocket, startAudioChannel, startKeepAlive, switchAudioSource, isPlaying, selectedCourse, currentTrackIndex]);
 
   // ========== RECONNEXION AUTOMATIQUE ==========
   useEffect(() => {
