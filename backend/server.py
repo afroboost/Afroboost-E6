@@ -1874,14 +1874,14 @@ async def register_coach(coach_data: dict):
 
 @api_router.put("/coaches/{coach_email}")
 async def update_coach(coach_email: str, coach_data: dict):
-    """Met à jour un coach (Super Admin seulement) - notamment l'abonnement"""
+    """Met à jour un coach (Super Admin seulement) - notamment l'abonnement et le service Live"""
     existing = await db.coach_subscriptions.find_one({"coachEmail": coach_email.lower()})
     if not existing:
         raise HTTPException(status_code=404, detail="Coach non trouvé")
     
     # Mettre à jour les champs fournis
     update_fields = {}
-    allowed_fields = ["coachName", "hasAudio", "hasVideo", "hasStreaming", "subscriptionActive", "subscriptionEndDate"]
+    allowed_fields = ["coachName", "hasAudio", "hasVideo", "hasStreaming", "subscriptionActive", "subscriptionEndDate", "liveServiceEnabled"]
     for field in allowed_fields:
         if field in coach_data:
             update_fields[field] = coach_data[field]
