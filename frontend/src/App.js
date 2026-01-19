@@ -1065,20 +1065,33 @@ const HeroMediaWithAudio = ({
       setLiveConnected(false);
       setLiveWebSocket(null);
       setIsSyncing(false);
-      
-      // Reconnexion automatique après 2 secondes si on était en mode live
-      if (isLiveMode && sessionId) {
-        console.log('[Silent Disco] Tentative de reconnexion dans 2s...');
-        reconnectTimeoutRef.current = setTimeout(() => {
-          joinLiveSession(sessionId, true);
-        }, 2000);
-      }
+      // Note: la reconnexion est gérée par useEffect
     };
     
     setLiveWebSocket(ws);
     setIsLiveMode(true);
     setShowJoinLive(false);
-  }, [liveWebSocket, isLiveMode]);
+  }, [liveWebSocket, unlockAudioForMobile, initWebAudio]);
+
+  // ========== RECONNEXION AUTOMATIQUE ==========
+  useEffect(() => {
+    // Reconnexion si la connexion est perdue mais le mode live est actif
+    if (isLiveMode && !liveConnected && !liveWebSocket && currentSessionIdRef.current) {
+      console.log('[Silent Disco] Tentative de reconnexion dans 2s...');
+      reconnectTimeoutRef.current = setTimeout(() => {
+        const sessionId = currentSessionIdRef.current;
+        if (sessionId && isLiveMode) {
+          joinLiveSession(sessionId, true);
+        }
+      }, 2000);
+      
+      return () => {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+      };
+    }
+  }, [isLiveMode, liveConnected, liveWebSocket, joinLiveSession]);
 
   const leaveLiveSession = () => {
     if (liveWebSocket) {
