@@ -3,7 +3,7 @@
  * Admin panel for managing the Afroboost application
  * Extracted from App.js for better maintainability
  */
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import axios from "axios";
 import { QRCodeSVG } from "qrcode.react";
 import { 
