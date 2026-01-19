@@ -288,9 +288,19 @@ class SilentDiscoManager:
             self.session_states[session_id]["playing"] = False
             self.session_states[session_id]["track_index"] = 0
             self.session_states[session_id]["position"] = 0.0
+            # ========== BROADCAST GLOBAL: Notifier tous les clients ==========
+            await notification_manager.broadcast_session_event("SESSION_START", {
+                "session_id": session_id,
+                "course_name": cmd_data.get("course_name"),
+                "course_image": cmd_data.get("course_image")
+            })
         
         elif cmd_type == "SESSION_END":
             self.session_states[session_id]["playing"] = False
+            # ========== BROADCAST GLOBAL: Notifier tous les clients ==========
+            await notification_manager.broadcast_session_event("SESSION_END", {
+                "session_id": session_id
+            })
         
         # Diffuser la commande à tous les participants (sauf le coach)
         broadcast_message = {
