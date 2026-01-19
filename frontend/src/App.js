@@ -1666,70 +1666,56 @@ const HeroMediaWithAudio = ({
             </div>
           )}
 
-          {/* Icône casque - taille adaptative */}
-          <div style={{
-            fontSize: 'clamp(48px, 12vw, 80px)', // Taille responsive
-            lineHeight: 1,
-            flexShrink: 0, // Ne pas réduire
-            animation: isPlaying ? 'bounce 0.5s infinite alternate' : 'none'
-          }}>
-            🎧
-          </div>
-
-          {/* Titre avec indicateur LIVE */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            gap: '8px', 
-            flexWrap: 'wrap',
-            maxWidth: '100%',
+          {/* ========== TITRE DU COURS (ÉPURÉ - sans badge LIVE doublon) ========== */}
+          <h3 style={{
+            color: '#fff',
+            fontSize: 'clamp(16px, 4vw, 22px)',
+            fontWeight: 700,
+            textAlign: 'center',
+            margin: '0 0 8px 0',
+            textShadow: '0 2px 8px rgba(0,0,0,0.5)',
             flexShrink: 0
           }}>
-            <h3 style={{
-              color: '#fff',
-              fontSize: 'clamp(16px, 4vw, 20px)', // Responsive
-              fontWeight: 700,
-              textAlign: 'center',
-              margin: 0
-            }}>
-              {liveCourseName || 'Silent Disco Live'}
-            </h3>
-            {/* Point rouge clignotant "● LIVE" */}
-            <span style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'rgba(220, 38, 38, 0.9)',
-              padding: '3px 8px',
-              borderRadius: '10px',
-              fontSize: '10px',
-              fontWeight: 700,
-              color: '#fff',
-              flexShrink: 0
-            }}>
-              <span style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: '#fff',
-                boxShadow: '0 0 6px #fff',
-                animation: 'pulse 1s infinite'
-              }}></span>
-              LIVE
-            </span>
+            {liveCourseName || 'Silent Disco Live'}
+          </h3>
+
+          {/* ========== MINIATURE DU COURS (remplace icône casque) ========== */}
+          <div style={{
+            width: 'clamp(100px, 30vw, 140px)',
+            height: 'clamp(100px, 30vw, 140px)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: isPlaying 
+              ? '0 0 30px rgba(217, 28, 210, 0.6)' 
+              : '0 4px 20px rgba(0,0,0,0.4)',
+            border: isPlaying 
+              ? '3px solid rgba(217, 28, 210, 0.8)' 
+              : '2px solid rgba(255,255,255,0.2)',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: liveCourseImage 
+              ? `url(${liveCourseImage}) center/cover no-repeat` 
+              : 'linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(217, 28, 210, 0.5))',
+            animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
+          }}>
+            {/* Si pas d'image, afficher icône musique */}
+            {!liveCourseImage && (
+              <span style={{ fontSize: '40px', opacity: 0.8 }}>🎵</span>
+            )}
           </div>
 
           <p style={{
             color: 'rgba(255, 255, 255, 0.7)',
             fontSize: '13px',
-            margin: '4px 0',
+            margin: '8px 0',
             flexShrink: 0
           }}>
             {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
           </p>
 
-          {/* Indicateur de lecture - taille responsive */}
+          {/* Indicateur de lecture - bouton stylé */}
           <div style={{
             width: 'clamp(60px, 15vw, 80px)',
             height: 'clamp(60px, 15vw, 80px)',
