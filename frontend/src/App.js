@@ -645,6 +645,51 @@ const HeroMediaWithAudio = ({
   const [joinSessionInput, setJoinSessionInput] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [waitingForCoach, setWaitingForCoach] = useState(false); // En attente du lancement
+
+  // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile ==========
+  const unlockAudioForMobile = useCallback(() => {
+    return new Promise((resolve) => {
+      try {
+        // Créer un contexte audio temporaire
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        const tempContext = new AudioContextClass();
+        
+        // Créer un oscillateur silencieux (0.1s)
+        const oscillator = tempContext.createOscillator();
+        const gainNode = tempContext.createGain();
+        
+        // Volume à 0 (silence)
+        gainNode.gain.value = 0.001; // Presque silencieux
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(tempContext.destination);
+        
+        oscillator.frequency.value = 440; // 440Hz
+        oscillator.start();
+        oscillator.stop(tempContext.currentTime + 0.1); // 0.1 seconde
+        
+        // Attendre la fin et fermer
+        setTimeout(() => {
+          tempContext.close();
+          console.log('[AudioUnlock] ✅ Haut-parleur mobile déverrouillé');
+          resolve(true);
+        }, 150);
+        
+        // Si l'audioRef existe, le préparer aussi
+        if (audioRef.current) {
+          audioRef.current.volume = audioVolume;
+          audioRef.current.muted = false;
+          // Charger sans jouer
+          audioRef.current.load();
+        }
+        
+      } catch (e) {
+        console.warn('[AudioUnlock] Erreur:', e);
+        resolve(false);
+      }
+    });
+  }, [audioVolume]);
 
   // ========== WEB AUDIO API: Forcer le canal Media ==========
   const initWebAudio = useCallback(() => {
