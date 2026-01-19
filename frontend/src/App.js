@@ -815,19 +815,32 @@ const HeroMediaWithAudio = ({
       clearInterval(silenceIntervalRef.current);
       silenceIntervalRef.current = null;
     }
-    // SÉCURITÉ: Vérifier que le contexte n'est pas déjà fermé avant de fermer
-    if (silenceContextRef.current && silenceContextRef.current.state !== 'closed') {
-      silenceContextRef.current.close().catch(() => {});
-    }
-    silenceContextRef.current = null;
-    console.log('[ForceAudio] Canal audio fermé');
+    // NE PAS fermer le contexte audio principal ici
+    console.log('[ForceAudio] Canal audio - oscillateur arrêté');
   }, []);
 
-  // ========== WEB AUDIO API: Forcer le canal Media ==========
-  const initWebAudio = useCallback(() => {
-    if (!audioContextRef.current && audioRef.current) {
+  // ========== NETTOYAGE AUDIO COMPLET (quand on quitte la session) ==========
+  const cleanupAudio = useCallback(() => {
+    // Arrêter l'oscillateur
+    stopForceAudio();
+    
+    // Déconnecter le sourceNode
+    if (sourceNodeRef.current) {
       try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        sourceNodeRef.current.disconnect();
+      } catch (e) { /* ignore */ }
+      sourceNodeRef.current = null;
+    }
+    
+    // Fermer le contexte audio
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    
+    setAudioUnlocked(false);
+    console.log('[Audio] 🧹 Nettoyage audio complet');
+  }, [stopForceAudio]);
         audioContextRef.current = new AudioContext();
         
         // Créer le nœud source connecté à l'élément audio
