@@ -1937,6 +1937,38 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                       <span className="flex-1 text-white text-sm truncate" title={url}>
                         {url.length > 40 ? url.substring(0, 40) + '...' : url}
                       </span>
+                      {/* Bouton prévisualisation */}
+                      <button
+                        onClick={() => {
+                          if (previewUrl === url && previewPlaying) {
+                            // Arrêter la prévisualisation
+                            if (previewAudioRef.current) {
+                              previewAudioRef.current.pause();
+                            }
+                            setPreviewPlaying(false);
+                            setPreviewUrl(null);
+                          } else {
+                            // Démarrer la prévisualisation
+                            setPreviewUrl(convertCloudUrlToDirect(url));
+                            setPreviewPlaying(true);
+                            setTimeout(() => {
+                              if (previewAudioRef.current) {
+                                previewAudioRef.current.play().catch(err => {
+                                  console.error('[Preview] Erreur lecture:', err);
+                                  setAudioUrlError(`Impossible de lire: ${url.slice(0, 30)}...`);
+                                  setPreviewPlaying(false);
+                                });
+                              }
+                            }, 100);
+                          }
+                        }}
+                        className={`p-2 rounded-lg transition-all ${previewUrl === url && previewPlaying ? 'bg-green-500/40' : 'hover:bg-purple-500/30'}`}
+                        style={{ color: previewUrl === url && previewPlaying ? '#22c55e' : '#a855f7' }}
+                        title={previewUrl === url && previewPlaying ? 'Arrêter' : 'Prévisualiser'}
+                        data-testid={`preview-audio-${index}`}
+                      >
+                        {previewUrl === url && previewPlaying ? '⏹' : '▶'}
+                      </button>
                       <button
                         onClick={() => removeAudioUrl(url)}
                         className="p-1 rounded hover:bg-red-500/30 transition-colors opacity-0 group-hover:opacity-100"
@@ -1953,6 +1985,42 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </div>
               )}
             </div>
+
+            {/* Lecteur de prévisualisation */}
+            {previewUrl && (
+              <div className="mb-4 p-3 rounded-lg flex items-center gap-3" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                <span className="text-green-400">🎧</span>
+                <span className="text-green-400 text-sm flex-1">Prévisualisation en cours...</span>
+                <button
+                  onClick={() => {
+                    if (previewAudioRef.current) {
+                      previewAudioRef.current.pause();
+                    }
+                    setPreviewPlaying(false);
+                    setPreviewUrl(null);
+                  }}
+                  className="px-3 py-1 rounded bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs"
+                >
+                  ⏹ Arrêter
+                </button>
+              </div>
+            )}
+
+            {/* Audio element pour prévisualisation */}
+            <audio
+              ref={previewAudioRef}
+              src={previewUrl}
+              onEnded={() => {
+                setPreviewPlaying(false);
+                setPreviewUrl(null);
+              }}
+              onError={() => {
+                setAudioUrlError('Erreur de lecture - URL invalide ou non accessible');
+                setPreviewPlaying(false);
+                setPreviewUrl(null);
+              }}
+              style={{ display: 'none' }}
+            />
 
             {/* Boutons d'action */}
             <div className="flex gap-3">
