@@ -640,3 +640,68 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 ## Known Limitations
 ~~⚠️ **DONNÉES NON PERSISTANTES**: Le backend utilise actuellement des listes en mémoire.~~ 
 ✅ **Résolu**: Toutes les données sont maintenant persistées dans MongoDB (cours, offres, réservations, configurations, leads).
+
+---
+
+## Silent Disco - Phase 1 (Janvier 2026)
+
+### Description
+Fonctionnalité de synchronisation audio en temps réel entre le Coach (DJ) et les participants via WebSocket.
+
+### État: ✅ COMPLÉTÉ
+
+### Fonctionnalités implémentées
+
+#### Backend (server.py)
+- [x] Classe `SilentDiscoManager` pour gérer les sessions WebSocket
+- [x] Endpoint WebSocket `/api/ws/session/{session_id}` (compatible Kubernetes ingress)
+- [x] Endpoint WebSocket `/ws/session/{session_id}` (accès direct)
+- [x] Commandes supportées: JOIN, PLAY, PAUSE, SEEK, TRACK_CHANGE, SESSION_START, SESSION_END
+- [x] Diffusion temps réel des commandes du Coach vers tous les participants
+- [x] Compteur de participants en temps réel
+- [x] Endpoints REST: GET `/api/silent-disco/sessions`, GET `/api/silent-disco/session/{id}`
+
+#### Frontend - Console DJ (CoachDashboard.js)
+- [x] Interface pour démarrer/arrêter une session Live
+- [x] Boutons PLAY/PAUSE synchronisés
+- [x] Affichage du code de session à partager
+- [x] Compteur de participants connectés
+
+#### Frontend - Lecteur Récepteur (App.js)
+- [x] Bouton "REJOINDRE LE LIVE" dans HeroMediaWithAudio
+- [x] Modal pour entrer le code de session
+- [x] Mode récepteur passif (suit les commandes du Coach)
+- [x] Contrôle du volume local uniquement
+- [x] Badge "LIVE" avec indicateur de connexion
+
+### Corrections UI Mobile (19 Janvier 2026)
+- [x] Bouton LIVE repositionné en haut à gauche sur mobile (ne cache plus le bouton Son)
+- [x] Style minimaliste avec fond semi-transparent
+- [x] Dashboard Coach: boutons Supprimer alignés correctement sur écrans <400px
+
+### Tests automatisés
+- `/app/tests/test_websocket_silent_disco.py` - 4 tests passés
+- Test de connexion WebSocket participant
+- Test commandes Coach (PLAY/PAUSE)
+
+---
+
+## Prochaines étapes (Phases futures)
+
+### P1: Silent Disco - Console DJ Avancée
+- [ ] Réarrangement de la playlist par glisser-déposer
+- [ ] Contrôle du tempo
+
+### P1: Silent Disco - Mixage Micro
+- [ ] Option "Activer Micro" pour le coach
+- [ ] Mixage voix par-dessus la musique
+
+### P1: Silent Disco - Lecture en Arrière-Plan
+- [ ] Media Session API pour continuité audio sur mobile
+
+### P2: Dashboard Analytics
+- [ ] Statistiques réservations et revenus
+
+### P2: Multi-pages
+- [ ] react-router-dom pour navigation
+
