@@ -2756,13 +2756,27 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           <span>📋</span> Choisir un cours à diffuser
                         </h4>
                         
+                        {/* Message si abonnement inactif */}
+                        {!subscriptionActive && (
+                          <div className="mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                            <p className="text-red-400 text-sm flex items-center gap-2">
+                              <span className="text-xl">🔒</span>
+                              <span>
+                                <strong>Abonnement requis</strong><br/>
+                                Votre abonnement n'est pas actif. Contactez l'administrateur pour activer le streaming audio.
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                        
                         {courses.filter(c => !c.archived && c.playlist?.length > 0).length > 0 ? (
                           <div className="grid grid-cols-1 gap-3">
                             {courses.filter(c => !c.archived && c.playlist?.length > 0).map(course => (
                               <button
                                 key={course.id}
-                                onClick={() => startLiveSession(course)}
-                                className="flex items-center justify-between p-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+                                onClick={() => subscriptionActive && startLiveSession(course)}
+                                disabled={!subscriptionActive}
+                                className={`flex items-center justify-between p-4 rounded-xl transition-all ${subscriptionActive ? 'hover:scale-[1.01] active:scale-[0.99]' : 'opacity-50 cursor-not-allowed'}`}
                                 style={{ background: 'rgba(217, 28, 210, 0.2)', border: '1px solid rgba(217, 28, 210, 0.3)' }}
                                 data-testid={`start-session-${course.id}`}
                               >
@@ -2770,8 +2784,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                                   <p className="text-white font-bold">{course.name}</p>
                                   <p className="text-white/60 text-xs">{course.playlist?.length} piste{course.playlist?.length > 1 ? 's' : ''}</p>
                                 </div>
-                                <span className="px-4 py-2 rounded-lg text-white font-bold" style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
-                                  DÉMARRER ▶
+                                <span className={`px-4 py-2 rounded-lg text-white font-bold ${subscriptionActive ? '' : 'opacity-50'}`} style={{ background: subscriptionActive ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'rgba(100, 100, 100, 0.5)' }}>
+                                  {subscriptionActive ? 'DÉMARRER ▶' : '🔒 VERROUILLÉ'}
                                 </span>
                               </button>
                             ))}
