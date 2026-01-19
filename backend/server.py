@@ -1298,6 +1298,140 @@ async def logout(request: Request, response: Response):
     
     return {"success": True, "message": "Déconnexion réussie"}
 
+# ==================== COACH MANAGEMENT (Super Admin Only) ====================
+
+@api_router.get("/coaches")
+async def get_all_coaches():
+    """Récupère la liste des coachs enregistrés (Super Admin seulement)"""
+    coaches = await db.coach_subscriptions.find({}, {"_id": 0}).to_list(100)
+    return coaches
+
+@api_router.post("/coaches")
+async def register_coach(coach_data: dict):
+    """Enregistre un nouveau coach (Super Admin seulement)"""
+    email = coach_data.get("coachEmail", "").lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email requis")
+    
+    # Vérifier si le coach existe déjà
+    existing = await db.coach_subscriptions.find_one({"coachEmail": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ce coach est déjà enregistré")
+    
+    # Créer l'entrée du coach
+    new_coach = {
+        "coachEmail": email,
+        "coachName": coach_data.get("coachName", ""),
+        "hasAudio": coach_data.get("hasAudio", False),
+        "hasVideo": coach_data.get("hasVideo", False),
+        "hasStreaming": coach_data.get("hasStreaming", False),
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    await db.coach_subscriptions.insert_one(new_coach)
+    return {"success": True, "coach": {k: v for k, v in new_coach.items() if k != "_id"}}
+
+@api_router.delete("/coaches/{coach_email}")
+async def delete_coach(coach_email: str):
+    """Supprime un coach (Super Admin seulement)"""
+    result = await db.coach_subscriptions.delete_one({"coachEmail": coach_email.lower()})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Coach non trouvé")
+    return {"success": True}
+
+# ==================== FILTERED DATA ENDPOINTS (For Coach Dashboard) ====================
+
+@api_router.get("/coach/courses")
+async def get_coach_courses(coach_email: str = None, include_all: bool = False):
+    """
+    Récupère les cours filtrés par coach.
+    - Si include_all=True ou coach_email est Super Admin: retourne tous les cours
+    - Sinon: retourne uniquement les cours de ce coach OU les cours sans auteur assigné
+    """
+    if include_all or (coach_email and coach_email.lower() == AUTHORIZED_COACH_EMAIL.lower()):
+        # Super Admin voit tout
+        courses = await db.courses.find({}, {"_id": 0}).to_list(100)
+    else:
+        # Coach normal: voit ses cours + les cours sans auteur
+        courses = await db.courses.find(
+            {"$or": [
+                {"authorEmail": coach_email},
+                {"authorEmail": None},
+                {"authorEmail": {"$exists": False}}
+            ]},
+            {"_id": 0}
+        ).to_list(100)
+    return courses
+
+@api_router.get("/coach/offers")
+async def get_coach_offers(coach_email: str = None, include_all: bool = False):
+    """
+    Récupère les offres filtrées par coach.
+    """
+    if include_all or (coach_email and coach_email.lower() == AUTHORIZED_COACH_EMAIL.lower()):
+        offers = await db.offers.find({}, {"_id": 0}).to_list(100)
+    else:
+        offers = await db.offers.find(
+            {"$or": [
+                {"authorEmail": coach_email},
+                {"authorEmail": None},
+                {"authorEmail": {"$exists": False}}
+            ]},
+            {"_id": 0}
+        ).to_list(100)
+    return offers
+
+@api_router.get("/coach/reservations")
+async def get_coach_reservations(
+    coach_email: str = None, 
+    include_all: bool = False,
+    page: int = 1,
+    limit: int = 20
+):
+    """
+    Récupère les réservations filtrées par coach.
+    Pour les coachs non-Super Admin: filtre par les cours dont ils sont auteurs.
+    """
+    skip = (page - 1) * limit
+    
+    if include_all or (coach_email and coach_email.lower() == AUTHORIZED_COACH_EMAIL.lower()):
+        # Super Admin voit tout
+        query = {}
+    else:
+        # Coach normal: voit les réservations pour ses cours
+        # D'abord, obtenir les IDs des cours de ce coach
+        coach_courses = await db.courses.find(
+            {"$or": [
+                {"authorEmail": coach_email},
+                {"authorEmail": None},
+                {"authorEmail": {"$exists": False}}
+            ]},
+            {"id": 1, "_id": 0}
+        ).to_list(100)
+        course_ids = [c.get("id") for c in coach_courses if c.get("id")]
+        
+        # Filtrer les réservations par ces cours
+        # Note: Le champ "courses" dans reservation est le nom du cours, pas l'ID
+        course_names = []
+        for cid in course_ids:
+            course = await db.courses.find_one({"id": cid}, {"name": 1, "_id": 0})
+            if course:
+                course_names.append(course.get("name"))
+        
+        query = {"courses": {"$in": course_names}} if course_names else {"courses": {"$exists": False}}
+    
+    total = await db.reservations.count_documents(query)
+    reservations = await db.reservations.find(query, {"_id": 0}).sort("createdAt", -1).skip(skip).limit(limit).to_list(limit)
+    
+    return {
+        "reservations": reservations,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "pages": (total + limit - 1) // limit
+        }
+    }
+
 # --- Legacy Coach Auth (conservé pour compatibilité mais déprécié) ---
 @api_router.get("/coach-auth")
 async def get_coach_auth():
