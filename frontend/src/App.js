@@ -600,6 +600,138 @@ const HeroMediaWithAudio = ({
     };
   }, [liveWebSocket]);
 
+  // ========== SILENT DISCO: Rejoindre une session Live ==========
+  const joinLiveSession = (sessionId) => {
+    if (!sessionId) return;
+    
+    const API = process.env.REACT_APP_BACKEND_URL || '';
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = API.replace(/^https?:\/\//, '').replace('/api', '');
+    const wsUrl = `${wsProtocol}//${wsHost}/ws/session/${sessionId}`;
+    
+    console.log('[Silent Disco Participant] Connecting to:', wsUrl);
+    
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+      console.log('[Silent Disco Participant] Connected');
+      ws.send(JSON.stringify({
+        type: "JOIN",
+        data: {
+          email: "participant@live",
+          name: "Participant",
+          is_coach: false
+        }
+      }));
+      setLiveConnected(true);
+      setLiveSessionId(sessionId);
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        console.log('[Silent Disco Participant] Message:', msg.type);
+        
+        switch (msg.type) {
+          case "STATE_SYNC":
+            setLiveParticipants(msg.data.participant_count || 0);
+            setLiveCourseName(msg.data.course_name || '');
+            if (msg.data.track_index !== undefined) {
+              setCurrentTrackIndex(msg.data.track_index);
+            }
+            break;
+            
+          case "PARTICIPANT_COUNT":
+            setLiveParticipants(msg.data.count);
+            break;
+            
+          case "PLAY":
+            if (audioRef.current) {
+              // Synchroniser la position
+              const serverTime = new Date(msg.data.server_timestamp).getTime();
+              const now = Date.now();
+              const latency = (now - serverTime) / 1000; // en secondes
+              const targetPosition = (msg.data.position || 0) + latency;
+              
+              audioRef.current.currentTime = Math.min(targetPosition, audioRef.current.duration || 9999);
+              audioRef.current.play().catch(console.error);
+            }
+            setIsPlaying(true);
+            break;
+            
+          case "PAUSE":
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = msg.data.position || 0;
+            }
+            setIsPlaying(false);
+            break;
+            
+          case "SEEK":
+            if (audioRef.current) {
+              audioRef.current.currentTime = msg.data.position || 0;
+            }
+            break;
+            
+          case "TRACK_CHANGE":
+            setCurrentTrackIndex(msg.data.track_index || 0);
+            if (audioRef.current && msg.data.session_state?.playing) {
+              setTimeout(() => {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch(console.error);
+              }, 100);
+            }
+            break;
+            
+          case "SESSION_START":
+            setLiveCourseName(msg.data.course_name || '');
+            break;
+            
+          case "SESSION_END":
+            setIsPlaying(false);
+            if (audioRef.current) {
+              audioRef.current.pause();
+            }
+            break;
+            
+          default:
+            break;
+        }
+      } catch (e) {
+        console.error('[Silent Disco Participant] Parse error:', e);
+      }
+    };
+    
+    ws.onerror = (error) => {
+      console.error('[Silent Disco Participant] WebSocket error:', error);
+      setLiveConnected(false);
+    };
+    
+    ws.onclose = () => {
+      console.log('[Silent Disco Participant] Connection closed');
+      setLiveConnected(false);
+      setLiveWebSocket(null);
+    };
+    
+    setLiveWebSocket(ws);
+    setIsLiveMode(true);
+    setShowJoinLive(false);
+  };
+
+  const leaveLiveSession = () => {
+    if (liveWebSocket) {
+      liveWebSocket.close();
+    }
+    setIsLiveMode(false);
+    setLiveConnected(false);
+    setLiveSessionId('');
+    setLiveWebSocket(null);
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
   // Container style (mêmes dimensions 16:9 que MediaDisplay)
   const containerStyle = {
     position: 'relative',
