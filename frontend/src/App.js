@@ -1840,6 +1840,8 @@ const HeroMediaWithAudio = ({
           <audio
             ref={audioRef}
             src={convertCloudUrlToDirect(playlist[currentTrackIndex])}
+            playsInline
+            webkit-playsinline="true"
             onPlay={() => {
               setIsPlaying(true);
               setAudioError(null);
@@ -1848,7 +1850,7 @@ const HeroMediaWithAudio = ({
                 clearTimeout(audioLoadTimeoutRef.current);
                 audioLoadTimeoutRef.current = null;
               }
-              // La connexion audio est gérée par le useEffect liveConnected
+              console.log('[Audio] ✅ Lecture démarrée!');
             }}
             onPause={() => setIsPlaying(false)}
             onError={(e) => {
@@ -1858,6 +1860,7 @@ const HeroMediaWithAudio = ({
               setAudioLoadError(true);
             }}
             onCanPlay={() => {
+              console.log('[Audio] ✅ Prêt à jouer');
               setAudioError(null);
               setAudioLoadError(false);
               if (audioLoadTimeoutRef.current) {
