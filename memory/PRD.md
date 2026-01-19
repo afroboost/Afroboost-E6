@@ -874,3 +874,41 @@ Le système audio était bloqué car les URLs Cloud (Google Drive, Dropbox) ne s
 - `/app/frontend/src/App.js` : Fonction `convertCloudUrlToDirect`, `isValidAudioUrl`, gestion erreur audio
 - `/app/frontend/src/components/CoachDashboard.js` : Validation URL, état `audioUrlError`, conversion automatique
 
+
+---
+
+## Silent Disco Phase 5 - Console Live DJ (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. BOUTON "CONSOLE LIVE" (Onglet Cours)
+- Bouton accordéon déployable avec gradient rose/violet
+- Indicateur "🔴 EN DIRECT" + code session quand actif
+- Compteur de participants connectés
+
+#### 2. CONSOLE DJ DÉPLOYÉE
+- **DÉMARRER LE FLUX** : Bouton vert qui lance la lecture sur tous les appareils
+- **PAUSE TOUT** : Bouton rouge qui met en pause tous les participants
+- **VOLUME GÉNÉRAL** : Slider avec affichage du pourcentage
+- **Navigation pistes** : Précédent / Suivant avec indicateur
+
+#### 3. CODE SESSION À 4 CHIFFRES
+- Généré automatiquement au démarrage (ex: 1234, 5678...)
+- Affiché en gros dans la console (font-mono, text-4xl)
+- Bouton "📋 Copier" pour partager facilement
+- Les participants n'ont qu'à entrer ce code pour rejoindre
+
+#### 4. PRÉVISUALISATION AUDIO (Dashboard Coach)
+- Bouton ▶ à côté de chaque piste dans la playlist
+- Lecteur de prévisualisation avec barre verte
+- Détection automatique des URLs invalides
+- Conversion Cloud appliquée à la prévisualisation
+
+### Tests validés
+- ✅ Code à 4 chiffres "1234" fonctionne
+- ✅ Coach envoie PLAY → Élève reçoit instantanément
+- ✅ Compilation frontend réussie
+
+### Fichiers modifiés
+- `/app/frontend/src/components/CoachDashboard.js` : Console Live, code 4 chiffres, prévisualisation audio
+
