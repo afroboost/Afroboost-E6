@@ -1326,16 +1326,40 @@ const HeroMediaWithAudio = ({
             🎧
           </div>
 
-          {/* Titre */}
-          <h3 style={{
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 700,
-            marginBottom: '8px',
-            textAlign: 'center'
-          }}>
-            {liveCourseName || 'Silent Disco Live'}
-          </h3>
+          {/* Titre avec indicateur LIVE */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <h3 style={{
+              color: '#fff',
+              fontSize: '20px',
+              fontWeight: 700,
+              textAlign: 'center',
+              margin: 0
+            }}>
+              {liveCourseName || 'Silent Disco Live'}
+            </h3>
+            {/* Point rouge clignotant "● LIVE" */}
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'rgba(220, 38, 38, 0.9)',
+              padding: '3px 8px',
+              borderRadius: '10px',
+              fontSize: '10px',
+              fontWeight: 700,
+              color: '#fff'
+            }}>
+              <span style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#fff',
+                boxShadow: '0 0 6px #fff',
+                animation: 'pulse 1s infinite'
+              }}></span>
+              LIVE
+            </span>
+          </div>
 
           <p style={{
             color: 'rgba(255, 255, 255, 0.7)',
