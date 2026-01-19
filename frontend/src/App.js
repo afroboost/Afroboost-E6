@@ -755,58 +755,58 @@ const HeroMediaWithAudio = ({
 
   // ========== FORCE AUDIO PLAY: Maintenir le canal audio ouvert avec silence en boucle ==========
   const silenceIntervalRef = useRef(null);
-  const silenceContextRef = useRef(null);
   
   const forceAudioPlay = useCallback(() => {
     console.log('[ForceAudio] 🔊 Activation du maintien de canal audio...');
     
-    try {
-      // Créer un AudioContext persistant
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioContextClass();
-      silenceContextRef.current = ctx;
-      
-      // Fonction qui joue 1 seconde de silence
-      const playSilence = () => {
-        if (!silenceContextRef.current || silenceContextRef.current.state === 'closed') return;
-        
-        try {
-          const oscillator = ctx.createOscillator();
-          const gainNode = ctx.createGain();
-          
-          // Volume à 0.0001 (quasi-inaudible mais actif)
-          gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(ctx.destination);
-          
-          oscillator.frequency.value = 1; // 1 Hz inaudible
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 1); // 1 seconde
-          
-          console.log('[ForceAudio] ♪ Silence joué pour maintenir canal actif');
-        } catch (e) {
-          // Ignorer les erreurs mineures
-        }
-      };
-      
-      // Jouer le premier silence immédiatement
-      if (ctx.state === 'suspended') {
-        ctx.resume().then(playSilence);
-      } else {
-        playSilence();
-      }
-      
-      // Répéter toutes les 900ms (avant que le 1s précédent finisse)
-      silenceIntervalRef.current = setInterval(playSilence, 900);
-      
-      console.log('[ForceAudio] ✅ Canal audio maintenu ouvert en boucle');
-      return true;
-      
-    } catch (e) {
-      console.error('[ForceAudio] ❌ Erreur:', e);
+    // Utiliser le contexte audio PRINCIPAL (créé dans unlockAudioForMobile)
+    if (!audioContextRef.current) {
+      console.warn('[ForceAudio] ⚠️ Pas de contexte audio principal');
       return false;
     }
+    
+    const ctx = audioContextRef.current;
+    
+    // Fonction qui joue 0.1 seconde de silence
+    const playSilence = () => {
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') return;
+      
+      try {
+        // S'assurer que le contexte est actif
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        // Volume très bas (quasi-inaudible mais actif)
+        gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.frequency.value = 1; // 1 Hz inaudible
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.1); // 0.1 seconde
+        
+      } catch (e) {
+        // Ignorer les erreurs mineures
+      }
+    };
+    
+    // Jouer le premier silence immédiatement
+    playSilence();
+    
+    // Répéter toutes les 100ms pour maintenir le canal actif
+    if (silenceIntervalRef.current) {
+      clearInterval(silenceIntervalRef.current);
+    }
+    silenceIntervalRef.current = setInterval(playSilence, 100);
+    
+    console.log('[ForceAudio] ✅ Oscillateur silencieux en boucle (100ms)');
+    return true;
+    
   }, []);
 
   // Arrêter le maintien du silence quand on quitte la session
