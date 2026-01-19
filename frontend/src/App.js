@@ -610,7 +610,8 @@ const HeroMediaWithAudio = ({
     const API = process.env.REACT_APP_BACKEND_URL || '';
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsHost = API.replace(/^https?:\/\//, '').replace('/api', '');
-    const wsUrl = `${wsProtocol}//${wsHost}/ws/session/${sessionId}`;
+    // Utiliser /api/ws/ pour passer par l'ingress Kubernetes
+    const wsUrl = `${wsProtocol}//${wsHost}/api/ws/session/${sessionId}`;
     
     console.log('[Silent Disco Participant] Connecting to:', wsUrl);
     
