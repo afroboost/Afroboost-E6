@@ -2092,10 +2092,13 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
               </p>
             </div>
 
-            {/* Liste de la playlist */}
+            {/* Liste de la playlist - DRAG & DROP */}
             <div className="mb-6">
-              <h3 className="text-white text-sm font-semibold mb-3">
-                Playlist ({playlistUrls.length} morceaux)
+              <h3 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
+                <span>Playlist ({playlistUrls.length} morceaux)</span>
+                {playlistUrls.length > 1 && (
+                  <span className="text-white/40 text-xs">• Glissez pour réorganiser</span>
+                )}
               </h3>
               
               {playlistUrls.length === 0 ? (
@@ -2108,13 +2111,51 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                   {playlistUrls.map((url, index) => (
                     <div 
                       key={index}
-                      className="flex items-center gap-3 p-3 rounded-lg group"
-                      style={{ background: 'rgba(255,255,255,0.05)' }}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, index)}
+                      className={`flex items-center gap-2 p-3 rounded-lg group cursor-move transition-all ${
+                        dragOverIndex === index ? 'ring-2 ring-purple-500 bg-purple-500/20' : ''
+                      } ${draggedIndex === index ? 'opacity-50' : ''}`}
+                      style={{ 
+                        background: dragOverIndex === index 
+                          ? 'rgba(139, 92, 246, 0.2)' 
+                          : 'rgba(255,255,255,0.05)',
+                        touchAction: 'none' // Améliore le drag sur mobile
+                      }}
                     >
-                      <span className="text-purple-400 text-sm font-mono">#{index + 1}</span>
-                      <span className="flex-1 text-white text-sm truncate" title={url}>
-                        {url.length > 40 ? url.substring(0, 40) + '...' : url}
+                      {/* Poignée de drag */}
+                      <span className="text-white/30 cursor-grab active:cursor-grabbing">
+                        ⋮⋮
                       </span>
+                      <span className="text-purple-400 text-sm font-mono min-w-[28px]">#{index + 1}</span>
+                      <span className="flex-1 text-white text-sm truncate" title={url}>
+                        {url.length > 35 ? url.substring(0, 35) + '...' : url}
+                      </span>
+                      
+                      {/* Boutons haut/bas pour mobile */}
+                      <div className="flex flex-col gap-0.5">
+                        <button
+                          onClick={() => moveTrack(index, 'up')}
+                          disabled={index === 0}
+                          className="p-0.5 text-xs text-white/40 hover:text-white disabled:opacity-20"
+                          title="Monter"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          onClick={() => moveTrack(index, 'down')}
+                          disabled={index === playlistUrls.length - 1}
+                          className="p-0.5 text-xs text-white/40 hover:text-white disabled:opacity-20"
+                          title="Descendre"
+                        >
+                          ▼
+                        </button>
+                      </div>
+                      
                       {/* Bouton prévisualisation */}
                       <button
                         onClick={() => {
