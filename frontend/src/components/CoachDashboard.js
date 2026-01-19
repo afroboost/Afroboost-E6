@@ -204,10 +204,10 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     // Créer une session ID basée sur le cours
     const sessionId = `live_${course.id}_${Date.now()}`;
     
-    // Construire l'URL WebSocket
+    // Construire l'URL WebSocket avec /api/ws/ pour passer par l'ingress Kubernetes
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsHost = API.replace(/^https?:\/\//, '').replace('/api', '');
-    const wsUrl = `${wsProtocol}//${wsHost}/ws/session/${sessionId}`;
+    const wsUrl = `${wsProtocol}//${wsHost}/api/ws/session/${sessionId}`;
     
     console.log('[Silent Disco] Connecting to:', wsUrl);
     
