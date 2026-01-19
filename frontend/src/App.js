@@ -761,36 +761,42 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
-        {/* Bouton REJOINDRE LE LIVE superposé */}
+        {/* Bouton REJOINDRE LE LIVE superposé - Mobile: haut gauche, Desktop: bas centre */}
         {audioFeatureEnabled && (
           <div style={{
             position: 'absolute',
-            bottom: '16px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            top: window.innerWidth < 640 ? '12px' : 'auto',
+            bottom: window.innerWidth < 640 ? 'auto' : '16px',
+            left: window.innerWidth < 640 ? '12px' : '50%',
+            transform: window.innerWidth < 640 ? 'none' : 'translateX(-50%)',
             zIndex: 20
-          }}>
+          }}
+          className="live-btn-container"
+          >
             <button
               onClick={() => setShowJoinLive(true)}
               style={{
-                background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '12px 24px',
+                background: 'rgba(0, 0, 0, 0.6)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(217, 28, 210, 0.5)',
+                borderRadius: '20px',
+                padding: window.innerWidth < 640 ? '8px 14px' : '12px 24px',
+                maxWidth: window.innerWidth < 640 ? '160px' : 'none',
                 color: '#fff',
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: window.innerWidth < 640 ? '12px' : '14px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 20px rgba(217, 28, 210, 0.5)',
-                animation: 'pulse 2s infinite'
+                gap: '6px',
+                boxShadow: '0 2px 12px rgba(217, 28, 210, 0.3)',
+                transition: 'all 0.2s ease'
               }}
               data-testid="join-live-btn"
             >
-              <span style={{ fontSize: '20px' }}>🎧</span>
-              REJOINDRE LE LIVE
+              <span style={{ fontSize: window.innerWidth < 640 ? '16px' : '20px' }}>🎧</span>
+              <span className="hidden sm:inline">REJOINDRE LE LIVE</span>
+              <span className="sm:hidden">LIVE</span>
             </button>
           </div>
         )}
