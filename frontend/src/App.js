@@ -1680,10 +1680,10 @@ const HeroMediaWithAudio = ({
             {liveCourseName || 'Silent Disco Live'}
           </h3>
 
-          {/* ========== MINIATURE DU COURS (remplace icône casque) ========== */}
+          {/* ========== MINIATURE DU COURS (image réelle de l'offre) ========== */}
           <div style={{
-            width: 'clamp(100px, 30vw, 140px)',
-            height: 'clamp(100px, 30vw, 140px)',
+            width: 'clamp(120px, 35vw, 160px)',
+            height: 'clamp(120px, 35vw, 160px)',
             borderRadius: '16px',
             overflow: 'hidden',
             boxShadow: isPlaying 
@@ -1693,18 +1693,12 @@ const HeroMediaWithAudio = ({
               ? '3px solid rgba(217, 28, 210, 0.8)' 
               : '2px solid rgba(255,255,255,0.2)',
             flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             background: liveCourseImage 
               ? `url(${liveCourseImage}) center/cover no-repeat` 
-              : 'linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(217, 28, 210, 0.5))',
+              : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
             animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
-          }}>
-            {/* Si pas d'image, afficher icône musique */}
-            {!liveCourseImage && (
-              <span style={{ fontSize: '40px', opacity: 0.8 }}>🎵</span>
-            )}
+          }} data-testid="live-course-thumbnail">
+            {/* Pas d'icône fallback - juste le fond dégradé si pas d'image */}
           </div>
 
           <p style={{
