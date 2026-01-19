@@ -762,20 +762,26 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
-        {/* Bouton REJOINDRE LE LIVE superposé - Mobile: haut gauche, Desktop: bas centre */}
+        {/* Bouton REJOINDRE LE LIVE - Haut droite, compact */}
         {audioFeatureEnabled && (
-          <div className="live-btn-container">
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            right: '60px',
+            zIndex: 20
+          }}>
             <button
               onClick={() => setShowJoinLive(true)}
               style={{
-                background: 'rgba(0, 0, 0, 0.6)',
+                background: 'rgba(0, 0, 0, 0.7)',
                 backdropFilter: 'blur(8px)',
                 border: '1px solid rgba(217, 28, 210, 0.5)',
-                borderRadius: '20px',
-                padding: '12px 24px',
+                borderRadius: '16px',
+                padding: '8px 12px',
+                maxWidth: '160px',
                 color: '#fff',
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -785,9 +791,8 @@ const HeroMediaWithAudio = ({
               }}
               data-testid="join-live-btn"
             >
-              <span style={{ fontSize: '16px' }}>🎧</span>
-              <span className="hidden sm:inline">REJOINDRE LE LIVE</span>
-              <span className="inline sm:hidden">LIVE</span>
+              <span style={{ fontSize: '14px' }}>🎧</span>
+              <span>LIVE</span>
             </button>
           </div>
         )}
