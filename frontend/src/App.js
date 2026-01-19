@@ -801,8 +801,16 @@ const HeroMediaWithAudio = ({
   }, [showSettingsMenu]);
 
   // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
-  const joinLiveSession = useCallback((sessionId, isReconnect = false) => {
+  const joinLiveSession = useCallback(async (sessionId, isReconnect = false) => {
     if (!sessionId) return;
+    
+    // ========== AUDIO UNLOCK: Déverrouiller le haut-parleur mobile ==========
+    if (!isReconnect) {
+      console.log('[Silent Disco] Déverrouillage audio mobile...');
+      await unlockAudioForMobile();
+      // Initialiser Web Audio API pour canal Media
+      initWebAudio();
+    }
     
     // Nettoyer la connexion précédente
     if (liveWebSocket) {
@@ -819,6 +827,7 @@ const HeroMediaWithAudio = ({
     
     console.log(`[Silent Disco] ${isReconnect ? 'Reconnexion' : 'Connexion'} à:`, wsUrl);
     setIsSyncing(true);
+    setWaitingForCoach(true); // Attente du coach
     
     const ws = new WebSocket(wsUrl);
     
@@ -834,6 +843,7 @@ const HeroMediaWithAudio = ({
       }));
       setLiveConnected(true);
       setLiveSessionId(sessionId);
+      setIsSyncing(false);
     };
     
     ws.onmessage = (event) => {
