@@ -1000,8 +1000,93 @@ async def create_reservation(reservation: ReservationCreate):
     res_obj = Reservation(**reservation.model_dump(), reservationCode=res_code)
     doc = res_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    # ========== CALCUL DE LA COMMISSION ADMIN (10%) ==========
+    total_price = float(doc.get('totalPrice', 0))
+    commission_rate = 0.10  # 10%
+    commission_amount = round(total_price * commission_rate, 2)
+    coach_amount = round(total_price - commission_amount, 2)
+    
+    doc['commission'] = {
+        'rate': commission_rate,
+        'adminAmount': commission_amount,
+        'coachAmount': coach_amount,
+        'totalAmount': total_price
+    }
+    
     await db.reservations.insert_one(doc)
+    
+    # Log de la commission pour le suivi
+    logger.info(f"[Commission] Réservation {res_code}: Total={total_price}CHF, Admin={commission_amount}CHF (10%), Coach={coach_amount}CHF")
+    
     return res_obj
+
+# ========== ENDPOINT STATISTIQUES COMMISSIONS ==========
+@api_router.get("/admin/commissions")
+async def get_admin_commissions(period: str = "month"):
+    """
+    Récupère les statistiques de commissions pour l'admin.
+    period: 'day', 'week', 'month', 'year', 'all'
+    """
+    from datetime import timedelta
+    
+    # Calculer la date de début selon la période
+    now = datetime.now(timezone.utc)
+    if period == "day":
+        start_date = now - timedelta(days=1)
+    elif period == "week":
+        start_date = now - timedelta(weeks=1)
+    elif period == "month":
+        start_date = now - timedelta(days=30)
+    elif period == "year":
+        start_date = now - timedelta(days=365)
+    else:  # all
+        start_date = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    
+    # Récupérer toutes les réservations de la période
+    reservations = await db.reservations.find(
+        {"createdAt": {"$gte": start_date.isoformat()}},
+        {"_id": 0, "totalPrice": 1, "commission": 1, "createdAt": 1, "reservationCode": 1}
+    ).to_list(10000)
+    
+    # Calculer les totaux
+    total_revenue = 0
+    total_commission = 0
+    total_coach = 0
+    transactions = []
+    
+    for res in reservations:
+        price = float(res.get('totalPrice', 0))
+        total_revenue += price
+        
+        commission = res.get('commission', {})
+        if commission:
+            total_commission += float(commission.get('adminAmount', 0))
+            total_coach += float(commission.get('coachAmount', 0))
+        else:
+            # Pour les anciennes réservations sans commission calculée
+            admin_amount = round(price * 0.10, 2)
+            coach_amount = round(price * 0.90, 2)
+            total_commission += admin_amount
+            total_coach += coach_amount
+        
+        transactions.append({
+            'code': res.get('reservationCode', ''),
+            'date': res.get('createdAt', ''),
+            'total': price,
+            'adminCommission': commission.get('adminAmount', round(price * 0.10, 2)),
+            'coachAmount': commission.get('coachAmount', round(price * 0.90, 2))
+        })
+    
+    return {
+        'period': period,
+        'totalTransactions': len(reservations),
+        'totalRevenue': round(total_revenue, 2),
+        'totalAdminCommission': round(total_commission, 2),
+        'totalCoachAmount': round(total_coach, 2),
+        'commissionRate': '10%',
+        'recentTransactions': sorted(transactions, key=lambda x: x['date'], reverse=True)[:20]
+    }
 
 @api_router.post("/reservations/{reservation_code}/validate")
 async def validate_reservation(reservation_code: str):
