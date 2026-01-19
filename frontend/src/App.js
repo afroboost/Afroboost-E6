@@ -752,15 +752,296 @@ const HeroMediaWithAudio = ({
     height: '100%'
   };
 
-  // Si pas en mode audio, afficher la vidéo normale
-  if (!isAudioMode) {
-    return <MediaDisplay url={videoUrl} className={className} />;
+  // ========== AFFICHAGE: Mode Normal (Vidéo) ==========
+  if (!isAudioMode && !isLiveMode) {
+    return (
+      <div className={className} style={{ position: 'relative' }}>
+        <MediaDisplay url={videoUrl} />
+        
+        {/* Bouton REJOINDRE LE LIVE superposé */}
+        {audioFeatureEnabled && (
+          <div style={{
+            position: 'absolute',
+            bottom: '16px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20
+          }}>
+            <button
+              onClick={() => setShowJoinLive(true)}
+              style={{
+                background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
+                border: 'none',
+                borderRadius: '50px',
+                padding: '12px 24px',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 20px rgba(217, 28, 210, 0.5)',
+                animation: 'pulse 2s infinite'
+              }}
+              data-testid="join-live-btn"
+            >
+              <span style={{ fontSize: '20px' }}>🎧</span>
+              REJOINDRE LE LIVE
+            </button>
+          </div>
+        )}
+
+        {/* Modal pour entrer le code de session */}
+        {showJoinLive && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              background: '#1a1a2e',
+              borderRadius: '20px',
+              padding: '32px',
+              maxWidth: '400px',
+              width: '90%',
+              border: '1px solid rgba(217, 28, 210, 0.3)',
+              boxShadow: '0 0 50px rgba(217, 28, 210, 0.3)'
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <span style={{ fontSize: '64px' }}>🎧</span>
+                <h2 style={{ color: '#fff', fontSize: '24px', marginTop: '16px' }}>Rejoindre le Live</h2>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginTop: '8px' }}>
+                  Entrez le code de session donné par votre coach
+                </p>
+              </div>
+              
+              <input
+                type="text"
+                value={joinSessionInput}
+                onChange={(e) => setJoinSessionInput(e.target.value)}
+                placeholder="Code de session (ex: live_abc123_...)"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(217, 28, 210, 0.3)',
+                  background: 'rgba(0, 0, 0, 0.5)',
+                  color: '#fff',
+                  fontSize: '16px',
+                  marginBottom: '16px',
+                  outline: 'none'
+                }}
+                data-testid="live-session-input"
+              />
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setShowJoinLive(false)}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'transparent',
+                    color: '#fff',
+                    fontSize: '16px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => joinLiveSession(joinSessionInput)}
+                  disabled={!joinSessionInput.trim()}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: joinSessionInput.trim() ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' : 'rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    cursor: joinSessionInput.trim() ? 'pointer' : 'not-allowed'
+                  }}
+                  data-testid="confirm-join-live"
+                >
+                  🔊 Rejoindre
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   }
 
-  // Mode Audio actif
+  // ========== AFFICHAGE: Mode Live (Récepteur Passif) ==========
+  if (isLiveMode && liveConnected) {
+    const playlist = selectedCourse?.playlist || [];
+    
+    return (
+      <div className={className} style={containerStyle} data-testid="live-receiver-player">
+        <div style={{
+          ...contentStyle,
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(217, 28, 210, 0.4) 50%, rgba(0, 0, 0, 0.95) 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          {/* Bouton quitter en haut à droite */}
+          <button
+            onClick={leaveLiveSession}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(0, 0, 0, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#fff',
+              fontSize: '18px'
+            }}
+            data-testid="leave-live-btn"
+          >
+            ✕
+          </button>
+
+          {/* Badge LIVE */}
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+            background: 'rgba(220, 38, 38, 0.9)',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: 'pulse 1s infinite' }}></span>
+            <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>LIVE</span>
+          </div>
+
+          {/* Icône animée */}
+          <div style={{
+            fontSize: '80px',
+            marginBottom: '16px',
+            animation: isPlaying ? 'bounce 0.5s infinite alternate' : 'none'
+          }}>
+            🎧
+          </div>
+
+          {/* Titre */}
+          <h3 style={{
+            color: '#fff',
+            fontSize: '20px',
+            fontWeight: 700,
+            marginBottom: '8px',
+            textAlign: 'center'
+          }}>
+            {liveCourseName || 'Silent Disco Live'}
+          </h3>
+
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '14px',
+            marginBottom: '24px'
+          }}>
+            {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
+          </p>
+
+          {/* Indicateur de lecture (pas de contrôles - mode passif) */}
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            background: isPlaying 
+              ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' 
+              : 'rgba(255, 255, 255, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: isPlaying ? '0 0 40px rgba(217, 28, 210, 0.7)' : 'none',
+            transition: 'all 0.3s'
+          }}>
+            <span style={{ fontSize: '32px', color: '#fff' }}>
+              {isPlaying ? '♪' : '⏸'}
+            </span>
+          </div>
+
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.5)',
+            fontSize: '12px',
+            marginTop: '16px'
+          }}>
+            {isPlaying ? '🔊 Audio synchronisé avec le coach' : '⏸ En attente du coach...'}
+          </p>
+
+          {/* Contrôle du volume (le seul contrôle autorisé) */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            width: '60%',
+            maxWidth: '250px',
+            marginTop: '20px'
+          }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔈</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={audioVolume}
+              onChange={(e) => {
+                const vol = parseFloat(e.target.value);
+                setAudioVolume(vol);
+                if (audioRef.current) audioRef.current.volume = vol;
+              }}
+              style={{
+                flex: 1,
+                height: '4px',
+                borderRadius: '2px',
+                appearance: 'none',
+                background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                cursor: 'pointer'
+              }}
+            />
+            <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔊</span>
+          </div>
+
+          {/* Audio element */}
+          <audio
+            ref={audioRef}
+            src={playlist[currentTrackIndex]}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ========== AFFICHAGE: Mode Audio Local (Solo) ==========
   const hasPlaylist = selectedCourse?.playlist?.length > 0 && audioFeatureEnabled;
   if (!hasPlaylist) {
-    // Pas de playlist, revenir à la vidéo
     onCloseAudio();
     return <MediaDisplay url={videoUrl} className={className} />;
   }
