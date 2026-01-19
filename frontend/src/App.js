@@ -1801,18 +1801,6 @@ const HeroMediaWithAudio = ({
       </div>
     );
   }
-              }
-            }}
-            onLoadStart={() => {
-              console.log('[Audio] Chargement démarré...');
-            }}
-            preload="auto"
-            crossOrigin="anonymous"
-          />
-        </div>
-      </div>
-    );
-  }
 
   // ========== AFFICHAGE: Mode Audio Local (Solo) ==========
   const hasPlaylist = selectedCourse?.playlist?.length > 0 && audioFeatureEnabled;
