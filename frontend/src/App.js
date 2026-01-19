@@ -710,73 +710,47 @@ const HeroMediaWithAudio = ({
     });
   }, []);
 
-  // ========== CONNECTER L'AUDIO AU CONTEXTE (appelé après montage du composant Live) ==========
-  const connectAudioToContext = useCallback(() => {
-    if (!audioContextRef.current || !audioRef.current) {
-      console.warn('[WebAudio] Contexte ou élément audio manquant');
-      return false;
-    }
-    
-    // Ne pas reconnecter si déjà fait
-    if (sourceNodeRef.current) {
-      console.log('[WebAudio] Audio déjà connecté');
-      return true;
-    }
-    
-    try {
-      // S'assurer que le contexte est actif
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
-      
-      // CONNEXION CRITIQUE: Élément audio → AudioContext → Destination (haut-parleur)
-      sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-      sourceNodeRef.current.connect(audioContextRef.current.destination);
-      
-      console.log('[WebAudio] 🔗 CONNEXION ÉTABLIE: audio → context → destination');
-      return true;
-    } catch (e) {
-      console.error('[WebAudio] ❌ Erreur connexion:', e);
-      return false;
-    }
-  }, []);
-
-  // ========== FORCE AUDIO PLAY: Maintenir le canal audio ouvert avec silence en boucle ==========
+  // ========== FORCE AUDIO PLAY: Maintenir le canal audio ouvert ==========
   const silenceIntervalRef = useRef(null);
   
   const forceAudioPlay = useCallback(() => {
-    console.log('[ForceAudio] 🔊 Activation du maintien de canal audio...');
+    console.log('[ForceAudio] 🔊 Maintien du canal audio...');
     
-    // Utiliser le contexte audio PRINCIPAL (créé dans unlockAudioForMobile)
-    if (!audioContextRef.current) {
-      console.warn('[ForceAudio] ⚠️ Pas de contexte audio principal');
-      return false;
+    // Arrêter l'intervalle précédent
+    if (silenceIntervalRef.current) {
+      clearInterval(silenceIntervalRef.current);
     }
     
-    const ctx = audioContextRef.current;
-    
-    // Fonction qui joue 0.1 seconde de silence
-    const playSilence = () => {
-      if (!audioContextRef.current || audioContextRef.current.state === 'closed') return;
-      
+    // Jouer un silence périodiquement pour garder le canal ouvert
+    const playKeepAlive = () => {
       try {
-        // S'assurer que le contexte est actif
-        if (ctx.state === 'suspended') {
-          ctx.resume();
+        // Utiliser le contexte audio s'il existe
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+          if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume();
+          }
+          
+          const oscillator = audioContextRef.current.createOscillator();
+          const gainNode = audioContextRef.current.createGain();
+          gainNode.gain.setValueAtTime(0.0001, audioContextRef.current.currentTime);
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContextRef.current.destination);
+          oscillator.frequency.value = 1;
+          oscillator.start();
+          oscillator.stop(audioContextRef.current.currentTime + 0.05);
         }
-        
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        
-        // Volume très bas (quasi-inaudible mais actif)
-        gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        
-        oscillator.frequency.value = 1; // 1 Hz inaudible
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.1); // 0.1 seconde
+      } catch (e) {
+        // Ignorer les erreurs
+      }
+    };
+    
+    // Jouer immédiatement puis toutes les 500ms
+    playKeepAlive();
+    silenceIntervalRef.current = setInterval(playKeepAlive, 500);
+    
+    console.log('[ForceAudio] ✅ Keep-alive audio activé');
+    return true;
+  }, []);
         
       } catch (e) {
         // Ignorer les erreurs mineures
