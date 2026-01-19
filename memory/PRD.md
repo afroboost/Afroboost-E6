@@ -576,6 +576,19 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Nouvel onglet "👥 Coachs"** : Permet au Super Admin d'enregistrer/supprimer des coachs
   - **Sécurité** : Un coach ne voit QUE ses propres cours/offres + ceux sans auteur assigné
   - **Tests** : Filtrage vérifié (coach.test@example.com voit 5 cours, autre.coach voit 4)
+- [x] **Permutation Vidéo/Audio Héro (19 Jan 2026)**:
+  - **État `isAudioMode`** : Permute l'affichage entre vidéo héro et lecteur audio intégré
+  - **Mêmes dimensions** : Conteneur 16:9 identique (pas de CLS - Cumulative Layout Shift)
+  - **Composant `HeroMediaWithAudio`** : Encapsule la logique de permutation vidéo ↔ audio
+  - **Lecteur audio intégré** :
+    - Icône 🎧 animée + nom du cours + "Piste X / Y"
+    - Bouton Play/Pause central avec dégradé violet/rose
+    - Navigation pistes (⏮ / ⏭) + contrôle volume
+    - Bouton ✕ pour revenir à la vidéo
+  - **Suppression lecteur flottant** : Plus de mini-player en bas de page
+  - **Footer mis à jour** : Lien "Connexion Coach" visible à côté d'Instagram
+  - **Widget WhatsApp** : Non gêné (bien séparé en bas à droite)
+  - **Paramètres vidéo** : Non modifiés dans "Concept & Visuel"
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
@@ -585,6 +598,7 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 - [x] ~~**Séparation Cours/Produits**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Archivage cours**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Espace Dédié Coachs**~~ - ✅ COMPLÉTÉ
+- [x] ~~**Permutation Vidéo/Audio**~~ - ✅ COMPLÉTÉ
 - [ ] **Optimisation Backend MongoDB** - Appliquer pagination et projection sur les requêtes pour améliorer les performances en production.
 - [ ] Tests automatisés pour les composants extraits
 
