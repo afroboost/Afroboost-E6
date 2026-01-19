@@ -4292,7 +4292,7 @@ function App() {
 
   if (showSplash) return <SplashScreen logoUrl={concept.logoUrl} />;
   if (showCoachLogin) return <CoachLoginModal t={t} onLogin={handleGoogleLogin} onCancel={() => setShowCoachLogin(false)} />;
-  if (coachMode) return <CoachDashboard t={t} lang={lang} onBack={() => setCoachMode(false)} onLogout={handleLogout} coachUser={coachUser} />;
+  if (coachMode) return <CoachDashboard t={t} lang={lang} onBack={() => setCoachMode(false)} onLogout={handleLogout} coachUser={coachUser} audioFeatureEnabled={audioFeatureEnabled} />;
 
   // Filtrer les offres et cours selon visibilité, filtre actif et recherche
   // =====================================================
