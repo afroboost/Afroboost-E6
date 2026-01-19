@@ -576,8 +576,8 @@ const convertCloudUrlToDirect = (url) => {
       .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
       .replace('dl=0', 'raw=1')
       .replace('dl=1', 'raw=1');
-    // Ajouter raw=1 si pas présent
-    if (!directUrl.includes('raw=1') && !directUrl.includes('dl.dropboxusercontent.com')) {
+    // Ajouter raw=1 si pas présent (même après le remplacement de domaine)
+    if (!directUrl.includes('raw=1')) {
       directUrl = directUrl.includes('?') ? `${directUrl}&raw=1` : `${directUrl}?raw=1`;
     }
     return directUrl;
