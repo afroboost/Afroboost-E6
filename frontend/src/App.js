@@ -1115,18 +1115,6 @@ const HeroMediaWithAudio = ({
             
             setIsPlaying(true);
             break;
-                  })
-                  .catch(err => {
-                    console.error('[Silent Disco] Erreur lecture:', err);
-                    // Retry après un court délai
-                    setTimeout(() => {
-                      audioRef.current.play().catch(e => console.error('[Silent Disco] Retry échoué:', e));
-                    }, 200);
-                  });
-              }
-            }
-            setIsPlaying(true);
-            break;
             
           case "PAUSE":
             if (audioRef.current) {
