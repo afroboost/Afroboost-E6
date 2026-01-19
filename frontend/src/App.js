@@ -1006,14 +1006,13 @@ const HeroMediaWithAudio = ({
     // Stocker le sessionId pour la reconnexion
     currentSessionIdRef.current = sessionId;
     
-    // ========== AUDIO UNLOCK + FORCE AUDIO PLAY ==========
+    // ========== AUDIO UNLOCK (CLIC PHYSIQUE UNIQUEMENT) ==========
     if (!isReconnect) {
-      console.log('[Silent Disco] Déverrouillage audio mobile...');
+      console.log('[Silent Disco] 🔊 Clic physique détecté - Déverrouillage audio mobile...');
       await unlockAudioForMobile();
-      // Initialiser Web Audio API pour canal Media
-      initWebAudio();
-      // ========== FORCE AUDIO PLAY: Maintenir le canal ouvert avec silence en boucle ==========
+      // ========== FORCE AUDIO PLAY: Oscillateur silencieux en boucle ==========
       forceAudioPlay();
+      // NOTE: initWebAudio() sera appelé APRÈS le montage du composant Live via useEffect
     }
     
     // Nettoyer la connexion précédente
