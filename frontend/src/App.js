@@ -650,45 +650,68 @@ const HeroMediaWithAudio = ({
   const [audioLoadError, setAudioLoadError] = useState(false); // Erreur chargement après 5s
   const audioLoadTimeoutRef = useRef(null); // Timeout pour erreur 5s
 
-  // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile ==========
+  // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile (CRITIQUE pour iOS/Android) ==========
   const unlockAudioForMobile = useCallback(() => {
     return new Promise((resolve) => {
       try {
-        // Créer un contexte audio temporaire
+        console.log('[AudioUnlock] 🔓 Démarrage du déverrouillage audio mobile...');
+        
+        // ÉTAPE 1: Créer et résumer un AudioContext
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         const tempContext = new AudioContextClass();
         
-        // Créer un oscillateur silencieux (0.1s)
+        // Forcer le resume() pour iOS Safari
+        if (tempContext.state === 'suspended') {
+          tempContext.resume();
+        }
+        
+        // ÉTAPE 2: Créer un oscillateur silencieux (0.1s à volume quasi-nul)
         const oscillator = tempContext.createOscillator();
         const gainNode = tempContext.createGain();
         
-        // Volume à 0 (silence)
-        gainNode.gain.value = 0.001; // Presque silencieux
+        // Volume presque à zéro mais pas 0 (iOS nécessite un son réel)
+        gainNode.gain.setValueAtTime(0.001, tempContext.currentTime);
         
         oscillator.connect(gainNode);
         gainNode.connect(tempContext.destination);
         
-        oscillator.frequency.value = 440; // 440Hz
-        oscillator.start();
+        oscillator.frequency.value = 1; // Fréquence très basse (inaudible)
+        oscillator.start(tempContext.currentTime);
         oscillator.stop(tempContext.currentTime + 0.1); // 0.1 seconde
         
-        // Attendre la fin et fermer
-        setTimeout(() => {
-          tempContext.close();
-          console.log('[AudioUnlock] ✅ Haut-parleur mobile déverrouillé');
-          resolve(true);
-        }, 150);
-        
-        // Si l'audioRef existe, le préparer aussi
+        // ÉTAPE 3: Préparer l'élément audio pour lecture future
         if (audioRef.current) {
           audioRef.current.volume = audioVolume;
           audioRef.current.muted = false;
-          // Charger sans jouer
           audioRef.current.load();
+          
+          // Tenter un play/pause immédiat pour débloquer (technique iOS)
+          const playAttempt = audioRef.current.play();
+          if (playAttempt) {
+            playAttempt
+              .then(() => {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+                console.log('[AudioUnlock] ✅ Audio element pré-activé');
+              })
+              .catch(() => {
+                // Ignorer les erreurs - l'important c'est la tentative
+                console.log('[AudioUnlock] Audio element en attente');
+              });
+          }
         }
         
+        // ÉTAPE 4: Finaliser après le son silencieux
+        setTimeout(() => {
+          tempContext.close().catch(() => {});
+          setAudioUnlocked(true);
+          console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ - Prêt à recevoir audio');
+          resolve(true);
+        }, 150);
+        
       } catch (e) {
-        console.warn('[AudioUnlock] Erreur:', e);
+        console.warn('[AudioUnlock] ⚠️ Erreur (fallback activé):', e);
+        setAudioUnlocked(true); // Marquer comme fait même en cas d'erreur
         resolve(false);
       }
     });
