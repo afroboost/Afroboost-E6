@@ -888,18 +888,19 @@ const HeroMediaWithAudio = ({
               setCurrentTrackIndex(msg.data.track_index);
             }
             // ========== SYNC IMMÉDIAT: Si session déjà en cours (PLAY actif) ==========
-            if (msg.data.session_state?.playing) {
+            // Note: Le backend envoie directement playing/position dans data (pas session_state)
+            if (msg.data.playing) {
               setWaitingForCoach(false);
               console.log('[Silent Disco] Session en cours détectée - synchronisation immédiate');
               
               // Récupérer la position actuelle et synchroniser
-              if (audioRef.current && msg.data.session_state?.position !== undefined) {
-                const serverTime = msg.data.session_state?.server_timestamp 
-                  ? new Date(msg.data.session_state.server_timestamp).getTime() 
+              if (audioRef.current && msg.data.position !== undefined) {
+                const serverTime = msg.data.server_time 
+                  ? new Date(msg.data.server_time).getTime() 
                   : Date.now();
                 const now = Date.now();
                 const latency = (now - serverTime) / 1000;
-                const targetPosition = (msg.data.session_state.position || 0) + latency;
+                const targetPosition = (msg.data.position || 0) + latency;
                 
                 console.log(`[Silent Disco] Sync immédiat: position=${targetPosition.toFixed(2)}s`);
                 
