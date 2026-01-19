@@ -3415,6 +3415,55 @@ function App() {
     }
   }, []);
 
+  // ========== STRIPE CHECKOUT RETURN HANDLER ==========
+  useEffect(() => {
+    const checkStripePayment = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      const pendingSession = localStorage.getItem('pending_stripe_session');
+      const pendingReservationCode = localStorage.getItem('pending_reservation_code');
+      
+      // Si on revient de Stripe avec un session_id
+      if (sessionId && pendingSession && sessionId === pendingSession) {
+        try {
+          // Vérifier le statut du paiement
+          const response = await axios.get(`${API}/stripe/checkout-status/${sessionId}`);
+          
+          if (response.data.payment_status === 'paid') {
+            // Paiement réussi ! Récupérer la réservation créée
+            const reservationRes = await axios.get(`${API}/reservations?code=${pendingReservationCode}`);
+            if (reservationRes.data?.data?.length > 0) {
+              const reservation = reservationRes.data.data[0];
+              setLastReservation(reservation);
+              setShowSuccess(true);
+              
+              // Nettoyer
+              localStorage.removeItem('pending_stripe_session');
+              localStorage.removeItem('pending_reservation_code');
+              
+              // Nettoyer l'URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          } else {
+            console.log('Payment not completed yet');
+            // Optionnel: afficher un message
+          }
+        } catch (err) {
+          console.error('Error checking Stripe payment:', err);
+        }
+      }
+      
+      // Si on est sur /cancel (annulation)
+      if (window.location.pathname === '/cancel') {
+        localStorage.removeItem('pending_stripe_session');
+        localStorage.removeItem('pending_reservation_code');
+        window.history.replaceState({}, document.title, '/');
+      }
+    };
+    
+    checkStripePayment();
+  }, []);
+
   const [clickCount, setClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
 
