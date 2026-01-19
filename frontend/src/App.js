@@ -3560,7 +3560,10 @@ function App() {
               <div className="mb-4">
                 <button
                   type="button"
-                  onClick={() => setShowAudioPlayer(true)}
+                  onClick={() => {
+                    setIsAudioMode(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3"
                   style={{
                     background: 'linear-gradient(135deg, #8b5cf6, #d91cd2)',
