@@ -614,6 +614,51 @@ const HeroMediaWithAudio = ({
     }
   }, []);
 
+  // ========== MEDIA SESSION API: Lecture en arrière-plan ==========
+  const updateMediaSession = useCallback((courseName, isPlaying) => {
+    if ('mediaSession' in navigator) {
+      try {
+        // Metadata pour l'écran de verrouillage
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: courseName || 'Silent Disco Live',
+          artist: 'Afroboost',
+          album: 'Session en Direct',
+          artwork: [
+            { src: '/favicon.ico', sizes: '96x96', type: 'image/x-icon' },
+            { src: '/logo192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/logo512.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+        
+        // État de lecture
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+        
+        // IMPORTANT: Supprimer tous les handlers pour empêcher le participant de contrôler
+        // On ne définit PAS de handlers pour play/pause/seekbackward/seekforward
+        // Cela désactive les boutons sur l'écran de verrouillage
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+        navigator.mediaSession.setActionHandler('seekbackward', null);
+        navigator.mediaSession.setActionHandler('seekforward', null);
+        navigator.mediaSession.setActionHandler('seekto', null);
+        navigator.mediaSession.setActionHandler('stop', null);
+        
+        console.log('[MediaSession] Updated:', courseName, isPlaying ? 'playing' : 'paused');
+      } catch (e) {
+        console.warn('[MediaSession] Error:', e);
+      }
+    }
+  }, []);
+
+  // Mettre à jour Media Session quand le mode live change
+  useEffect(() => {
+    if (isLiveMode && liveConnected) {
+      updateMediaSession(liveCourseName, isPlaying);
+    }
+  }, [isLiveMode, liveConnected, liveCourseName, isPlaying, updateMediaSession]);
+
   // Reset track index when course changes
   useEffect(() => {
     setCurrentTrackIndex(0);
