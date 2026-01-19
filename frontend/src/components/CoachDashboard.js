@@ -2722,48 +2722,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 )}
               </div>
             )}
-                        >
-                          <span className="text-white/50 text-xs w-6">{idx + 1}.</span>
-                          <span className={`text-sm truncate flex-1 ${idx === liveTrackIndex ? 'text-pink-400' : 'text-white/70'}`}>
-                            {url.split('/').pop() || `Piste ${idx + 1}`}
-                          </span>
-                          {idx === liveTrackIndex && liveIsPlaying && (
-                            <span className="text-pink-400 animate-pulse">♪</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Audio element caché */}
-                    <audio
-                      ref={liveAudioRef}
-                      src={liveSession.course.playlist?.[liveTrackIndex]}
-                      onTimeUpdate={(e) => setLivePosition(e.target.currentTime)}
-                      onEnded={() => handleLiveTrackChange(liveTrackIndex + 1)}
-                    />
-
-                    {/* Code de session à partager */}
-                    <div className="mt-4 p-3 rounded-lg bg-purple-900/30 border border-purple-500/30">
-                      <p className="text-white/70 text-xs mb-1">📱 Code de session à partager :</p>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 px-3 py-2 rounded bg-black/50 text-pink-400 text-sm font-mono">
-                          {liveSession.sessionId}
-                        </code>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(liveSession.sessionId);
-                            alert('Code copié !');
-                          }}
-                          className="px-3 py-2 rounded bg-purple-600/50 hover:bg-purple-600/70 text-white text-sm"
-                        >
-                          📋 Copier
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Liste des cours avec scroll */}
             <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }} className="custom-scrollbar">
