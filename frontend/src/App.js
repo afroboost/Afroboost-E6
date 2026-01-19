@@ -567,9 +567,15 @@ const HeroMediaWithAudio = ({
   className 
 }) => {
   const audioRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const sourceNodeRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
+  
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioVolume, setAudioVolume] = useState(0.7);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   
   // ========== SILENT DISCO LIVE STATE ==========
   const [isLiveMode, setIsLiveMode] = useState(false);
@@ -580,6 +586,33 @@ const HeroMediaWithAudio = ({
   const [liveCourseName, setLiveCourseName] = useState('');
   const [showJoinLive, setShowJoinLive] = useState(false);
   const [joinSessionInput, setJoinSessionInput] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+
+  // ========== WEB AUDIO API: Forcer le canal Media ==========
+  const initWebAudio = useCallback(() => {
+    if (!audioContextRef.current && audioRef.current) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContextRef.current = new AudioContext();
+        
+        // Créer le nœud source connecté à l'élément audio
+        if (!sourceNodeRef.current) {
+          sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+          sourceNodeRef.current.connect(audioContextRef.current.destination);
+        }
+        
+        console.log('[WebAudio] AudioContext initialisé - Canal Media activé');
+      } catch (e) {
+        console.warn('[WebAudio] Fallback sur audio standard:', e);
+      }
+    }
+    
+    // Reprendre le contexte audio si suspendu (iOS)
+    if (audioContextRef.current?.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  }, []);
 
   // Reset track index when course changes
   useEffect(() => {
