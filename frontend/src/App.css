@@ -931,3 +931,86 @@ select option {
     height: 100px;
   }
 }
+
+/* =================================================================
+   SILENT DISCO - LIVE BUTTON STYLES
+   ================================================================= */
+
+/* Bouton LIVE - Responsive positioning */
+.live-btn-container {
+  position: absolute;
+  z-index: 20;
+}
+
+/* Mobile: Bouton en haut à gauche, compact */
+@media (max-width: 639px) {
+  .live-btn-container {
+    top: 12px !important;
+    bottom: auto !important;
+    left: 12px !important;
+    transform: none !important;
+  }
+  
+  .live-btn-container button {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    max-width: 140px !important;
+    border-radius: 16px !important;
+    gap: 4px !important;
+  }
+  
+  .live-btn-container button span:first-child {
+    font-size: 14px !important;
+  }
+}
+
+/* Desktop: Bouton centré en bas */
+@media (min-width: 640px) {
+  .live-btn-container {
+    top: auto !important;
+    bottom: 16px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+/* Hover effect pour le bouton Live */
+.live-btn-container button:hover {
+  background: rgba(217, 28, 210, 0.3) !important;
+  border-color: #d91cd2 !important;
+  box-shadow: 0 0 20px rgba(217, 28, 210, 0.4) !important;
+}
+
+/* =================================================================
+   COACH DASHBOARD - MOBILE RESPONSIVE FIXES
+   ================================================================= */
+
+/* Extra small breakpoint pour écrans <400px */
+@media (max-width: 400px) {
+  /* Coach cards - stack vertically on very small screens */
+  .coach-card-responsive {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  .coach-card-responsive button {
+    align-self: flex-end !important;
+    margin-top: 8px;
+  }
+}
+
+/* Tailwind xs breakpoint helper */
+@media (min-width: 400px) {
+  .xs\:flex-row {
+    flex-direction: row;
+  }
+  .xs\:items-center {
+    align-items: center;
+  }
+  .xs\:w-auto {
+    width: auto;
+  }
+  .xs\:self-center {
+    align-self: center;
+  }
+}
