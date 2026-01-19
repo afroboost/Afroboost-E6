@@ -1038,7 +1038,7 @@ const HeroMediaWithAudio = ({
       await unlockAudioForMobile();
       // ========== FORCE AUDIO PLAY: Oscillateur silencieux en boucle ==========
       forceAudioPlay();
-      // NOTE: initWebAudio() sera appelé APRÈS le montage du composant Live via useEffect
+      // NOTE: connectAudioToContext() sera appelé APRÈS le montage du composant Live via useEffect
     }
     
     // Nettoyer la connexion précédente
