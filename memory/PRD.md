@@ -790,3 +790,44 @@ Fonctionnalité de synchronisation audio en temps réel entre le Coach (DJ) et l
 - `/app/frontend/src/App.js` : HeroMediaWithAudio avec menu "...", Web Audio API, reconnexion
 - `/app/frontend/src/components/CoachDashboard.js` : Console DJ simplifiée
 
+
+---
+
+## Silent Disco Phase 3 - Lecture Arrière-Plan & Sécurité DJ (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. BACKGROUND AUDIO (Media Session API)
+- **navigator.mediaSession.metadata** : Affiche le nom du cours et "Afroboost" sur l'écran de verrouillage
+- **Artwork** : favicon.ico, logo192.png, logo512.png pour l'image sur l'écran de verrouillage
+- **Contrôles désactivés** : Les handlers play/pause/seek sont mis à `null` pour empêcher le participant de contrôler
+- **playbackState** : Synchronisé avec l'état de lecture (playing/paused)
+
+#### 2. SÉCURITÉ DJ (WebSocket)
+- **Double vérification** dans `handle_coach_command`:
+  1. `is_coach` doit être `true` dans les infos utilisateur
+  2. L'émetteur doit être le `session_coaches[session_id]` enregistré
+- **Message d'erreur** : "Action non autorisée. Seul le coach peut contrôler la session."
+- **Logging** : Toutes les tentatives bloquées sont loguées avec l'email de l'attaquant
+- **Test validé** : Participant bloqué avec succès lors de tentative PLAY
+
+#### 3. VISUEL "● LIVE"
+- **Badge rouge** à côté du nom du cours dans la zone héro
+- **Point blanc clignotant** (animation pulse) pour indiquer la connexion active
+- **Style** : `background: rgba(220, 38, 38, 0.9)`, `padding: 3px 8px`, `borderRadius: 10px`
+
+#### 4. COMPATIBILITÉ MOBILE
+- **iPhone SE (320px)** : Bouton LIVE centré ✅
+- **iPhone 14 Pro (390px)** : Bouton LIVE centré ✅
+- **Hitbox 40px** sur le menu "⋮" pour faciliter le clic sur iPhone
+
+### Tests validés
+- ✅ Sécurité : Participant bloqué pour commande PLAY
+- ✅ Bouton LIVE centré sur iPhone SE et iPhone Pro
+- ✅ Compilation frontend réussie
+- ✅ Backend redémarré sans erreur
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js` : Media Session API, indicateur "● LIVE" à côté du titre
+- `/app/backend/server.py` : Double vérification sécurité dans handle_coach_command
+
