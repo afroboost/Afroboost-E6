@@ -965,6 +965,10 @@ const HeroMediaWithAudio = ({
           case "STATE_SYNC":
             setLiveParticipants(msg.data.participant_count || 0);
             setLiveCourseName(msg.data.course_name || '');
+            // ========== RÉCUPÉRER L'IMAGE DE COUVERTURE DU COURS ==========
+            if (msg.data.course_image) {
+              setLiveCourseImage(msg.data.course_image);
+            }
             if (msg.data.track_index !== undefined) {
               setCurrentTrackIndex(msg.data.track_index);
             }
