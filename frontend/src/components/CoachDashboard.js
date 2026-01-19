@@ -5114,7 +5114,7 @@ const CoachesManagement = ({ API, t }) => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-wrap items-center gap-4 mb-4">
             <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
               <input
                 type="checkbox"
@@ -5122,6 +5122,14 @@ const CoachesManagement = ({ API, t }) => {
                 onChange={e => setNewCoach({ ...newCoach, hasAudio: e.target.checked })}
               />
               🎵 Accès Audio/Playlist
+            </label>
+            <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newCoach.subscriptionActive}
+                onChange={e => setNewCoach({ ...newCoach, subscriptionActive: e.target.checked })}
+              />
+              ✅ Abonnement Actif
             </label>
           </div>
           <button
@@ -5136,7 +5144,7 @@ const CoachesManagement = ({ API, t }) => {
       {/* Info */}
       <div className="mb-6 p-3 rounded-lg bg-purple-900/20 border border-purple-500/20">
         <p className="text-sm text-white/70">
-          💡 Les coachs enregistrés peuvent se connecter via Google OAuth. Ils verront uniquement leurs propres cours, offres et réservations.
+          💡 Les coachs avec abonnement actif peuvent se connecter. Sans abonnement, l'accès au Dashboard est bloqué. Commission: 10% sur chaque transaction Twint.
         </p>
       </div>
 
