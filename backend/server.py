@@ -2620,17 +2620,16 @@ async def create_stripe_checkout(request: Request, checkout_data: StripeCheckout
         # Initialiser Stripe Checkout
         stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
         
-        # Créer la session de paiement
-        # NOTE: Pour activer TWINT, activez-le dans votre dashboard Stripe:
+        # Créer la session de paiement avec TWINT activé pour la Suisse
+        # TWINT nécessite d'être activé dans le dashboard Stripe:
         # https://dashboard.stripe.com/account/payments/settings
-        # Puis ajoutez "twint" à payment_methods: ["card", "twint"]
         checkout_request = CheckoutSessionRequest(
             amount=total_price,  # En décimal
             currency="chf",
             success_url=success_url,
             cancel_url=cancel_url,
             metadata=metadata,
-            payment_methods=["card"]  # Ajoutez "twint" une fois activé dans Stripe Dashboard
+            payment_methods=["card", "twint"]  # TWINT activé pour les clients suisses
         )
         
         session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
