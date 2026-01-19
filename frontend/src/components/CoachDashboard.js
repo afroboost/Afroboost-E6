@@ -279,12 +279,13 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         }
       }));
       
-      // Démarrer la session
+      // Démarrer la session avec l'image de couverture
       ws.send(JSON.stringify({
         type: "SESSION_START",
         data: {
           course_id: course.id,
-          course_name: course.name
+          course_name: course.name,
+          course_image: course.imageUrl || course.image || '' // Image de couverture du cours
         }
       }));
       
