@@ -552,6 +552,58 @@ const LanguageSelector = ({ lang, setLang }) => {
   );
 };
 
+// ========== UTILITAIRE: Convertir les URLs Cloud en liens directs ==========
+const convertCloudUrlToDirect = (url) => {
+  if (!url) return url;
+  
+  // Google Drive: Convertir /file/d/ID/view en lien direct
+  // Format: https://drive.google.com/file/d/FILE_ID/view?...
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) {
+    const fileId = driveMatch[1];
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+  
+  // Google Drive: Format open?id=
+  const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if (driveOpenMatch) {
+    return `https://drive.google.com/uc?export=download&id=${driveOpenMatch[1]}`;
+  }
+  
+  // Dropbox: Remplacer dl=0 par dl=1 pour téléchargement direct
+  if (url.includes('dropbox.com')) {
+    return url.replace('dl=0', 'dl=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+  }
+  
+  // OneDrive: Convertir en lien de téléchargement direct
+  if (url.includes('1drv.ms') || url.includes('onedrive.live.com')) {
+    // OneDrive nécessite une conversion plus complexe, on garde l'URL originale
+    return url;
+  }
+  
+  // SoundCloud, Spotify: Ces services nécessitent des APIs spécifiques
+  // On retourne l'URL originale (le lecteur HTML5 ne peut pas les lire directement)
+  
+  return url;
+};
+
+// Vérifier si une URL est un lien audio valide
+const isValidAudioUrl = (url) => {
+  if (!url) return false;
+  
+  const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.webm'];
+  const hasAudioExtension = audioExtensions.some(ext => url.toLowerCase().includes(ext));
+  
+  // URLs de streaming connues
+  const isKnownStream = url.includes('drive.google.com') || 
+                        url.includes('dropbox.com') || 
+                        url.includes('githubusercontent.com') ||
+                        url.includes('cloudinary.com') ||
+                        url.includes('s3.amazonaws.com');
+  
+  return hasAudioExtension || isKnownStream;
+};
+
 // ========== HERO MEDIA WITH AUDIO SWITCH + SILENT DISCO LIVE ==========
 // Composant qui permute entre :
 // 1. Vidéo héro normale
@@ -573,6 +625,7 @@ const HeroMediaWithAudio = ({
   
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioError, setAudioError] = useState(null);
   const [audioVolume, setAudioVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
