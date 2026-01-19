@@ -1260,13 +1260,37 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
-        {/* ÉLÉMENT AUDIO PERMANENT - doit exister AVANT le clic REJOINDRE */}
+        {/* ÉLÉMENT AUDIO PERMANENT - UNIQUE pour tout le site */}
         <audio
           ref={audioRef}
           playsInline
           webkit-playsinline="true"
-          style={{ display: 'none' }}
-          preload="none"
+          style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+          preload="auto"
+          crossOrigin="anonymous"
+          onPlay={() => {
+            setIsPlaying(true);
+            setAudioError(null);
+            setAudioLoadError(false);
+            console.log('[Audio] ✅ Lecture démarrée!');
+          }}
+          onPause={() => setIsPlaying(false)}
+          onError={(e) => {
+            console.error('[Audio] Erreur:', e);
+            if (audioRef.current?.src && !audioRef.current.src.includes('data:audio')) {
+              setAudioError('Impossible de lire ce fichier audio');
+              setAudioLoadError(true);
+            }
+          }}
+          onCanPlay={() => {
+            console.log('[Audio] ✅ Prêt à jouer');
+            setAudioError(null);
+            setAudioLoadError(false);
+          }}
+          onEnded={() => {
+            console.log('[Audio] Piste terminée');
+            // Géré par le coach en mode Live
+          }}
         />
         
         {/* Menu "..." en haut à droite (50px hitbox pour iPhone) - z-index élevé */}
