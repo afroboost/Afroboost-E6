@@ -3817,35 +3817,6 @@ function App() {
               style={{ color: 'white', position: 'relative' }} data-testid={`date-btn-${course.id}-${idx}`}>
               <span className="flex items-center justify-center gap-2">
                 {formatDate(date, course.time, lang)} {isSelected && '✔'}
-                {/* Icône Audio si playlist disponible */}
-                {hasPlaylist && (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation(); // Ne pas interférer avec la sélection de date
-                      // Sélectionner ce cours si pas déjà sélectionné
-                      if (selectedCourse?.id !== course.id) {
-                        setSelectedCourse(course);
-                        setSelectedDates([dateISO]);
-                      }
-                      // Activer le mode audio (permute vidéo → audio)
-                      setIsAudioMode(true);
-                      // Scroll vers le lecteur audio en haut
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="audio-icon-session"
-                    style={{
-                      color: '#d91cd2',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      marginLeft: '4px',
-                      transition: 'transform 0.2s, filter 0.2s'
-                    }}
-                    title="Écouter l'ambiance audio"
-                    data-testid={`audio-icon-${course.id}-${idx}`}
-                  >
-                    🎧
-                  </span>
-                )}
               </span>
             </button>
           );
