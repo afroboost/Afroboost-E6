@@ -705,7 +705,10 @@ const HeroMediaWithAudio = ({
         
         // ÉTAPE 4: Finaliser après le son silencieux
         setTimeout(() => {
-          tempContext.close().catch(() => {});
+          // SÉCURITÉ: Vérifier que le contexte n'est pas déjà fermé
+          if (tempContext && tempContext.state !== 'closed') {
+            tempContext.close().catch(() => {});
+          }
           setAudioUnlocked(true);
           console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ - Prêt à recevoir audio');
           resolve(true);
