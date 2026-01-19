@@ -1719,14 +1719,15 @@ const HeroMediaWithAudio = ({
           )}
 
           {/* ===== ZONE CENTRALE: Titre + Miniature (si disponible) ===== */}
+          {/* DESIGN COMPACT: Si pas d'image, le bouton PLAY remonte sous le titre */}
           <div style={{
-            flex: 1,
+            flex: liveCourseImage ? 1 : 'none', // Ne prend pas d'espace flex si pas d'image
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: liveCourseImage ? 'center' : 'flex-start',
             width: '100%',
-            gap: '2vh'
+            gap: liveCourseImage ? '2vh' : '1vh' // Gap réduit si pas d'image
           }}>
             {/* Titre du cours */}
             <h3 style={{
@@ -1741,8 +1742,8 @@ const HeroMediaWithAudio = ({
               {liveCourseName || 'Silent Disco Live'}
             </h3>
 
-            {/* Miniature UNIQUEMENT si image disponible - sinon rien */}
-            {liveCourseImage && (
+            {/* Miniature UNIQUEMENT si image disponible - SUPPRIMÉ DU DOM si vide */}
+            {liveCourseImage && liveCourseImage.trim() !== '' && (
               <div style={{
                 width: 'clamp(100px, 30vw, 140px)',
                 height: 'clamp(100px, 30vw, 140px)',
