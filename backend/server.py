@@ -2546,6 +2546,218 @@ async def chat_with_ai(data: ChatMessage):
         logger.error(f"Chat AI error: {str(e)}")
         return {"response": "Désolé, une erreur s'est produite. Veuillez réessayer.", "responseTime": 0}
 
+# ==================== STRIPE CHECKOUT INTEGRATION ====================
+
+class StripeCheckoutRequest(BaseModel):
+    """Request model for Stripe checkout"""
+    offer_id: str
+    offer_name: str
+    price: float  # En CHF
+    user_name: str
+    user_email: str
+    course_id: str
+    course_name: str
+    origin_url: str  # URL du frontend pour redirect
+
+@api_router.post("/stripe/create-checkout")
+async def create_stripe_checkout(request: Request, checkout_data: StripeCheckoutRequest):
+    """
+    Crée une session Stripe Checkout et retourne l'URL de paiement.
+    La réservation sera validée uniquement après réception du webhook checkout.session.completed.
+    """
+    try:
+        stripe_api_key = os.environ.get('STRIPE_API_KEY')
+        if not stripe_api_key:
+            raise HTTPException(status_code=500, detail="Stripe API key not configured")
+        
+        # URLs de redirection
+        host_url = str(request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        success_url = f"{checkout_data.origin_url}/success?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{checkout_data.origin_url}/cancel"
+        
+        # Générer un code de réservation temporaire
+        temp_reservation_code = f"AFR-{str(uuid.uuid4())[:6].upper()}"
+        
+        # Commission 10% Admin
+        total_price = float(checkout_data.price)
+        commission_rate = 0.10
+        commission_amount = round(total_price * commission_rate, 2)
+        coach_amount = round(total_price - commission_amount, 2)
+        
+        # Metadata pour le webhook
+        metadata = {
+            "reservation_code": temp_reservation_code,
+            "offer_id": checkout_data.offer_id,
+            "offer_name": checkout_data.offer_name,
+            "user_name": checkout_data.user_name,
+            "user_email": checkout_data.user_email,
+            "course_id": checkout_data.course_id,
+            "course_name": checkout_data.course_name,
+            "total_price": str(total_price),
+            "admin_commission": str(commission_amount),
+            "coach_amount": str(coach_amount)
+        }
+        
+        # Initialiser Stripe Checkout
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
+        
+        # Créer la session de paiement (montant en CHF converti en centimes)
+        checkout_request = CheckoutSessionRequest(
+            amount=total_price,  # En décimal
+            currency="chf",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata=metadata
+        )
+        
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Créer une transaction de paiement PENDING dans la base
+        payment_transaction = {
+            "id": str(uuid.uuid4()),
+            "session_id": session.session_id,
+            "reservation_code": temp_reservation_code,
+            "amount": total_price,
+            "currency": "chf",
+            "payment_status": "pending",
+            "metadata": metadata,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        }
+        await db.payment_transactions.insert_one(payment_transaction)
+        
+        logger.info(f"[Stripe] Session créée: {session.session_id} pour {checkout_data.user_email}")
+        
+        return {
+            "url": session.url,
+            "session_id": session.session_id,
+            "reservation_code": temp_reservation_code
+        }
+        
+    except Exception as e:
+        logger.error(f"[Stripe] Erreur création checkout: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/stripe/checkout-status/{session_id}")
+async def get_stripe_checkout_status(session_id: str):
+    """Vérifie le statut d'une session de paiement Stripe"""
+    try:
+        stripe_api_key = os.environ.get('STRIPE_API_KEY')
+        if not stripe_api_key:
+            raise HTTPException(status_code=500, detail="Stripe API key not configured")
+        
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url="")
+        status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Mettre à jour la transaction dans la base si le statut a changé
+        if status.payment_status == "paid":
+            # Vérifier si déjà traité pour éviter les doublons
+            existing = await db.payment_transactions.find_one({"session_id": session_id})
+            if existing and existing.get("payment_status") != "paid":
+                await db.payment_transactions.update_one(
+                    {"session_id": session_id},
+                    {"$set": {"payment_status": "paid", "paidAt": datetime.now(timezone.utc).isoformat()}}
+                )
+                
+                # Créer la réservation finale
+                await _create_paid_reservation(session_id, status.metadata)
+        
+        return {
+            "status": status.status,
+            "payment_status": status.payment_status,
+            "amount_total": status.amount_total,
+            "currency": status.currency,
+            "metadata": status.metadata
+        }
+        
+    except Exception as e:
+        logger.error(f"[Stripe] Erreur vérification statut: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """
+    Webhook Stripe pour recevoir les événements de paiement.
+    checkout.session.completed → Valide la réservation et génère le QR Code.
+    """
+    try:
+        stripe_api_key = os.environ.get('STRIPE_API_KEY')
+        if not stripe_api_key:
+            raise HTTPException(status_code=500, detail="Stripe API key not configured")
+        
+        body = await request.body()
+        signature = request.headers.get("Stripe-Signature")
+        
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url="")
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        logger.info(f"[Stripe Webhook] Event: {webhook_response.event_type}, Session: {webhook_response.session_id}")
+        
+        if webhook_response.event_type == "checkout.session.completed":
+            # Paiement confirmé - créer la réservation
+            session_id = webhook_response.session_id
+            metadata = webhook_response.metadata
+            
+            # Éviter les doublons
+            existing_reservation = await db.reservations.find_one({"reservationCode": metadata.get("reservation_code")})
+            if not existing_reservation:
+                await _create_paid_reservation(session_id, metadata)
+                logger.info(f"[Stripe Webhook] Réservation créée: {metadata.get('reservation_code')}")
+            else:
+                logger.info(f"[Stripe Webhook] Réservation déjà existante: {metadata.get('reservation_code')}")
+            
+            # Mettre à jour la transaction
+            await db.payment_transactions.update_one(
+                {"session_id": session_id},
+                {"$set": {"payment_status": "paid", "paidAt": datetime.now(timezone.utc).isoformat()}}
+            )
+        
+        return {"received": True}
+        
+    except Exception as e:
+        logger.error(f"[Stripe Webhook] Erreur: {str(e)}")
+        return {"received": False, "error": str(e)}
+
+async def _create_paid_reservation(session_id: str, metadata: dict):
+    """Crée une réservation validée après paiement confirmé"""
+    try:
+        reservation_code = metadata.get("reservation_code")
+        total_price = float(metadata.get("total_price", 0))
+        commission_amount = float(metadata.get("admin_commission", 0))
+        coach_amount = float(metadata.get("coach_amount", 0))
+        
+        reservation = {
+            "id": str(uuid.uuid4()),
+            "reservationCode": reservation_code,
+            "userName": metadata.get("user_name"),
+            "userEmail": metadata.get("user_email"),
+            "offerId": metadata.get("offer_id"),
+            "offerName": metadata.get("offer_name"),
+            "courseId": metadata.get("course_id"),
+            "courseName": metadata.get("course_name"),
+            "totalPrice": total_price,
+            "paymentStatus": "paid",
+            "paymentMethod": "stripe",
+            "stripeSessionId": session_id,
+            "commission": {
+                "rate": 0.10,
+                "adminAmount": commission_amount,
+                "coachAmount": coach_amount,
+                "totalAmount": total_price
+            },
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+            "paidAt": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.reservations.insert_one(reservation)
+        logger.info(f"[Stripe] Réservation PAYÉE créée: {reservation_code} - {total_price}CHF")
+        
+        return reservation
+        
+    except Exception as e:
+        logger.error(f"[Stripe] Erreur création réservation payée: {str(e)}")
+        raise
+
 # Include router
 app.include_router(api_router)
 
