@@ -5160,12 +5160,18 @@ const CoachesManagement = ({ API, t }) => {
           {coaches.map((coach) => (
             <div
               key={coach.coachEmail}
-              className="p-4 rounded-xl glass border border-purple-500/20"
+              className={`p-4 rounded-xl glass border ${coach.subscriptionActive ? 'border-green-500/30' : 'border-red-500/30'}`}
             >
               {/* Layout TOUJOURS vertical sur mobile, horizontal sur desktop */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{coach.coachName || 'Sans nom'}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-white font-medium truncate">{coach.coachName || 'Sans nom'}</p>
+                    {/* Badge Abonnement */}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${coach.subscriptionActive ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>
+                      {coach.subscriptionActive ? '✓ Actif' : '✗ Inactif'}
+                    </span>
+                  </div>
                   <p className="text-white/60 text-sm break-all" style={{ wordBreak: 'break-word' }}>{coach.coachEmail}</p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {coach.hasAudio && (
@@ -5176,12 +5182,27 @@ const CoachesManagement = ({ API, t }) => {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => deleteCoach(coach.coachEmail)}
-                  className="w-full sm:w-auto px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 text-sm text-center"
-                >
-                  🗑️ Supprimer
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Toggle Abonnement */}
+                  <button
+                    onClick={() => toggleSubscription(coach)}
+                    disabled={updatingCoach === coach.coachEmail}
+                    className={`px-3 py-2 rounded-lg text-sm text-center transition-all ${
+                      coach.subscriptionActive 
+                        ? 'bg-orange-600/20 hover:bg-orange-600/40 text-orange-400' 
+                        : 'bg-green-600/20 hover:bg-green-600/40 text-green-400'
+                    } ${updatingCoach === coach.coachEmail ? 'opacity-50' : ''}`}
+                  >
+                    {updatingCoach === coach.coachEmail ? '...' : coach.subscriptionActive ? '⏸ Désactiver' : '▶ Activer'}
+                  </button>
+                  {/* Supprimer */}
+                  <button
+                    onClick={() => deleteCoach(coach.coachEmail)}
+                    className="px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 text-sm text-center"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
           ))}
