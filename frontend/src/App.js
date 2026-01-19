@@ -858,6 +858,10 @@ const HeroMediaWithAudio = ({
             if (msg.data.track_index !== undefined) {
               setCurrentTrackIndex(msg.data.track_index);
             }
+            // Si la session était déjà en lecture, synchroniser
+            if (msg.data.session_state?.playing) {
+              setWaitingForCoach(false);
+            }
             break;
             
           case "PARTICIPANT_COUNT":
@@ -865,15 +869,51 @@ const HeroMediaWithAudio = ({
             break;
             
           case "PLAY":
+            // ========== RE-SYNC IMMÉDIAT: Rattraper le retard ==========
+            setWaitingForCoach(false);
+            
             if (audioRef.current) {
-              // Synchroniser la position
+              // Forcer le rechargement du flux audio pour garantir la lecture
+              const currentSrc = audioRef.current.src;
+              
+              // S'assurer que l'URL contient raw=1 pour Dropbox
+              let audioSrc = currentSrc;
+              if (audioSrc.includes('dropbox') && !audioSrc.includes('raw=1')) {
+                audioSrc = audioSrc.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
+                if (!audioSrc.includes('raw=1')) {
+                  audioSrc = audioSrc.includes('?') ? `${audioSrc}&raw=1` : `${audioSrc}?raw=1`;
+                }
+                audioRef.current.src = audioSrc;
+              }
+              
+              // Synchroniser la position avec compensation de latence
               const serverTime = new Date(msg.data.server_timestamp).getTime();
               const now = Date.now();
               const latency = (now - serverTime) / 1000; // en secondes
               const targetPosition = (msg.data.position || 0) + latency;
               
+              console.log(`[Silent Disco] PLAY sync: position=${targetPosition.toFixed(2)}s, latency=${(latency * 1000).toFixed(0)}ms`);
+              
+              // Charger et jouer
+              audioRef.current.load();
               audioRef.current.currentTime = Math.min(targetPosition, audioRef.current.duration || 9999);
-              audioRef.current.play().catch(console.error);
+              
+              // Forcer la lecture avec retry
+              const playPromise = audioRef.current.play();
+              if (playPromise) {
+                playPromise
+                  .then(() => {
+                    console.log('[Silent Disco] ✅ Audio démarré avec succès');
+                    setIsPlaying(true);
+                  })
+                  .catch(err => {
+                    console.error('[Silent Disco] Erreur lecture:', err);
+                    // Retry après un court délai
+                    setTimeout(() => {
+                      audioRef.current.play().catch(e => console.error('[Silent Disco] Retry échoué:', e));
+                    }, 200);
+                  });
+              }
             }
             setIsPlaying(true);
             break;
@@ -884,6 +924,7 @@ const HeroMediaWithAudio = ({
               audioRef.current.currentTime = msg.data.position || 0;
             }
             setIsPlaying(false);
+            setWaitingForCoach(true); // Retour en attente
             break;
             
           case "SEEK":
@@ -906,10 +947,12 @@ const HeroMediaWithAudio = ({
             setLiveCourseName(msg.data.course_name || '');
             setIsSyncing(false);
             setLastSyncTime(Date.now());
+            setWaitingForCoach(true);
             break;
             
           case "SESSION_END":
             setIsPlaying(false);
+            setWaitingForCoach(false);
             if (audioRef.current) {
               audioRef.current.pause();
             }
