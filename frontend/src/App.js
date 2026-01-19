@@ -654,12 +654,13 @@ const HeroMediaWithAudio = ({
   const [liveSessionActive, setLiveSessionActive] = useState(false); // Session active (coach a démarré)
 
   // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile (CRITIQUE pour iOS/Android) ==========
+  // Cette fonction crée l'AudioContext PRINCIPAL qui sera utilisé pour tout le flux audio
   const unlockAudioForMobile = useCallback(() => {
     return new Promise((resolve) => {
       try {
         console.log('[AudioUnlock] 🔓 Démarrage du déverrouillage audio mobile...');
         
-        // RÉINITIALISER le sourceNode existant pour forcer un nouveau canal
+        // RÉINITIALISER le sourceNode existant
         if (sourceNodeRef.current) {
           try {
             sourceNodeRef.current.disconnect();
@@ -667,74 +668,90 @@ const HeroMediaWithAudio = ({
           sourceNodeRef.current = null;
         }
         
-        // ÉTAPE 1: Créer et résumer un AudioContext
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        const tempContext = new AudioContextClass();
-        
-        // Forcer le resume() pour iOS Safari
-        if (tempContext.state === 'suspended') {
-          tempContext.resume();
+        // FERMER l'ancien contexte s'il existe
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+          try {
+            audioContextRef.current.close();
+          } catch (e) { /* ignore */ }
         }
         
-        // ÉTAPE 2: Créer un oscillateur silencieux (0.1s à volume quasi-nul)
-        const oscillator = tempContext.createOscillator();
-        const gainNode = tempContext.createGain();
+        // ÉTAPE 1: Créer l'AudioContext PRINCIPAL (le même pour tout)
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioContextRef.current = new AudioContextClass();
+        console.log('[AudioUnlock] 🎵 AudioContext PRINCIPAL créé');
         
-        // Volume presque à zéro mais pas 0 (iOS nécessite un son réel)
-        gainNode.gain.setValueAtTime(0.001, tempContext.currentTime);
+        // Forcer le resume() immédiatement (iOS Safari)
+        if (audioContextRef.current.state === 'suspended') {
+          audioContextRef.current.resume();
+        }
+        
+        // ÉTAPE 2: Jouer un son silencieux pour activer le haut-parleur
+        const oscillator = audioContextRef.current.createOscillator();
+        const gainNode = audioContextRef.current.createGain();
+        
+        // Volume très bas mais pas 0 (iOS nécessite un son réel)
+        gainNode.gain.setValueAtTime(0.001, audioContextRef.current.currentTime);
         
         oscillator.connect(gainNode);
-        gainNode.connect(tempContext.destination);
+        gainNode.connect(audioContextRef.current.destination);
         
         oscillator.frequency.value = 1; // Fréquence très basse (inaudible)
-        oscillator.start(tempContext.currentTime);
-        oscillator.stop(tempContext.currentTime + 0.1); // 0.1 seconde
+        oscillator.start(audioContextRef.current.currentTime);
+        oscillator.stop(audioContextRef.current.currentTime + 0.1);
         
-        // ÉTAPE 3: Préparer l'élément audio pour lecture future via canal MEDIA
+        console.log('[AudioUnlock] 🔊 Oscillateur silencieux joué');
+        
+        // ÉTAPE 3: Préparer l'élément audio
         if (audioRef.current) {
           audioRef.current.volume = audioVolume;
           audioRef.current.muted = false;
-          
-          // Forcer le canal Media en définissant les attributs
           audioRef.current.setAttribute('playsinline', 'true');
           audioRef.current.setAttribute('webkit-playsinline', 'true');
-          
-          audioRef.current.load();
-          
-          // Tenter un play/pause immédiat pour débloquer (technique iOS)
-          const playAttempt = audioRef.current.play();
-          if (playAttempt) {
-            playAttempt
-              .then(() => {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-                console.log('[AudioUnlock] ✅ Audio element pré-activé via canal MEDIA');
-              })
-              .catch(() => {
-                // Ignorer les erreurs - l'important c'est la tentative
-                console.log('[AudioUnlock] Audio element en attente');
-              });
-          }
         }
         
-        // ÉTAPE 4: Finaliser après le son silencieux
-        setTimeout(() => {
-          // SÉCURITÉ: Vérifier que le contexte n'est pas déjà fermé
-          if (tempContext && tempContext.state !== 'closed') {
-            tempContext.close().catch(() => {});
-          }
-          setAudioUnlocked(true);
-          console.log('[AudioUnlock] ✅ Haut-parleur mobile DÉVERROUILLÉ - Canal Media actif');
-          resolve(true);
-        }, 150);
+        // Marquer comme déverrouillé
+        setAudioUnlocked(true);
+        console.log('[AudioUnlock] ✅ Haut-parleur DÉVERROUILLÉ');
+        resolve(true);
         
       } catch (e) {
-        console.warn('[AudioUnlock] ⚠️ Erreur (fallback activé):', e);
-        setAudioUnlocked(true); // Marquer comme fait même en cas d'erreur
+        console.warn('[AudioUnlock] ⚠️ Erreur:', e);
+        setAudioUnlocked(true);
         resolve(false);
       }
     });
   }, [audioVolume]);
+
+  // ========== CONNECTER L'AUDIO AU CONTEXTE (appelé après montage du composant Live) ==========
+  const connectAudioToContext = useCallback(() => {
+    if (!audioContextRef.current || !audioRef.current) {
+      console.warn('[WebAudio] Contexte ou élément audio manquant');
+      return false;
+    }
+    
+    // Ne pas reconnecter si déjà fait
+    if (sourceNodeRef.current) {
+      console.log('[WebAudio] Audio déjà connecté');
+      return true;
+    }
+    
+    try {
+      // S'assurer que le contexte est actif
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+      
+      // CONNEXION CRITIQUE: Élément audio → AudioContext → Destination (haut-parleur)
+      sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+      sourceNodeRef.current.connect(audioContextRef.current.destination);
+      
+      console.log('[WebAudio] 🔗 CONNEXION ÉTABLIE: audio → context → destination');
+      return true;
+    } catch (e) {
+      console.error('[WebAudio] ❌ Erreur connexion:', e);
+      return false;
+    }
+  }, []);
 
   // ========== FORCE AUDIO PLAY: Maintenir le canal audio ouvert avec silence en boucle ==========
   const silenceIntervalRef = useRef(null);
