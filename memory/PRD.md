@@ -1595,3 +1595,66 @@ Pour valider le son mobile:
 - Commission 10% calculée côté serveur (server.py:1136-1150)
 - Stockée dans `reservation.commission.adminAmount`
 
+
+---
+
+## Réparation Audio Universelle & Mode Invisible (19 Janvier 2026 - Update Final)
+
+### Architecture Audio "Toujours Active" - Version Finale
+
+#### Élément Audio UNIQUE et PERMANENT
+- UN SEUL élément `<audio ref={audioRef}>` dans le mode Normal
+- Supprimé l'élément audio dupliqué du mode Live
+- L'élément existe AVANT le clic "REJOINDRE"
+
+#### Flux Audio au Clic REJOINDRE
+```
+1. Clic "REJOINDRE LE LIVE"
+   ↓
+2. startAudioChannel()
+   - Vérifie que audioRef.current existe
+   - Crée AudioContext + resume()
+   - Joue BIP 440Hz (100ms, volume 0.1) → audible
+   - audioRef.src = SILENT_AUDIO_SRC
+   - audioRef.loop = true
+   - audioRef.play() → CANAL OUVERT
+   ↓
+3. Réception PLAY du coach
+   - switchAudioSource(url, position)
+   - Change le src vers la vraie piste
+   - Le son "coule" dans le tuyau déjà ouvert
+```
+
+#### Logs de Debug
+- `[Audio] 🔊 OUVERTURE DU CANAL AUDIO AU CLIC...`
+- `[Audio] 🔔 BIP 440Hz joué (100ms)`
+- `[Audio] ✅ CANAL AUDIO OUVERT - audioRef en lecture`
+
+### Mode Invisible Global (Super Admin)
+- Feature Flag `AUDIO_SERVICE_ENABLED` déjà existant
+- Endpoint GET/PUT `/api/feature-flags` pour modifier
+- Si désactivé:
+  - Bouton "Démarrer le flux" masqué (CoachDashboard)
+  - Bouton "Rejoindre le Live" masqué (App.js)
+
+### Isolation Multi-Coach
+- Chaque session a un `session_id` unique
+- `active_connections[session_id]` contient UNIQUEMENT les participants de cette session
+- `broadcast(session_id, message)` n'envoie qu'aux participants de la session
+- Coach A et Coach B avec session_ids différents = flux totalement isolés
+
+### UI Nettoyée
+- Conteneur adaptatif: `paddingBottom: 'auto'` si pas d'image
+- Miniature conditionnelle: `{hasImage ? <img /> : null}`
+- Pas d'espace noir entre titre et bouton Play
+
+### Test Samsung S24 / iPhone
+1. Ouvrir https://livejam-coach.preview.emergentagent.com
+2. Quand le bouton REJOINDRE apparaît, le toucher
+3. Un BIP 440Hz (100ms) DOIT être audible
+4. La musique du coach doit sortir ensuite
+
+### Note
+Si le BIP n'est pas audible au clic, le déverrouillage audio a échoué.
+Le bouton "⚠️ Touchez pour activer le son" est un fallback dans le mode Live.
+
