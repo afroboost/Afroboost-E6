@@ -1379,7 +1379,14 @@ const HeroMediaWithAudio = ({
               }}
               data-testid="join-live-btn"
             >
-              <span style={{ fontSize: '20px' }}>🎧</span>
+              <span style={{ 
+                width: '10px', 
+                height: '10px', 
+                borderRadius: '50%', 
+                background: '#22c55e',
+                boxShadow: '0 0 8px #22c55e',
+                animation: 'pulse 1s infinite' 
+              }}></span>
               REJOINDRE LE LIVE
             </button>
           </div>
