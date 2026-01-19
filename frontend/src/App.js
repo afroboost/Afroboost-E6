@@ -1112,30 +1112,14 @@ const HeroMediaWithAudio = ({
             
           case "PLAY":
             // ========== RE-SYNC IMMÉDIAT: Rattraper le retard ==========
+            // NOTE: audioContext.resume() est appelé UNIQUEMENT au clic physique "REJOINDRE"
+            // Les navigateurs mobiles INTERDISENT le réveil audio via signal réseau
             setWaitingForCoach(false);
             setAudioLoadError(false); // Reset erreur
             
             // Annuler le timeout précédent s'il existe
             if (audioLoadTimeoutRef.current) {
               clearTimeout(audioLoadTimeoutRef.current);
-            }
-            
-            // ========== FORCER audioContext.resume() à chaque PLAY (CRITIQUE MOBILE) ==========
-            try {
-              const AudioCtx = window.AudioContext || window.webkitAudioContext;
-              if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-                audioContextRef.current.resume();
-                console.log('[Silent Disco] audioContext.resume() forcé sur PLAY');
-              } else if (!audioContextRef.current) {
-                // Créer un nouveau contexte si nécessaire
-                const ctx = new AudioCtx();
-                if (ctx.state === 'suspended') {
-                  ctx.resume();
-                }
-                console.log('[Silent Disco] Nouveau AudioContext créé sur PLAY');
-              }
-            } catch (e) {
-              console.warn('[Silent Disco] Erreur resume audioContext:', e);
             }
             
             if (audioRef.current) {
