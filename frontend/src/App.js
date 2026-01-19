@@ -1800,9 +1800,9 @@ function App() {
   const [discountCodes, setDiscountCodes] = useState([]);
 
   // ========== AUDIO PLAYER STATE ==========
-  // showAudioPlayer et audioFeatureEnabled restent dans App.js pour le rendu conditionnel
-  // Les autres états audio (currentTrackIndex, isPlaying, audioVolume) sont gérés dans AudioPlayer.js
-  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+  // isAudioMode: Permute l'affichage entre vidéo héro et lecteur audio intégré
+  // showAudioPlayer est remplacé par isAudioMode pour une meilleure UX (même emplacement que la vidéo)
+  const [isAudioMode, setIsAudioMode] = useState(false);
   const [audioFeatureEnabled, setAudioFeatureEnabled] = useState(false);
 
   // Vérifier si le feature flag Audio est activé
