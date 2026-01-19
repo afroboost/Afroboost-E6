@@ -167,8 +167,13 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const isSuperAdmin = coachUser?.is_super_admin || coachUser?.email?.toLowerCase() === 'contact.artboost@gmail.com';
   const coachEmail = coachUser?.email || '';
   
-  // Vérifier si l'abonnement est actif (Super Admin toujours actif)
-  const subscriptionActive = isSuperAdmin || coachUser?.subscription_active === true;
+  // ========== COACH DJ AUTORISÉS ==========
+  // Liste des coachs autorisés à utiliser la Console Live (en plus du Super Admin)
+  const AUTHORIZED_DJ_COACHES = ['bassicustomshoes@gmail.com'];
+  const canAccessLiveConsole = isSuperAdmin || AUTHORIZED_DJ_COACHES.includes(coachUser?.email?.toLowerCase());
+  
+  // Vérifier si l'abonnement est actif (Super Admin et coachs DJ autorisés toujours actifs)
+  const subscriptionActive = isSuperAdmin || canAccessLiveConsole || coachUser?.subscription_active === true;
   
   // Scanner state
   const [showScanner, setShowScanner] = useState(false);
