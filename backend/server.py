@@ -1629,17 +1629,42 @@ async def register_coach(coach_data: dict):
     if existing:
         raise HTTPException(status_code=400, detail="Ce coach est déjà enregistré")
     
-    # Créer l'entrée du coach
+    # Créer l'entrée du coach avec champ abonnement
     new_coach = {
         "coachEmail": email,
         "coachName": coach_data.get("coachName", ""),
         "hasAudio": coach_data.get("hasAudio", False),
         "hasVideo": coach_data.get("hasVideo", False),
         "hasStreaming": coach_data.get("hasStreaming", False),
+        "subscriptionActive": coach_data.get("subscriptionActive", False),  # Abonnement actif O/N
+        "subscriptionEndDate": coach_data.get("subscriptionEndDate", ""),   # Date de fin d'abonnement
         "createdAt": datetime.now(timezone.utc).isoformat()
     }
     await db.coach_subscriptions.insert_one(new_coach)
     return {"success": True, "coach": {k: v for k, v in new_coach.items() if k != "_id"}}
+
+@api_router.put("/coaches/{coach_email}")
+async def update_coach(coach_email: str, coach_data: dict):
+    """Met à jour un coach (Super Admin seulement) - notamment l'abonnement"""
+    existing = await db.coach_subscriptions.find_one({"coachEmail": coach_email.lower()})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Coach non trouvé")
+    
+    # Mettre à jour les champs fournis
+    update_fields = {}
+    allowed_fields = ["coachName", "hasAudio", "hasVideo", "hasStreaming", "subscriptionActive", "subscriptionEndDate"]
+    for field in allowed_fields:
+        if field in coach_data:
+            update_fields[field] = coach_data[field]
+    
+    if update_fields:
+        await db.coach_subscriptions.update_one(
+            {"coachEmail": coach_email.lower()},
+            {"$set": update_fields}
+        )
+    
+    updated = await db.coach_subscriptions.find_one({"coachEmail": coach_email.lower()}, {"_id": 0})
+    return {"success": True, "coach": updated}
 
 @api_router.delete("/coaches/{coach_email}")
 async def delete_coach(coach_email: str):
