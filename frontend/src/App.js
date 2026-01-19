@@ -556,33 +556,37 @@ const LanguageSelector = ({ lang, setLang }) => {
 const convertCloudUrlToDirect = (url) => {
   if (!url) return url;
   
-  // Google Drive: Convertir /file/d/ID/view en lien direct
-  // Format: https://drive.google.com/file/d/FILE_ID/view?...
+  // Google Drive: /file/d/ID/view -> lien direct
   const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
   if (driveMatch) {
     const fileId = driveMatch[1];
     return `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
   
-  // Google Drive: Format open?id=
+  // Google Drive: open?id=
   const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
   if (driveOpenMatch) {
     return `https://drive.google.com/uc?export=download&id=${driveOpenMatch[1]}`;
   }
   
-  // Dropbox: Remplacer dl=0 par dl=1 pour téléchargement direct
+  // Dropbox: Convertir en lien raw pour lecture directe
+  // dl=0 -> raw=1 (plus fiable que dl=1 pour le streaming audio)
   if (url.includes('dropbox.com')) {
-    return url.replace('dl=0', 'dl=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    let directUrl = url
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace('dl=0', 'raw=1')
+      .replace('dl=1', 'raw=1');
+    // Ajouter raw=1 si pas présent
+    if (!directUrl.includes('raw=1') && !directUrl.includes('dl.dropboxusercontent.com')) {
+      directUrl = directUrl.includes('?') ? `${directUrl}&raw=1` : `${directUrl}?raw=1`;
+    }
+    return directUrl;
   }
   
   // OneDrive: Convertir en lien de téléchargement direct
   if (url.includes('1drv.ms') || url.includes('onedrive.live.com')) {
-    // OneDrive nécessite une conversion plus complexe, on garde l'URL originale
-    return url;
+    return url.replace('redir', 'download');
   }
-  
-  // SoundCloud, Spotify: Ces services nécessitent des APIs spécifiques
-  // On retourne l'URL originale (le lecteur HTML5 ne peut pas les lire directement)
   
   return url;
 };
