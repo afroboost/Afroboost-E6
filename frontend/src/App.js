@@ -728,9 +728,6 @@ const HeroMediaWithAudio = ({
       }
     });
   }, [audioVolume]);
-      }
-    });
-  }, [audioVolume]);
 
   // ========== CONNECTER L'AUDIO AU CONTEXTE (appelé après montage du composant Live) ==========
   const connectAudioToContext = useCallback(() => {
