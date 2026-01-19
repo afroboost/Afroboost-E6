@@ -906,12 +906,14 @@ const HeroMediaWithAudio = ({
     // Stocker le sessionId pour la reconnexion
     currentSessionIdRef.current = sessionId;
     
-    // ========== AUDIO UNLOCK: Déverrouiller le haut-parleur mobile ==========
+    // ========== AUDIO UNLOCK + FORCE AUDIO PLAY ==========
     if (!isReconnect) {
       console.log('[Silent Disco] Déverrouillage audio mobile...');
       await unlockAudioForMobile();
       // Initialiser Web Audio API pour canal Media
       initWebAudio();
+      // ========== FORCE AUDIO PLAY: Maintenir le canal ouvert avec silence en boucle ==========
+      forceAudioPlay();
     }
     
     // Nettoyer la connexion précédente
