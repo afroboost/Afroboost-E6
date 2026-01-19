@@ -1624,12 +1624,20 @@ const HeroMediaWithAudio = ({
           <p style={{
             color: 'rgba(255, 255, 255, 0.5)',
             fontSize: '12px',
-            marginTop: '16px'
+            marginTop: '16px',
+            textAlign: 'center',
+            maxWidth: '90%'
           }}>
             {audioError ? (
               <span style={{ color: '#ef4444' }}>❌ {audioError}</span>
+            ) : audioLoadError ? (
+              <span style={{ color: '#f59e0b' }}>⚠️ Chargement audio lent - vérifiez votre connexion</span>
+            ) : waitingForCoach ? (
+              <span style={{ color: '#22c55e' }}>🎧 Audio activé - En attente du signal coach...</span>
+            ) : isPlaying ? (
+              '🔊 Audio synchronisé avec le coach'
             ) : (
-              isPlaying ? '🔊 Audio synchronisé avec le coach' : '⏸ En attente du coach...'
+              '⏸ En pause'
             )}
           </p>
 
@@ -1640,6 +1648,12 @@ const HeroMediaWithAudio = ({
             onPlay={() => {
               setIsPlaying(true);
               setAudioError(null);
+              setAudioLoadError(false);
+              // Annuler le timeout d'erreur si l'audio démarre
+              if (audioLoadTimeoutRef.current) {
+                clearTimeout(audioLoadTimeoutRef.current);
+                audioLoadTimeoutRef.current = null;
+              }
               initWebAudio();
             }}
             onPause={() => setIsPlaying(false)}
@@ -1647,8 +1661,20 @@ const HeroMediaWithAudio = ({
               console.error('[Audio] Erreur de lecture:', e);
               setAudioError('Impossible de lire ce fichier audio');
               setIsPlaying(false);
+              setAudioLoadError(true);
             }}
-            onCanPlay={() => setAudioError(null)}
+            onCanPlay={() => {
+              setAudioError(null);
+              setAudioLoadError(false);
+              // Annuler le timeout si l'audio est prêt
+              if (audioLoadTimeoutRef.current) {
+                clearTimeout(audioLoadTimeoutRef.current);
+                audioLoadTimeoutRef.current = null;
+              }
+            }}
+            onLoadStart={() => {
+              console.log('[Audio] Chargement démarré...');
+            }}
             preload="auto"
             crossOrigin="anonymous"
           />
