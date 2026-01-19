@@ -919,9 +919,12 @@ const HeroMediaWithAudio = ({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showSettingsMenu]);
 
-  // ========== VÉRIFIER SI UNE SESSION LIVE EST ACTIVE (polling) ==========
+  // ========== WEBSOCKET GLOBAL: Écouter SESSION_START/SESSION_END en temps réel ==========
+  const globalWsRef = useRef(null);
+  
   useEffect(() => {
-    const checkActiveSessions = async () => {
+    // Vérifier une seule fois au démarrage (pas de polling)
+    const checkInitialState = async () => {
       try {
         const response = await fetch(`${API}/silent-disco/active-sessions`);
         if (response.ok) {
@@ -929,17 +932,70 @@ const HeroMediaWithAudio = ({
           setLiveSessionActive(data.has_active);
         }
       } catch (err) {
-        // Ignorer les erreurs de réseau silencieusement
+        // Ignorer les erreurs silencieusement
+      }
+    };
+    checkInitialState();
+    
+    // ========== WEBSOCKET GLOBAL pour notifications temps réel ==========
+    const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = API_URL.replace(/^https?:\/\//, '').replace('/api', '');
+    const globalWsUrl = `${wsProtocol}//${wsHost}/api/ws/notifications`;
+    
+    console.log('[Global WS] Connexion à:', globalWsUrl);
+    
+    const connectGlobalWs = () => {
+      try {
+        const ws = new WebSocket(globalWsUrl);
+        
+        ws.onopen = () => {
+          console.log('[Global WS] ✅ Connecté - écoute SESSION_START/SESSION_END');
+          ws.send(JSON.stringify({ type: "SUBSCRIBE", data: { events: ["SESSION_START", "SESSION_END"] } }));
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            console.log('[Global WS] Message reçu:', msg.type);
+            
+            if (msg.type === "SESSION_START" || msg.type === "SESSION_ACTIVE") {
+              console.log('[Global WS] 🟢 Session démarrée - bouton REJOINDRE visible');
+              setLiveSessionActive(true);
+            } else if (msg.type === "SESSION_END" || msg.type === "NO_ACTIVE_SESSION") {
+              console.log('[Global WS] 🔴 Session terminée - bouton REJOINDRE masqué');
+              setLiveSessionActive(false);
+            }
+          } catch (e) {
+            // Ignorer les erreurs de parsing
+          }
+        };
+        
+        ws.onerror = (err) => {
+          console.warn('[Global WS] Erreur:', err);
+        };
+        
+        ws.onclose = () => {
+          console.log('[Global WS] Déconnecté - reconnexion dans 3s...');
+          // Reconnexion automatique après 3 secondes
+          setTimeout(connectGlobalWs, 3000);
+        };
+        
+        globalWsRef.current = ws;
+      } catch (e) {
+        console.error('[Global WS] Erreur création:', e);
+        // Retry après 5 secondes
+        setTimeout(connectGlobalWs, 5000);
       }
     };
     
-    // Vérifier immédiatement
-    checkActiveSessions();
+    connectGlobalWs();
     
-    // Puis toutes les 5 secondes
-    const interval = setInterval(checkActiveSessions, 5000);
-    
-    return () => clearInterval(interval);
+    return () => {
+      if (globalWsRef.current) {
+        globalWsRef.current.close();
+      }
+    };
   }, []);
 
   // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
