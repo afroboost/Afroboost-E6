@@ -556,6 +556,16 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
   - **Style hover** : Effet `scale(1.3)` + `drop-shadow` rose au survol
   - **Protocole anti-casse** : Fonctions `totalPrice`, `handleBooking`, `TwintButton` non modifiées
   - **Test de régression** : Prix total + bouton "Payer" fonctionnels après modification
+- [x] **Refactoring App.js - Phase 2 (19 Jan 2026)**:
+  - **Composants extraits** :
+    - `AudioPlayer.js` : Lecteur audio immersif (mini-player fixé)
+    - `SessionList.js` : Liste des cours avec icônes 🎧
+    - `OffersSlider.js` : Carrousel d'offres auto-play
+    - `BookingForm.js` : Formulaire de réservation complet
+  - **Réduction** : App.js de ~3719 à ~3424 lignes (-295 lignes, -8%)
+  - **Architecture** : Composants reçoivent données via props, logique métier reste dans App.js
+  - **Protocole anti-casse** : Aucune modification de `totalPrice`, `handleBooking`, `TwintButton`
+  - **Tests de régression** : 7/7 vérifications passées (sessions, dates, icônes audio, offres, prix, boutons)
 
 ### P1 - À faire
 - [x] ~~**CRITICAL: Refactoring de App.js**~~ - ✅ COMPLÉTÉ - App.js réduit de 52%
@@ -565,7 +575,6 @@ Application de réservation de casques audio pour des cours de fitness Afroboost
 - [x] ~~**Séparation Cours/Produits**~~ - ✅ COMPLÉTÉ
 - [x] ~~**Archivage cours**~~ - ✅ COMPLÉTÉ
 - [ ] **Optimisation Backend MongoDB** - Appliquer pagination et projection sur les requêtes pour améliorer les performances en production.
-- [ ] Continuer refactoring: Extraire CoachLoginModal dans composant séparé
 - [ ] Tests automatisés pour les composants extraits
 
 ### P2 - Backlog
