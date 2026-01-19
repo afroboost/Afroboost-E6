@@ -390,6 +390,105 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   }, [sendLiveCommand]);
 
+  // ========== MICRO DJ: Activer/Désactiver avec mixage voix/musique ==========
+  const toggleMicrophone = useCallback(async () => {
+    if (micEnabled) {
+      // Désactiver le micro
+      if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        setMicStream(null);
+      }
+      // Remonter le volume musique à 100%
+      if (musicGainNode) {
+        musicGainNode.gain.setValueAtTime(1.0, audioContext?.currentTime || 0);
+      }
+      setMicEnabled(false);
+      console.log('[DJ Mic] Micro désactivé');
+    } else {
+      try {
+        // Demander l'accès au micro
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setMicStream(stream);
+        
+        // Créer le contexte audio si nécessaire
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        let ctx = audioContext;
+        if (!ctx) {
+          ctx = new AudioContextClass();
+          setAudioContext(ctx);
+        }
+        
+        // Créer les nœuds de gain
+        const micGain = ctx.createGain();
+        const musicGain = ctx.createGain();
+        
+        // Connecter le micro
+        const micSource = ctx.createMediaStreamSource(stream);
+        micSource.connect(micGain);
+        micGain.connect(ctx.destination);
+        micGain.gain.setValueAtTime(1.0, ctx.currentTime);
+        
+        // Connecter la musique (si audio ref existe)
+        if (liveAudioRef.current) {
+          const musicSource = ctx.createMediaElementSource(liveAudioRef.current);
+          musicSource.connect(musicGain);
+          musicGain.connect(ctx.destination);
+          // Baisser la musique à 50% quand micro actif
+          musicGain.gain.setValueAtTime(0.5, ctx.currentTime);
+        }
+        
+        setMicGainNode(micGain);
+        setMusicGainNode(musicGain);
+        setMicEnabled(true);
+        
+        // Créer un analyser pour le niveau du micro
+        const analyser = ctx.createAnalyser();
+        micSource.connect(analyser);
+        micAnalyserRef.current = analyser;
+        
+        console.log('[DJ Mic] Micro activé - Musique à 50%');
+      } catch (err) {
+        console.error('[DJ Mic] Erreur accès micro:', err);
+        alert('Impossible d\'accéder au microphone. Vérifiez les permissions.');
+      }
+    }
+  }, [micEnabled, micStream, audioContext, musicGainNode]);
+
+  // ========== GESTION PARTICIPANTS: Mute/Exclure ==========
+  const muteParticipant = useCallback((participantId) => {
+    if (liveWebSocket && liveWebSocket.readyState === WebSocket.OPEN) {
+      liveWebSocket.send(JSON.stringify({ 
+        type: "MUTE_PARTICIPANT", 
+        data: { participant_id: participantId } 
+      }));
+      console.log('[Silent Disco] Mute participant:', participantId);
+    }
+  }, [liveWebSocket]);
+
+  const kickParticipant = useCallback((participantId) => {
+    if (liveWebSocket && liveWebSocket.readyState === WebSocket.OPEN) {
+      if (window.confirm('Exclure ce participant de la session ?')) {
+        liveWebSocket.send(JSON.stringify({ 
+          type: "KICK_PARTICIPANT", 
+          data: { participant_id: participantId } 
+        }));
+        console.log('[Silent Disco] Kick participant:', participantId);
+      }
+    }
+  }, [liveWebSocket]);
+
+  // Cleanup micro on unmount
+  useEffect(() => {
+    return () => {
+      if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+      }
+      if (audioContext) {
+        audioContext.close();
+      }
+    };
+  }, [micStream, audioContext]);
+
   // Ouvrir le modal de gestion audio pour un cours
   const openAudioModal = (course) => {
     setSelectedCourseForAudio(course);
