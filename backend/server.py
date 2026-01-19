@@ -1867,6 +1867,7 @@ async def register_coach(coach_data: dict):
         "hasStreaming": coach_data.get("hasStreaming", False),
         "subscriptionActive": coach_data.get("subscriptionActive", False),  # Abonnement actif O/N
         "subscriptionEndDate": coach_data.get("subscriptionEndDate", ""),   # Date de fin d'abonnement
+        "liveServiceEnabled": coach_data.get("liveServiceEnabled", True),   # Service Live activé par défaut
         "createdAt": datetime.now(timezone.utc).isoformat()
     }
     await db.coach_subscriptions.insert_one(new_coach)
