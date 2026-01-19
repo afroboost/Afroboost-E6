@@ -552,6 +552,312 @@ const LanguageSelector = ({ lang, setLang }) => {
   );
 };
 
+// ========== HERO MEDIA WITH AUDIO SWITCH ==========
+// Composant qui permute entre vidéo héro et lecteur audio intégré
+// Garde les mêmes dimensions pour éviter le CLS (Cumulative Layout Shift)
+const HeroMediaWithAudio = ({ 
+  videoUrl, 
+  isAudioMode, 
+  selectedCourse, 
+  audioFeatureEnabled,
+  onCloseAudio,
+  className 
+}) => {
+  const audioRef = useRef(null);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioVolume, setAudioVolume] = useState(0.7);
+
+  // Reset track index when course changes
+  useEffect(() => {
+    setCurrentTrackIndex(0);
+    setIsPlaying(false);
+  }, [selectedCourse?.id]);
+
+  // Sync volume with audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = audioVolume;
+    }
+  }, [audioVolume]);
+
+  // Container style (mêmes dimensions 16:9 que MediaDisplay)
+  const containerStyle = {
+    position: 'relative',
+    width: '100%',
+    paddingBottom: '56.25%',
+    overflow: 'hidden',
+    borderRadius: '16px',
+    border: '1px solid rgba(217, 28, 210, 0.3)',
+    boxShadow: '0 0 30px rgba(217, 28, 210, 0.2)',
+    background: '#0a0a0a'
+  };
+
+  const contentStyle = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%'
+  };
+
+  // Si pas en mode audio, afficher la vidéo normale
+  if (!isAudioMode) {
+    return <MediaDisplay url={videoUrl} className={className} />;
+  }
+
+  // Mode Audio actif
+  const hasPlaylist = selectedCourse?.playlist?.length > 0 && audioFeatureEnabled;
+  if (!hasPlaylist) {
+    // Pas de playlist, revenir à la vidéo
+    onCloseAudio();
+    return <MediaDisplay url={videoUrl} className={className} />;
+  }
+
+  const playlist = selectedCourse.playlist;
+
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(console.error);
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handlePrevTrack = () => {
+    const newIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+    setCurrentTrackIndex(newIndex);
+    if (audioRef.current && isPlaying) {
+      audioRef.current.load();
+      audioRef.current.play().catch(console.error);
+    }
+  };
+
+  const handleNextTrack = () => {
+    const newIndex = (currentTrackIndex + 1) % playlist.length;
+    setCurrentTrackIndex(newIndex);
+    if (audioRef.current && isPlaying) {
+      audioRef.current.load();
+      audioRef.current.play().catch(console.error);
+    }
+  };
+
+  const handleClose = () => {
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    onCloseAudio();
+  };
+
+  const handleVolumeChange = (e) => {
+    const vol = parseFloat(e.target.value);
+    setAudioVolume(vol);
+    if (audioRef.current) {
+      audioRef.current.volume = vol;
+    }
+  };
+
+  const handleTrackEnded = () => {
+    const nextIndex = (currentTrackIndex + 1) % playlist.length;
+    setCurrentTrackIndex(nextIndex);
+    if (audioRef.current) {
+      audioRef.current.load();
+      audioRef.current.play().catch(console.error);
+    }
+  };
+
+  return (
+    <div className={className} style={containerStyle} data-testid="audio-hero-player">
+      {/* Background avec dégradé et effet visuel */}
+      <div style={{
+        ...contentStyle,
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(217, 28, 210, 0.3) 50%, rgba(0, 0, 0, 0.9) 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        {/* Bouton fermer (retour à la vidéo) */}
+        <button
+          onClick={handleClose}
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            background: 'rgba(0, 0, 0, 0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '50%',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: '#fff',
+            fontSize: '18px',
+            transition: 'all 0.2s'
+          }}
+          data-testid="close-audio-hero"
+          title="Revenir à la vidéo"
+        >
+          ✕
+        </button>
+
+        {/* Icône animée */}
+        <div style={{
+          fontSize: '64px',
+          marginBottom: '16px',
+          animation: isPlaying ? 'pulse 1.5s infinite' : 'none'
+        }}>
+          🎧
+        </div>
+
+        {/* Titre du cours */}
+        <h3 style={{
+          color: '#fff',
+          fontSize: '18px',
+          fontWeight: 600,
+          marginBottom: '8px',
+          textAlign: 'center',
+          maxWidth: '90%',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
+        }}>
+          {selectedCourse.name}
+        </h3>
+
+        <p style={{
+          color: 'rgba(255, 255, 255, 0.6)',
+          fontSize: '14px',
+          marginBottom: '20px'
+        }}>
+          Expérience immersive • Piste {currentTrackIndex + 1} / {playlist.length}
+        </p>
+
+        {/* Contrôles audio */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          marginBottom: '16px'
+        }}>
+          {/* Piste précédente */}
+          {playlist.length > 1 && (
+            <button
+              onClick={handlePrevTrack}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#fff'
+              }}
+              data-testid="audio-prev-hero"
+            >
+              ⏮
+            </button>
+          )}
+
+          {/* Play/Pause */}
+          <button
+            onClick={handlePlayPause}
+            style={{
+              background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '64px',
+              height: '64px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: isPlaying ? '0 0 30px rgba(217, 28, 210, 0.6)' : '0 4px 20px rgba(0, 0, 0, 0.3)',
+              transition: 'all 0.3s',
+              transform: isPlaying ? 'scale(1.05)' : 'scale(1)'
+            }}
+            data-testid="audio-play-pause-hero"
+          >
+            <span style={{ fontSize: '28px', color: '#fff', marginLeft: isPlaying ? 0 : '4px' }}>
+              {isPlaying ? '⏸' : '▶'}
+            </span>
+          </button>
+
+          {/* Piste suivante */}
+          {playlist.length > 1 && (
+            <button
+              onClick={handleNextTrack}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#fff'
+              }}
+              data-testid="audio-next-hero"
+            >
+              ⏭
+            </button>
+          )}
+        </div>
+
+        {/* Contrôle du volume */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          width: '80%',
+          maxWidth: '300px'
+        }}>
+          <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔈</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={audioVolume}
+            onChange={handleVolumeChange}
+            style={{
+              flex: 1,
+              height: '4px',
+              borderRadius: '2px',
+              appearance: 'none',
+              background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%, rgba(255,255,255,0.2) 100%)`,
+              cursor: 'pointer'
+            }}
+            data-testid="audio-volume-hero"
+          />
+          <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔊</span>
+        </div>
+
+        {/* Élément audio caché */}
+        <audio
+          ref={audioRef}
+          src={playlist[currentTrackIndex]}
+          onEnded={handleTrackEnded}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+      </div>
+    </div>
+  );
+};
+
 // Media Display Component (YouTube, Vimeo, Image, Video) - Clean display without dark overlays
 // Media Display Component with Discreet Sound Control
 const MediaDisplay = ({ url, className }) => {
