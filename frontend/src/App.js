@@ -1173,6 +1173,9 @@ const HeroMediaWithAudio = ({
     if (liveWebSocket) {
       liveWebSocket.close();
     }
+    // ========== ARRÊTER le silence en boucle ==========
+    stopForceAudio();
+    
     setIsLiveMode(false);
     setLiveConnected(false);
     setLiveSessionId('');
