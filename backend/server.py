@@ -382,6 +382,24 @@ async def get_session_info(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     return silent_disco_manager.get_session_info(session_id)
 
+@api_router.get("/silent-disco/active-sessions")
+async def get_active_sessions_public():
+    """
+    Retourne la liste des sessions actives (celles où le coach a démarré).
+    Utilisé par le frontend pour afficher/masquer le bouton REJOINDRE LE LIVE.
+    """
+    active = []
+    for session_id, state in silent_disco_manager.session_states.items():
+        if state.get("course_name"):  # Session démarrée = a un course_name
+            active.append({
+                "session_id": session_id,
+                "course_name": state.get("course_name"),
+                "course_image": state.get("course_image"),
+                "playing": state.get("playing", False),
+                "participant_count": len(silent_disco_manager.active_connections.get(session_id, {}))
+            })
+    return {"active_sessions": active, "has_active": len(active) > 0}
+
 # ==================== MODELS ====================
 
 class Course(BaseModel):
