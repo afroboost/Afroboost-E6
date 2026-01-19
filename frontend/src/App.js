@@ -939,7 +939,8 @@ const HeroMediaWithAudio = ({
     
     // ========== WEBSOCKET GLOBAL pour notifications temps réel ==========
     const API_URL = process.env.REACT_APP_BACKEND_URL || '';
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Utiliser WSS si l'API est HTTPS, sinon WS
+    const wsProtocol = API_URL.startsWith('https') ? 'wss:' : 'ws:';
     const wsHost = API_URL.replace(/^https?:\/\//, '').replace('/api', '');
     const globalWsUrl = `${wsProtocol}//${wsHost}/api/ws/notifications`;
     
