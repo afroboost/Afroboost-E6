@@ -1904,6 +1904,29 @@ async def delete_coach(coach_email: str):
         raise HTTPException(status_code=404, detail="Coach non trouvé")
     return {"success": True}
 
+@api_router.get("/live-service-status")
+async def get_live_service_status(coach_email: str = None):
+    """
+    Vérifie si le service Live est activé pour un coach.
+    Utilisé par le CoachDashboard et l'interface Client.
+    """
+    # Vérifier le Feature Flag global
+    feature_flags = await db.feature_flags.find_one({"id": "feature_flags"}, {"_id": 0})
+    global_enabled = feature_flags.get("AUDIO_SERVICE_ENABLED", False) if feature_flags else False
+    
+    if not global_enabled:
+        return {"enabled": False, "reason": "Service Live désactivé globalement"}
+    
+    # Si un email de coach est fourni, vérifier son statut individuel
+    if coach_email:
+        coach = await db.coach_subscriptions.find_one({"coachEmail": coach_email.lower()}, {"_id": 0})
+        if coach:
+            coach_live_enabled = coach.get("liveServiceEnabled", True)  # Par défaut activé
+            if not coach_live_enabled:
+                return {"enabled": False, "reason": "Service Live désactivé pour ce coach"}
+    
+    return {"enabled": True, "reason": "Service Live actif"}
+
 # ==================== FILTERED DATA ENDPOINTS (For Coach Dashboard) ====================
 
 @api_router.get("/coach/courses")
