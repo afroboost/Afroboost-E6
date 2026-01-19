@@ -767,26 +767,17 @@ const HeroMediaWithAudio = ({
     }
   }, []);
 
-  // Arrêter le maintien du silence quand on quitte la session
-  const stopForceAudio = useCallback(() => {
-    if (silenceIntervalRef.current) {
-      clearInterval(silenceIntervalRef.current);
-      silenceIntervalRef.current = null;
-    }
-    console.log('[ForceAudio] Canal audio arrêté');
-  }, []);
-
   // ========== NETTOYAGE AUDIO COMPLET (quand on quitte la session) ==========
   const cleanupAudio = useCallback(() => {
-    stopForceAudio();
+    stopKeepAlive();
     
-    if (sourceNodeRef.current) {
-      try {
-        sourceNodeRef.current.disconnect();
-      } catch (e) { /* ignore */ }
-      sourceNodeRef.current = null;
+    // Arrêter la lecture
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
     }
     
+    // Fermer le contexte audio
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
@@ -794,7 +785,7 @@ const HeroMediaWithAudio = ({
     
     setAudioUnlocked(false);
     console.log('[Audio] 🧹 Nettoyage audio complet');
-  }, [stopForceAudio]);
+  }, [stopKeepAlive]);
 
   // ========== MEDIA SESSION API: Lecture en arrière-plan ==========
   const updateMediaSession = useCallback((courseName, isPlaying) => {
