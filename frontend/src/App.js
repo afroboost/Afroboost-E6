@@ -1551,20 +1551,33 @@ const HeroMediaWithAudio = ({
     // Détecter si on a une image
     const hasImage = liveCourseImage && liveCourseImage.trim() !== '';
     
+    // Style adaptatif: ratio 16:9 si image, sinon hauteur automatique
+    const liveContainerStyle = hasImage ? containerStyle : {
+      ...containerStyle,
+      paddingBottom: 'auto', // Pas de ratio forcé
+      minHeight: '300px',    // Hauteur minimale
+      height: 'auto'
+    };
+    
+    const liveContentStyle = hasImage ? contentStyle : {
+      ...contentStyle,
+      position: 'relative', // Pas de positionnement absolu
+      height: 'auto',
+      minHeight: '300px'
+    };
+    
     return (
-      <div className={className} style={containerStyle} data-testid="live-receiver-player">
+      <div className={className} style={liveContainerStyle} data-testid="live-receiver-player">
         <div style={{
-          ...contentStyle,
+          ...liveContentStyle,
           background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(217, 28, 210, 0.4) 50%, rgba(0, 0, 0, 0.95) 100%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: hasImage ? 'space-between' : 'flex-start', // FLEX-START si pas d'image
+          justifyContent: hasImage ? 'space-between' : 'flex-start',
           padding: '3vh 4vw 5vh 4vw',
           overflow: 'hidden',
-          boxSizing: 'border-box',
-          position: 'relative',
-          minHeight: '100%'
+          boxSizing: 'border-box'
         }}>
           
           {/* ===== HEADER: Badge EN DIRECT + Menu ===== */}
