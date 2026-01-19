@@ -178,12 +178,163 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [showManualContactForm, setShowManualContactForm] = useState(false);
   const [manualContact, setManualContact] = useState({ name: "", email: "", whatsapp: "" });
 
+  // ========== SILENT DISCO LIVE CONTROL STATE ==========
+  const [liveSession, setLiveSession] = useState(null); // Session active
+  const [liveWebSocket, setLiveWebSocket] = useState(null); // Connexion WebSocket
+  const [liveParticipants, setLiveParticipants] = useState(0);
+  const [liveIsPlaying, setLiveIsPlaying] = useState(false);
+  const [liveTrackIndex, setLiveTrackIndex] = useState(0);
+  const [livePosition, setLivePosition] = useState(0);
+  const liveAudioRef = useRef(null);
+
   // ========== AUDIO PLAYLIST STATE ==========
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [selectedCourseForAudio, setSelectedCourseForAudio] = useState(null);
   const [playlistUrls, setPlaylistUrls] = useState([]);
   const [newAudioUrl, setNewAudioUrl] = useState("");
   const [savingPlaylist, setSavingPlaylist] = useState(false);
+
+  // ========== SILENT DISCO: WebSocket Management ==========
+  const startLiveSession = useCallback((course) => {
+    if (!course?.playlist?.length) {
+      alert("Ce cours n'a pas de playlist audio configurée.");
+      return;
+    }
+
+    // Créer une session ID basée sur le cours
+    const sessionId = `live_${course.id}_${Date.now()}`;
+    
+    // Construire l'URL WebSocket
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = API.replace(/^https?:\/\//, '').replace('/api', '');
+    const wsUrl = `${wsProtocol}//${wsHost}/ws/session/${sessionId}`;
+    
+    console.log('[Silent Disco] Connecting to:', wsUrl);
+    
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+      console.log('[Silent Disco] Connected as Coach');
+      // Envoyer le message JOIN
+      ws.send(JSON.stringify({
+        type: "JOIN",
+        data: {
+          email: coachEmail,
+          name: coachUser?.name || "Coach",
+          is_coach: true
+        }
+      }));
+      
+      // Démarrer la session
+      ws.send(JSON.stringify({
+        type: "SESSION_START",
+        data: {
+          course_id: course.id,
+          course_name: course.name
+        }
+      }));
+      
+      setLiveSession({ 
+        sessionId, 
+        course,
+        startedAt: new Date().toISOString()
+      });
+      setLiveWebSocket(ws);
+      setLiveTrackIndex(0);
+      setLivePosition(0);
+      setLiveIsPlaying(false);
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        console.log('[Silent Disco] Message:', msg);
+        
+        if (msg.type === "PARTICIPANT_COUNT") {
+          setLiveParticipants(msg.data.count);
+        } else if (msg.type === "STATE_SYNC") {
+          setLiveParticipants(msg.data.participant_count || 0);
+        }
+      } catch (e) {
+        console.error('[Silent Disco] Parse error:', e);
+      }
+    };
+    
+    ws.onerror = (error) => {
+      console.error('[Silent Disco] WebSocket error:', error);
+    };
+    
+    ws.onclose = () => {
+      console.log('[Silent Disco] Connection closed');
+      setLiveWebSocket(null);
+    };
+  }, [coachEmail, coachUser]);
+
+  const endLiveSession = useCallback(() => {
+    if (liveWebSocket && liveWebSocket.readyState === WebSocket.OPEN) {
+      liveWebSocket.send(JSON.stringify({ type: "SESSION_END", data: {} }));
+      liveWebSocket.close();
+    }
+    setLiveSession(null);
+    setLiveWebSocket(null);
+    setLiveParticipants(0);
+    setLiveIsPlaying(false);
+    setLiveTrackIndex(0);
+    setLivePosition(0);
+    
+    if (liveAudioRef.current) {
+      liveAudioRef.current.pause();
+    }
+  }, [liveWebSocket]);
+
+  const sendLiveCommand = useCallback((type, data = {}) => {
+    if (liveWebSocket && liveWebSocket.readyState === WebSocket.OPEN) {
+      liveWebSocket.send(JSON.stringify({ type, data }));
+    }
+  }, [liveWebSocket]);
+
+  const handleLivePlayPause = useCallback(() => {
+    if (!liveAudioRef.current || !liveSession) return;
+    
+    const newPosition = liveAudioRef.current.currentTime;
+    
+    if (liveIsPlaying) {
+      liveAudioRef.current.pause();
+      sendLiveCommand("PAUSE", { position: newPosition });
+      setLiveIsPlaying(false);
+    } else {
+      liveAudioRef.current.play().catch(console.error);
+      sendLiveCommand("PLAY", { position: newPosition });
+      setLiveIsPlaying(true);
+    }
+  }, [liveIsPlaying, liveSession, sendLiveCommand]);
+
+  const handleLiveTrackChange = useCallback((newIndex) => {
+    if (!liveSession?.course?.playlist) return;
+    
+    const playlist = liveSession.course.playlist;
+    const safeIndex = Math.max(0, Math.min(newIndex, playlist.length - 1));
+    
+    setLiveTrackIndex(safeIndex);
+    setLivePosition(0);
+    sendLiveCommand("TRACK_CHANGE", { track_index: safeIndex });
+    
+    if (liveAudioRef.current) {
+      liveAudioRef.current.src = playlist[safeIndex];
+      liveAudioRef.current.currentTime = 0;
+      if (liveIsPlaying) {
+        liveAudioRef.current.play().catch(console.error);
+      }
+    }
+  }, [liveSession, liveIsPlaying, sendLiveCommand]);
+
+  const handleLiveSeek = useCallback((position) => {
+    if (liveAudioRef.current) {
+      liveAudioRef.current.currentTime = position;
+      setLivePosition(position);
+      sendLiveCommand("SEEK", { position });
+    }
+  }, [sendLiveCommand]);
 
   // Ouvrir le modal de gestion audio pour un cours
   const openAudioModal = (course) => {
