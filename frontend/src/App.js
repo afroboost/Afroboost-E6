@@ -1802,22 +1802,26 @@ const HeroMediaWithAudio = ({
           </h3>
 
           {/* ===== MINIATURE - RENDU CONDITIONNEL STRICT (NULL SI VIDE) ===== */}
-          {liveCourseImage && liveCourseImage.trim() !== '' ? (
-            <div style={{
-              width: 'clamp(100px, 30vw, 140px)',
-              height: 'clamp(100px, 30vw, 140px)',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              margin: '2vh 0',
-              boxShadow: isPlaying 
-                ? '0 0 30px rgba(217, 28, 210, 0.6)' 
-                : '0 4px 20px rgba(0,0,0,0.4)',
-              border: isPlaying 
-                ? '3px solid rgba(217, 28, 210, 0.8)' 
-                : '2px solid rgba(255,255,255,0.2)',
-              background: `url(${liveCourseImage}) center/cover no-repeat`,
-              animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
-            }} data-testid="live-course-thumbnail" />
+          {hasImage ? (
+            <img 
+              src={liveCourseImage}
+              alt={liveCourseName || 'Cours'}
+              style={{
+                width: 'clamp(100px, 30vw, 140px)',
+                height: 'clamp(100px, 30vw, 140px)',
+                borderRadius: '16px',
+                objectFit: 'cover',
+                margin: '2vh 0',
+                boxShadow: isPlaying 
+                  ? '0 0 30px rgba(217, 28, 210, 0.6)' 
+                  : '0 4px 20px rgba(0,0,0,0.4)',
+                border: isPlaying 
+                  ? '3px solid rgba(217, 28, 210, 0.8)' 
+                  : '2px solid rgba(255,255,255,0.2)',
+                animation: isPlaying ? 'pulse-glow 2s infinite' : 'none'
+              }}
+              data-testid="live-course-thumbnail"
+            />
           ) : null}
 
           {/* ===== INFO CONNEXION ===== */}
