@@ -4965,12 +4965,12 @@ const CoachesManagement = ({ API, t }) => {
           {coaches.map((coach) => (
             <div
               key={coach.coachEmail}
-              className="flex items-center justify-between p-4 rounded-xl glass border border-purple-500/20"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl glass border border-purple-500/20 gap-3"
             >
-              <div>
-                <p className="text-white font-medium">{coach.coachName || 'Sans nom'}</p>
-                <p className="text-white/60 text-sm">{coach.coachEmail}</p>
-                <div className="flex gap-2 mt-1">
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-medium truncate">{coach.coachName || 'Sans nom'}</p>
+                <p className="text-white/60 text-sm truncate">{coach.coachEmail}</p>
+                <div className="flex flex-wrap gap-2 mt-1">
                   {coach.hasAudio && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-purple-600/30 text-purple-300">🎵 Audio</span>
                   )}
@@ -4981,7 +4981,7 @@ const CoachesManagement = ({ API, t }) => {
               </div>
               <button
                 onClick={() => deleteCoach(coach.coachEmail)}
-                className="px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 text-sm"
+                className="px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 text-sm whitespace-nowrap flex-shrink-0"
               >
                 🗑️ Supprimer
               </button>
