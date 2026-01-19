@@ -1054,13 +1054,13 @@ const HeroMediaWithAudio = ({
           </div>
         )}
         
-        {/* Bouton REJOINDRE LE LIVE - Centré en bas */}
+        {/* Bouton REJOINDRE LE LIVE - 100% largeur sur mobile */}
         {audioFeatureEnabled && (
           <div style={{
             position: 'absolute',
-            bottom: '16px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            bottom: '12px',
+            left: '12px',
+            right: '12px',
             zIndex: 100
           }}>
             <button
@@ -1069,24 +1069,26 @@ const HeroMediaWithAudio = ({
                 setShowJoinLive(true);
               }}
               style={{
+                width: '100%',
                 background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
                 border: 'none',
-                borderRadius: '24px',
-                padding: '12px 24px',
+                borderRadius: '16px',
+                padding: '14px 20px',
                 color: '#fff',
                 fontWeight: 700,
-                fontSize: '14px',
+                fontSize: '16px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                justifyContent: 'center',
+                gap: '10px',
                 boxShadow: '0 4px 20px rgba(217, 28, 210, 0.5)',
                 transition: 'all 0.2s ease',
                 pointerEvents: 'auto'
               }}
               data-testid="join-live-btn"
             >
-              <span style={{ fontSize: '18px' }}>🎧</span>
+              <span style={{ fontSize: '20px' }}>🎧</span>
               REJOINDRE LE LIVE
             </button>
           </div>
