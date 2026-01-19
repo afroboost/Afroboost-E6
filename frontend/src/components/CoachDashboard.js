@@ -190,12 +190,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [liveSession, setLiveSession] = useState(null); // Session active
   const [liveWebSocket, setLiveWebSocket] = useState(null); // Connexion WebSocket
   const [liveParticipants, setLiveParticipants] = useState(0);
+  const [liveParticipantsList, setLiveParticipantsList] = useState([]); // Liste des participants connectés
   const [liveIsPlaying, setLiveIsPlaying] = useState(false);
   const [liveTrackIndex, setLiveTrackIndex] = useState(0);
   const [livePosition, setLivePosition] = useState(0);
   const [liveVolume, setLiveVolume] = useState(0.8); // Volume général
   const [showLiveConsole, setShowLiveConsole] = useState(false); // Afficher la console
   const liveAudioRef = useRef(null);
+  
+  // ========== MICRO DJ STATE ==========
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [micStream, setMicStream] = useState(null);
+  const [audioContext, setAudioContext] = useState(null);
+  const [micGainNode, setMicGainNode] = useState(null);
+  const [musicGainNode, setMusicGainNode] = useState(null);
+  const micAnalyserRef = useRef(null);
 
   // ========== AUDIO PLAYLIST STATE ==========
   const [showAudioModal, setShowAudioModal] = useState(false);
