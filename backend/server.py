@@ -170,22 +170,46 @@ class SilentDiscoManager:
             for ws in disconnected:
                 self.disconnect(ws, session_id)
     
-    async def handle_coach_command(self, session_id: str, command: dict, coach_ws: WebSocket):
+    async def handle_coach_command(self, session_id: str, command: dict, sender_ws: WebSocket):
         """
         Traite une commande du coach et la diffuse aux participants.
-        Seul le coach enregistré peut envoyer des commandes.
+        SÉCURITÉ: Seul le coach enregistré peut envoyer des commandes PLAY/PAUSE/etc.
+        Les participants sont bloqués automatiquement.
         """
-        # Vérifier que c'est bien le coach
-        if self.session_coaches.get(session_id) != coach_ws:
-            await coach_ws.send_json({
+        # Récupérer les infos de l'émetteur
+        sender_info = self.active_connections.get(session_id, {}).get(sender_ws, {})
+        is_coach = sender_info.get("is_coach", False)
+        sender_email = sender_info.get("email", "unknown")
+        
+        # SÉCURITÉ: Vérifier que c'est bien un coach authentifié
+        if not is_coach:
+            logger.warning(f"[Silent Disco] BLOCKED: Participant {sender_email} tried to send {command.get('type')}")
+            await sender_ws.send_json({
                 "type": "ERROR",
-                "data": {"message": "Vous n'êtes pas le coach de cette session"}
+                "data": {
+                    "message": "Action non autorisée. Seul le coach peut contrôler la session.",
+                    "code": "UNAUTHORIZED"
+                }
+            })
+            return
+        
+        # Vérifier que c'est bien le coach de cette session
+        if self.session_coaches.get(session_id) != sender_ws:
+            logger.warning(f"[Silent Disco] BLOCKED: Coach {sender_email} is not the session owner")
+            await sender_ws.send_json({
+                "type": "ERROR",
+                "data": {
+                    "message": "Vous n'êtes pas le coach de cette session.",
+                    "code": "NOT_SESSION_OWNER"
+                }
             })
             return
         
         cmd_type = command.get("type")
         cmd_data = command.get("data", {})
         server_timestamp = datetime.now(timezone.utc).isoformat()
+        
+        logger.info(f"[Silent Disco] Coach {sender_email} sending {cmd_type} to session {session_id}")
         
         # Mettre à jour l'état de la session
         if cmd_type == "PLAY":
@@ -228,7 +252,7 @@ class SilentDiscoManager:
         }
         
         await self.broadcast(session_id, broadcast_message, exclude=None)
-        logger.info(f"[Silent Disco] Coach command {cmd_type} broadcast to session {session_id}")
+        logger.info(f"[Silent Disco] Command {cmd_type} broadcast to {len(self.active_connections.get(session_id, {}))} clients")
     
     def get_session_info(self, session_id: str) -> dict:
         """Retourne les informations sur une session"""
