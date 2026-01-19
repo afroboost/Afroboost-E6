@@ -1471,7 +1471,21 @@ const HeroMediaWithAudio = ({
                   Annuler
                 </button>
                 <button
-                  onClick={() => joinLiveSession(joinSessionInput)}
+                  onClick={async () => {
+                    // FORCER audioContext.resume() directement au clic
+                    try {
+                      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                      const ctx = new AudioContextClass();
+                      if (ctx.state === 'suspended') {
+                        await ctx.resume();
+                        console.log('[Audio] Context forcé au clic REJOINDRE');
+                      }
+                    } catch (e) {
+                      console.warn('[Audio] Erreur forçage context:', e);
+                    }
+                    // Puis rejoindre la session
+                    joinLiveSession(joinSessionInput);
+                  }}
                   disabled={!joinSessionInput.trim()}
                   style={{
                     flex: 1,
