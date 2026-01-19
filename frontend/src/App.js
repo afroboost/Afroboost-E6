@@ -1828,7 +1828,7 @@ const HeroMediaWithAudio = ({
           <p style={{
             color: 'rgba(255, 255, 255, 0.6)',
             fontSize: '12px',
-            margin: liveCourseImage ? 0 : '1vh 0'
+            margin: hasImage ? 0 : '1vh 0'
           }}>
             {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
           </p>
@@ -1839,7 +1839,7 @@ const HeroMediaWithAudio = ({
             flexDirection: 'column',
             alignItems: 'center',
             gap: '2vh',
-            marginTop: liveCourseImage ? '2vh' : '1vh',
+            marginTop: hasImage ? '2vh' : '3vh',
             paddingBottom: '2vh'
           }}>
             {/* Bouton PLAY/PAUSE */}
