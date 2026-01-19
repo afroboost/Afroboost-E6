@@ -1260,6 +1260,15 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
+        {/* ÉLÉMENT AUDIO PERMANENT - doit exister AVANT le clic REJOINDRE */}
+        <audio
+          ref={audioRef}
+          playsInline
+          webkit-playsinline="true"
+          style={{ display: 'none' }}
+          preload="none"
+        />
+        
         {/* Menu "..." en haut à droite (50px hitbox pour iPhone) - z-index élevé */}
         {audioFeatureEnabled && (
           <div className="settings-menu-container" style={{
