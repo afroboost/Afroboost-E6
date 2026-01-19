@@ -831,3 +831,46 @@ Fonctionnalité de synchronisation audio en temps réel entre le Coach (DJ) et l
 - `/app/frontend/src/App.js` : Media Session API, indicateur "● LIVE" à côté du titre
 - `/app/backend/server.py` : Double vérification sécurité dans handle_coach_command
 
+
+---
+
+## Silent Disco Phase 4 - Fix Audio & Proxy Cloud (19 Janvier 2026)
+
+### Problème résolu
+Le système audio était bloqué car les URLs Cloud (Google Drive, Dropbox) ne sont pas directement lisibles par le lecteur HTML5.
+
+### Fonctionnalités implémentées
+
+#### 1. PROXY AUDIO (Conversion URLs Cloud)
+- **Google Drive**: `/file/d/ID/view` → `uc?export=download&id=ID`
+- **Google Drive**: `open?id=ID` → `uc?export=download&id=ID`
+- **Dropbox**: `dl=0` → `dl=1` + domaine `dl.dropboxusercontent.com`
+- Conversion automatique à l'ajout ET à la lecture
+
+#### 2. LECTEUR AUDIO AMÉLIORÉ
+- **Attribut `crossOrigin="anonymous"`** pour les CORS
+- **Gestion d'erreur** : Affiche message rouge si lecture impossible
+- **onCanPlay** : Reset l'erreur quand le fichier est chargé
+- **onError** : Log console + message utilisateur
+
+#### 3. VALIDATION URL (Dashboard Coach)
+- **État `audioUrlError`** : Affiche erreur rouge immédiate
+- **Formats valides** : .mp3, .wav, .ogg, .m4a, .aac, .flac, .webm
+- **Cloud valides** : Google Drive, Dropbox, OneDrive
+- **Conversion automatique** : Les URLs Cloud sont converties avant stockage
+
+#### 4. NETTOYAGE UI
+- ❌ Supprimé : Icônes 🎧 dans les sessions
+- ❌ Supprimé : Bouton "Rejoindre l'expérience immersive" en bas
+- ✅ Gardé : Bouton "REJOINDRE LE LIVE" centré dans la zone héro
+- ✅ Gardé : Menu "⋮" pour Volume/Mute/Infos
+
+### Tests validés
+- ✅ Compilation frontend réussie
+- ✅ Bouton LIVE centré (0px de décalage)
+- ✅ Bouton "Expérience audio" supprimé
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js` : Fonction `convertCloudUrlToDirect`, `isValidAudioUrl`, gestion erreur audio
+- `/app/frontend/src/components/CoachDashboard.js` : Validation URL, état `audioUrlError`, conversion automatique
+
