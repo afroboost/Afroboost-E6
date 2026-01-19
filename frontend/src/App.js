@@ -1193,6 +1193,7 @@ const HeroMediaWithAudio = ({
     setIsPlaying(false);
     setWaitingForCoach(false);
     setAudioUnlocked(false);
+    setLiveCourseImage(''); // Reset l'image de couverture
     if (audioRef.current) {
       audioRef.current.pause();
     }
