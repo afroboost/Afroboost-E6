@@ -244,6 +244,7 @@ silent_disco_manager = SilentDiscoManager()
 
 # ==================== WEBSOCKET ENDPOINTS ====================
 
+# WebSocket sans préfixe /api (pour connexion directe)
 @app.websocket("/ws/session/{session_id}")
 async def websocket_session(websocket: WebSocket, session_id: str):
     """
@@ -260,6 +261,16 @@ async def websocket_session(websocket: WebSocket, session_id: str):
     - {"type": "SESSION_START", "data": {"course_id": "...", "course_name": "..."}}
     - {"type": "SESSION_END", "data": {}}
     """
+    await handle_websocket_session(websocket, session_id)
+
+# WebSocket avec préfixe /api (pour passer par l'ingress Kubernetes)
+@app.websocket("/api/ws/session/{session_id}")
+async def websocket_session_api(websocket: WebSocket, session_id: str):
+    """WebSocket endpoint via /api prefix for Kubernetes ingress compatibility"""
+    await handle_websocket_session(websocket, session_id)
+
+async def handle_websocket_session(websocket: WebSocket, session_id: str):
+    """Logique commune pour les WebSocket endpoints Silent Disco"""
     user_info = {"email": "anonymous", "name": "Participant", "is_coach": False}
     
     try:
