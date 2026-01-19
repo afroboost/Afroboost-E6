@@ -626,6 +626,7 @@ const HeroMediaWithAudio = ({
   const audioContextRef = useRef(null);
   const sourceNodeRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const currentSessionIdRef = useRef(null); // Pour la reconnexion
   
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
