@@ -162,6 +162,11 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [editingOfferId, setEditingOfferId] = useState(null); // Pour mode édition
   const fileInputRef = useRef(null);
   
+  // ========== ACCÈS COACH ==========
+  // Déterminer si l'utilisateur est Super Admin
+  const isSuperAdmin = coachUser?.is_super_admin || coachUser?.email?.toLowerCase() === 'contact.artboost@gmail.com';
+  const coachEmail = coachUser?.email || '';
+  
   // Scanner state
   const [showScanner, setShowScanner] = useState(false);
   const [scanResult, setScanResult] = useState(null);
