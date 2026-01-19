@@ -784,10 +784,11 @@ const HeroMediaWithAudio = ({
       clearInterval(silenceIntervalRef.current);
       silenceIntervalRef.current = null;
     }
-    if (silenceContextRef.current) {
+    // SÉCURITÉ: Vérifier que le contexte n'est pas déjà fermé avant de fermer
+    if (silenceContextRef.current && silenceContextRef.current.state !== 'closed') {
       silenceContextRef.current.close().catch(() => {});
-      silenceContextRef.current = null;
     }
+    silenceContextRef.current = null;
     console.log('[ForceAudio] Canal audio fermé');
   }, []);
 
