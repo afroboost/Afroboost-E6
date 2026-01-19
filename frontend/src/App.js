@@ -751,25 +751,6 @@ const HeroMediaWithAudio = ({
     console.log('[ForceAudio] ✅ Keep-alive audio activé');
     return true;
   }, []);
-        
-      } catch (e) {
-        // Ignorer les erreurs mineures
-      }
-    };
-    
-    // Jouer le premier silence immédiatement
-    playSilence();
-    
-    // Répéter toutes les 100ms pour maintenir le canal actif
-    if (silenceIntervalRef.current) {
-      clearInterval(silenceIntervalRef.current);
-    }
-    silenceIntervalRef.current = setInterval(playSilence, 100);
-    
-    console.log('[ForceAudio] ✅ Oscillateur silencieux en boucle (100ms)');
-    return true;
-    
-  }, []);
 
   // Arrêter le maintien du silence quand on quitte la session
   const stopForceAudio = useCallback(() => {
@@ -777,16 +758,13 @@ const HeroMediaWithAudio = ({
       clearInterval(silenceIntervalRef.current);
       silenceIntervalRef.current = null;
     }
-    // NE PAS fermer le contexte audio principal ici
-    console.log('[ForceAudio] Canal audio - oscillateur arrêté');
+    console.log('[ForceAudio] Canal audio arrêté');
   }, []);
 
   // ========== NETTOYAGE AUDIO COMPLET (quand on quitte la session) ==========
   const cleanupAudio = useCallback(() => {
-    // Arrêter l'oscillateur
     stopForceAudio();
     
-    // Déconnecter le sourceNode
     if (sourceNodeRef.current) {
       try {
         sourceNodeRef.current.disconnect();
@@ -794,7 +772,6 @@ const HeroMediaWithAudio = ({
       sourceNodeRef.current = null;
     }
     
-    // Fermer le contexte audio
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
