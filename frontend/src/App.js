@@ -841,25 +841,6 @@ const HeroMediaWithAudio = ({
     setAudioUnlocked(false);
     console.log('[Audio] 🧹 Nettoyage audio complet');
   }, [stopForceAudio]);
-        audioContextRef.current = new AudioContext();
-        
-        // Créer le nœud source connecté à l'élément audio
-        if (!sourceNodeRef.current) {
-          sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-          sourceNodeRef.current.connect(audioContextRef.current.destination);
-        }
-        
-        console.log('[WebAudio] AudioContext initialisé - Canal Media activé');
-      } catch (e) {
-        console.warn('[WebAudio] Fallback sur audio standard:', e);
-      }
-    }
-    
-    // Reprendre le contexte audio si suspendu (iOS)
-    if (audioContextRef.current?.state === 'suspended') {
-      audioContextRef.current.resume();
-    }
-  }, []);
 
   // ========== MEDIA SESSION API: Lecture en arrière-plan ==========
   const updateMediaSession = useCallback((courseName, isPlaying) => {
