@@ -1646,6 +1646,9 @@ const HeroMediaWithAudio = ({
   if (isLiveMode && liveConnected) {
     const playlist = selectedCourse?.playlist || [];
     
+    // Détecter si on a une image
+    const hasImage = liveCourseImage && liveCourseImage.trim() !== '';
+    
     return (
       <div className={className} style={containerStyle} data-testid="live-receiver-player">
         <div style={{
@@ -1654,8 +1657,8 @@ const HeroMediaWithAudio = ({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'space-between', // SPACE-BETWEEN pour distribution verticale
-          padding: '3vh 4vw 5vh 4vw', // Unités relatives + padding-bottom augmenté
+          justifyContent: hasImage ? 'space-between' : 'flex-start', // FLEX-START si pas d'image
+          padding: '3vh 4vw 5vh 4vw',
           overflow: 'hidden',
           boxSizing: 'border-box',
           position: 'relative',
