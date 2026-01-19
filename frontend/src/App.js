@@ -1741,13 +1741,13 @@ const HeroMediaWithAudio = ({
             {audioError ? (
               <span style={{ color: '#ef4444' }}>❌ {audioError}</span>
             ) : audioLoadError ? (
-              <span style={{ color: '#f59e0b' }}>⚠️ Chargement audio lent - vérifiez votre connexion</span>
+              <span style={{ color: '#f59e0b' }}>⚠️ Chargement audio lent</span>
             ) : waitingForCoach ? (
-              <span style={{ color: '#22c55e' }}>🎧 Audio activé - En attente du signal coach...</span>
+              <span style={{ color: '#22c55e' }}>● En attente du coach...</span>
             ) : isPlaying ? (
-              '🔊 Audio synchronisé avec le coach'
+              <span style={{ color: '#d91cd2' }}>● Audio en cours</span>
             ) : (
-              '⏸ En pause'
+              <span style={{ color: 'rgba(255,255,255,0.4)' }}>● En pause</span>
             )}
           </p>
 
