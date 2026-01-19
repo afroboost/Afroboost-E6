@@ -1446,19 +1446,31 @@ const HeroMediaWithAudio = ({
             fontSize: '12px',
             marginTop: '16px'
           }}>
-            {isPlaying ? '🔊 Audio synchronisé avec le coach' : '⏸ En attente du coach...'}
+            {audioError ? (
+              <span style={{ color: '#ef4444' }}>❌ {audioError}</span>
+            ) : (
+              isPlaying ? '🔊 Audio synchronisé avec le coach' : '⏸ En attente du coach...'
+            )}
           </p>
 
           {/* Audio element avec Web Audio API pour canal Media mobile */}
           <audio
             ref={audioRef}
-            src={playlist[currentTrackIndex]}
+            src={convertCloudUrlToDirect(playlist[currentTrackIndex])}
             onPlay={() => {
               setIsPlaying(true);
+              setAudioError(null);
               initWebAudio();
             }}
             onPause={() => setIsPlaying(false)}
+            onError={(e) => {
+              console.error('[Audio] Erreur de lecture:', e);
+              setAudioError('Impossible de lire ce fichier audio');
+              setIsPlaying(false);
+            }}
+            onCanPlay={() => setAudioError(null)}
             preload="auto"
+            crossOrigin="anonymous"
           />
         </div>
       </div>
@@ -1473,6 +1485,9 @@ const HeroMediaWithAudio = ({
   }
 
   const playlist = selectedCourse.playlist;
+
+  // Obtenir l'URL audio convertie
+  const currentAudioUrl = convertCloudUrlToDirect(playlist[currentTrackIndex]);
 
   const handlePlayPause = () => {
     if (audioRef.current) {
