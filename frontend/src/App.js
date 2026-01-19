@@ -1097,18 +1097,126 @@ const HeroMediaWithAudio = ({
           justifyContent: 'center',
           padding: '20px'
         }}>
+          {/* Menu "..." en haut à droite (40px hitbox) */}
+          <div className="settings-menu-container" style={{
+            position: 'absolute',
+            top: '8px',
+            right: '56px',
+            zIndex: 25
+          }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSettingsMenu(!showSettingsMenu);
+              }}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'rgba(0, 0, 0, 0.6)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#fff',
+                fontSize: '18px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              data-testid="live-settings-btn"
+            >
+              ⋮
+            </button>
+            
+            {/* Menu déroulant Live */}
+            {showSettingsMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '48px',
+                right: '0',
+                background: 'rgba(20, 20, 30, 0.95)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(217, 28, 210, 0.3)',
+                padding: '8px',
+                minWidth: '180px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+              }}>
+                {/* Volume */}
+                <div style={{ padding: '8px 12px' }}>
+                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', marginBottom: '6px' }}>Volume</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>🔈</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={audioVolume}
+                      onChange={(e) => {
+                        const vol = parseFloat(e.target.value);
+                        setAudioVolume(vol);
+                        if (audioRef.current) audioRef.current.volume = vol;
+                      }}
+                      style={{
+                        flex: 1,
+                        height: '4px',
+                        borderRadius: '2px',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #d91cd2 0%, #d91cd2 ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span style={{ fontSize: '14px' }}>🔊</span>
+                  </div>
+                </div>
+                
+                {/* Mute */}
+                <button
+                  onClick={() => {
+                    setIsMuted(!isMuted);
+                    if (audioRef.current) audioRef.current.volume = isMuted ? audioVolume : 0;
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: isMuted ? 'rgba(217, 28, 210, 0.2)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {isMuted ? '🔇' : '🔊'} {isMuted ? 'Réactiver' : 'Couper le son'}
+                </button>
+                
+                {/* Infos */}
+                <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '4px' }}>
+                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
+                    Session: {liveSessionId.slice(0, 20)}...
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
           {/* Bouton quitter en haut à droite */}
           <button
             onClick={leaveLiveSession}
             style={{
               position: 'absolute',
-              top: '12px',
-              right: '12px',
+              top: '8px',
+              right: '8px',
               background: 'rgba(0, 0, 0, 0.6)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '50%',
-              width: '36px',
-              height: '36px',
+              width: '40px',
+              height: '40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1121,7 +1229,7 @@ const HeroMediaWithAudio = ({
             ✕
           </button>
 
-          {/* Badge LIVE */}
+          {/* Badge EN DIRECT avec point rouge animé */}
           <div style={{
             position: 'absolute',
             top: '12px',
@@ -1133,9 +1241,32 @@ const HeroMediaWithAudio = ({
             alignItems: 'center',
             gap: '6px'
           }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: 'pulse 1s infinite' }}></span>
-            <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>LIVE</span>
+            <span style={{ 
+              width: '10px', 
+              height: '10px', 
+              borderRadius: '50%', 
+              background: '#ff3b3b',
+              boxShadow: '0 0 8px #ff3b3b',
+              animation: 'pulse 1s infinite' 
+            }}></span>
+            <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>EN DIRECT</span>
           </div>
+
+          {/* Indicateur de synchronisation */}
+          {isSyncing && (
+            <div style={{
+              position: 'absolute',
+              top: '48px',
+              left: '12px',
+              background: 'rgba(59, 130, 246, 0.9)',
+              padding: '4px 10px',
+              borderRadius: '12px',
+              color: '#fff',
+              fontSize: '10px'
+            }}>
+              ⏳ Synchronisation...
+            </div>
+          )}
 
           {/* Icône animée */}
           <div style={{
