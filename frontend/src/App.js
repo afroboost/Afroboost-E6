@@ -1071,7 +1071,7 @@ const HeroMediaWithAudio = ({
     setLiveWebSocket(ws);
     setIsLiveMode(true);
     setShowJoinLive(false);
-  }, [liveWebSocket, unlockAudioForMobile, initWebAudio]);
+  }, [liveWebSocket, unlockAudioForMobile, initWebAudio, isPlaying]);
 
   // ========== RECONNEXION AUTOMATIQUE ==========
   useEffect(() => {
