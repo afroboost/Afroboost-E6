@@ -642,6 +642,7 @@ const HeroMediaWithAudio = ({
   const [liveConnected, setLiveConnected] = useState(false);
   const [liveParticipants, setLiveParticipants] = useState(0);
   const [liveCourseName, setLiveCourseName] = useState('');
+  const [liveCourseImage, setLiveCourseImage] = useState(''); // Image de couverture du cours
   const [showJoinLive, setShowJoinLive] = useState(false);
   const [joinSessionInput, setJoinSessionInput] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
