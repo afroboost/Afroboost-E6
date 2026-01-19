@@ -2581,123 +2581,147 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
           <div className="card-gradient rounded-xl p-6">
             <h2 className="font-semibold text-white mb-6" style={{ fontSize: '20px' }}>{t('courses')}</h2>
             
-            {/* ========== SILENT DISCO LIVE CONTROL ========== */}
+            {/* ========== SILENT DISCO LIVE CONTROL - Section simplifiée ========== */}
             {isSuperAdmin && (
               <div className="mb-6 p-4 rounded-xl border-2 border-pink-500/50" style={{ background: 'linear-gradient(135deg, rgba(217, 28, 210, 0.1), rgba(139, 92, 246, 0.1))' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white font-semibold flex items-center gap-2">
                     <span className="text-2xl">🎧</span>
-                    Silent Disco - Live Control
+                    Live Control
                     {liveSession && (
-                      <span className="ml-2 px-2 py-1 rounded-full text-xs bg-green-500/30 text-green-400 animate-pulse">
-                        🔴 LIVE
+                      <span className="ml-2 px-2 py-1 rounded-full text-xs bg-red-500/80 text-white flex items-center gap-1">
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: 'pulse 1s infinite' }}></span>
+                        EN DIRECT
                       </span>
                     )}
                   </h3>
                   <span className="text-white/60 text-sm">
-                    {liveParticipants} participant{liveParticipants !== 1 ? 's' : ''} connecté{liveParticipants !== 1 ? 's' : ''}
+                    {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''}
                   </span>
                 </div>
 
                 {!liveSession ? (
-                  // Sélection du cours pour démarrer une session
+                  // Bouton unique DÉMARRER LA SÉANCE
                   <div>
-                    <p className="text-white/70 text-sm mb-3">
-                      Sélectionnez un cours pour démarrer une session Silent Disco en direct :
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                      {courses.filter(c => !c.archived && c.playlist?.length > 0).map(course => (
-                        <button
-                          key={course.id}
-                          onClick={() => startLiveSession(course)}
-                          className="p-3 rounded-lg text-left transition-all hover:scale-[1.02]"
-                          style={{
-                            background: 'rgba(217, 28, 210, 0.2)',
-                            border: '1px solid rgba(217, 28, 210, 0.3)'
-                          }}
-                          data-testid={`start-live-${course.id}`}
-                        >
-                          <p className="text-white font-medium text-sm truncate">{course.name}</p>
-                          <p className="text-white/50 text-xs">{course.playlist?.length} piste{course.playlist?.length > 1 ? 's' : ''}</p>
-                        </button>
-                      ))}
-                    </div>
-                    {courses.filter(c => !c.archived && c.playlist?.length > 0).length === 0 && (
+                    {courses.filter(c => !c.archived && c.playlist?.length > 0).length > 0 ? (
+                      <div className="space-y-3">
+                        <p className="text-white/70 text-sm">
+                          Choisissez un cours pour démarrer la synchronisation audio avec vos participants :
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {courses.filter(c => !c.archived && c.playlist?.length > 0).map(course => (
+                            <button
+                              key={course.id}
+                              onClick={() => startLiveSession(course)}
+                              className="flex items-center justify-between p-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                              style={{
+                                background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
+                                boxShadow: '0 4px 20px rgba(217, 28, 210, 0.4)'
+                              }}
+                              data-testid={`start-session-${course.id}`}
+                            >
+                              <div className="text-left">
+                                <p className="text-white font-bold text-base">{course.name}</p>
+                                <p className="text-white/70 text-xs">{course.playlist?.length} piste{course.playlist?.length > 1 ? 's' : ''}</p>
+                              </div>
+                              <span className="text-2xl">▶️</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
                       <p className="text-yellow-400/80 text-sm">
-                        ⚠️ Aucun cours avec playlist. Ajoutez des pistes audio à vos cours d'abord.
+                        ⚠️ Aucun cours avec playlist. Configurez d'abord des pistes audio pour vos cours.
                       </p>
                     )}
                   </div>
                 ) : (
-                  // Console DJ active
-                  <div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                  // Session active - Console DJ simplifiée
+                  <div className="space-y-4">
+                    {/* Info session */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-black/30">
                       <div>
-                        <p className="text-white font-medium">{liveSession.course.name}</p>
-                        <p className="text-white/50 text-xs">
-                          Session: {liveSession.sessionId.split('_').slice(0, 2).join('_')}
+                        <p className="text-white font-medium text-lg">{liveSession.course.name}</p>
+                        <p className="text-white/50 text-xs font-mono">
+                          Code: {liveSession.sessionId}
                         </p>
                       </div>
                       <button
-                        onClick={endLiveSession}
-                        className="px-4 py-2 rounded-lg bg-red-600/30 hover:bg-red-600/50 text-red-400 text-sm font-medium"
-                        data-testid="end-live-session"
+                        onClick={() => {
+                          navigator.clipboard.writeText(liveSession.sessionId);
+                          alert('Code copié !');
+                        }}
+                        className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs"
                       >
-                        ⏹ Terminer la session
+                        📋 Copier le code
                       </button>
                     </div>
 
-                    {/* Contrôles de lecture */}
-                    <div className="flex flex-wrap items-center gap-4 mb-4">
-                      {/* Boutons navigation pistes */}
-                      <button
-                        onClick={() => handleLiveTrackChange(liveTrackIndex - 1)}
-                        disabled={liveTrackIndex === 0}
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all disabled:opacity-30"
-                        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
-                        data-testid="live-prev-track"
-                      >
-                        <span className="text-white text-xl">⏮</span>
-                      </button>
-
-                      {/* Play/Pause */}
+                    {/* Boutons de contrôle principaux */}
+                    <div className="flex flex-wrap items-center justify-center gap-4">
+                      {/* Play/Pause principal */}
                       <button
                         onClick={handleLivePlayPause}
-                        className="w-16 h-16 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                        className="w-20 h-20 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
                         style={{
-                          background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)',
-                          boxShadow: liveIsPlaying ? '0 0 30px rgba(217, 28, 210, 0.6)' : '0 4px 20px rgba(0, 0, 0, 0.3)'
+                          background: liveIsPlaying 
+                            ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
+                            : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                          boxShadow: liveIsPlaying 
+                            ? '0 0 30px rgba(239, 68, 68, 0.6)' 
+                            : '0 0 30px rgba(34, 197, 94, 0.6)'
                         }}
                         data-testid="live-play-pause"
                       >
-                        <span className="text-white text-2xl">{liveIsPlaying ? '⏸' : '▶'}</span>
+                        <span className="text-white text-3xl">{liveIsPlaying ? '⏸' : '▶'}</span>
                       </button>
+                    </div>
 
+                    <p className="text-center text-white/60 text-sm">
+                      {liveIsPlaying ? '🔊 Diffusion en cours...' : '⏸ En pause - Appuyez pour démarrer'}
+                    </p>
+
+                    {/* Navigation pistes (réduite) */}
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleLiveTrackChange(liveTrackIndex - 1)}
+                        disabled={liveTrackIndex === 0}
+                        className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 text-sm"
+                      >
+                        ⏮ Préc
+                      </button>
+                      <span className="text-white/70 text-sm px-3">
+                        Piste {liveTrackIndex + 1}/{liveSession.course.playlist?.length}
+                      </span>
                       <button
                         onClick={() => handleLiveTrackChange(liveTrackIndex + 1)}
                         disabled={liveTrackIndex >= (liveSession.course.playlist?.length || 1) - 1}
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all disabled:opacity-30"
-                        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
-                        data-testid="live-next-track"
+                        className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 text-sm"
                       >
-                        <span className="text-white text-xl">⏭</span>
+                        Suiv ⏭
                       </button>
-
-                      {/* Info piste */}
-                      <div className="text-white/70 text-sm">
-                        Piste {liveTrackIndex + 1} / {liveSession.course.playlist?.length}
-                      </div>
                     </div>
 
-                    {/* Liste des pistes */}
-                    <div className="bg-black/30 rounded-lg p-3 max-h-40 overflow-y-auto">
-                      {liveSession.course.playlist?.map((url, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => handleLiveTrackChange(idx)}
-                          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                            idx === liveTrackIndex ? 'bg-pink-500/30' : 'hover:bg-white/10'
-                          }`}
+                    {/* Bouton terminer */}
+                    <button
+                      onClick={endLiveSession}
+                      className="w-full py-3 rounded-lg bg-red-600/30 hover:bg-red-600/50 text-red-400 font-medium transition-all"
+                      data-testid="end-live-session"
+                    >
+                      ⏹ TERMINER LA SÉANCE
+                    </button>
+
+                    {/* Audio element caché pour le coach */}
+                    <audio
+                      ref={liveAudioRef}
+                      src={liveSession.course.playlist?.[liveTrackIndex]}
+                      onTimeUpdate={(e) => setLivePosition(e.target.currentTime)}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
                         >
                           <span className="text-white/50 text-xs w-6">{idx + 1}.</span>
                           <span className={`text-sm truncate flex-1 ${idx === liveTrackIndex ? 'text-pink-400' : 'text-white/70'}`}>
