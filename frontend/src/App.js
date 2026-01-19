@@ -1094,6 +1094,11 @@ const HeroMediaWithAudio = ({
   }, [isLiveMode, liveConnected, liveWebSocket, joinLiveSession]);
 
   const leaveLiveSession = () => {
+    // Nettoyer la ref pour empêcher la reconnexion
+    currentSessionIdRef.current = null;
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
     if (liveWebSocket) {
       liveWebSocket.close();
     }
@@ -1102,6 +1107,8 @@ const HeroMediaWithAudio = ({
     setLiveSessionId('');
     setLiveWebSocket(null);
     setIsPlaying(false);
+    setWaitingForCoach(false);
+    setAudioUnlocked(false);
     if (audioRef.current) {
       audioRef.current.pause();
     }
