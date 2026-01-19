@@ -234,6 +234,7 @@ class SilentDiscoManager:
         elif cmd_type == "SESSION_START":
             self.session_states[session_id]["course_id"] = cmd_data.get("course_id")
             self.session_states[session_id]["course_name"] = cmd_data.get("course_name")
+            self.session_states[session_id]["course_image"] = cmd_data.get("course_image")  # Image de couverture
             self.session_states[session_id]["playing"] = False
             self.session_states[session_id]["track_index"] = 0
             self.session_states[session_id]["position"] = 0.0
