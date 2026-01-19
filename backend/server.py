@@ -1103,6 +1103,7 @@ class GoogleUser(BaseModel):
     name: str
     picture: Optional[str] = None
     is_coach: bool = False
+    is_super_admin: bool = False  # True si email == AUTHORIZED_COACH_EMAIL
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
 
