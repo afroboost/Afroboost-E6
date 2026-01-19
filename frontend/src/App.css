@@ -1014,3 +1014,65 @@ select option {
     align-self: center;
   }
 }
+
+/* =================================================================
+   MOBILE RESPONSIVE - TABLEAUX SCROLLABLES
+   ================================================================= */
+
+/* Force tous les tableaux et conteneurs de données à être scrollables */
+.table-container,
+.data-table-wrapper,
+table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Empêcher le débordement des conteneurs sur mobile */
+@media (max-width: 640px) {
+  .overflow-x-scroll,
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+  
+  /* Conteneur de tableau scrollable */
+  .table-scroll-container {
+    overflow-x: auto;
+    margin: 0 -12px;
+    padding: 0 12px;
+  }
+  
+  /* Empêcher le body de scroller horizontalement */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Cards et conteneurs */
+  .card-gradient,
+  .glass {
+    overflow: hidden;
+  }
+}
+
+/* Style de la scrollbar horizontale */
+.table-container::-webkit-scrollbar,
+.table-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track,
+.table-scroll-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb,
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(217, 28, 210, 0.5);
+  border-radius: 3px;
+}
