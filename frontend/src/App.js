@@ -1379,8 +1379,8 @@ const HeroMediaWithAudio = ({
           </div>
         )}
         
-        {/* Bouton REJOINDRE LE LIVE - 100% largeur sur mobile */}
-        {audioFeatureEnabled && (
+        {/* Bouton REJOINDRE LE LIVE - VISIBLE UNIQUEMENT si session active */}
+        {audioFeatureEnabled && liveSessionActive && (
           <div style={{
             position: 'absolute',
             bottom: '12px',
