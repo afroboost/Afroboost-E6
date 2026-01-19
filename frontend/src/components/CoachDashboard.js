@@ -162,6 +162,9 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser, audioFeatureEnab
   const [editingOfferId, setEditingOfferId] = useState(null); // Pour mode édition
   const fileInputRef = useRef(null);
   
+  // ========== SERVICE LIVE STATUS ==========
+  const [liveServiceEnabled, setLiveServiceEnabled] = useState(true); // Par défaut activé
+  
   // ========== ACCÈS COACH ==========
   // Déterminer si l'utilisateur est Super Admin
   const isSuperAdmin = coachUser?.is_super_admin || coachUser?.email?.toLowerCase() === 'contact.artboost@gmail.com';
