@@ -934,7 +934,7 @@ const HeroMediaWithAudio = ({
       <div className={className} style={{ position: 'relative' }}>
         <MediaDisplay url={videoUrl} />
         
-        {/* Menu "..." en haut à droite (40px hitbox pour iPhone) - z-index élevé */}
+        {/* Menu "..." en haut à droite (50px hitbox pour iPhone) - z-index élevé */}
         {audioFeatureEnabled && (
           <div className="settings-menu-container" style={{
             position: 'absolute',
@@ -948,14 +948,14 @@ const HeroMediaWithAudio = ({
                 setShowSettingsMenu(!showSettingsMenu);
               }}
               style={{
-                width: '40px',
-                height: '40px',
+                width: '50px',
+                height: '50px',
                 borderRadius: '50%',
                 background: 'rgba(0, 0, 0, 0.8)',
                 backdropFilter: 'blur(8px)',
                 border: '1px solid rgba(217, 28, 210, 0.5)',
                 color: '#fff',
-                fontSize: '20px',
+                fontSize: '24px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
