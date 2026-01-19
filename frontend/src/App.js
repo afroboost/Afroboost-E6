@@ -809,6 +809,9 @@ const HeroMediaWithAudio = ({
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
+      if (audioLoadTimeoutRef.current) {
+        clearTimeout(audioLoadTimeoutRef.current);
+      }
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
