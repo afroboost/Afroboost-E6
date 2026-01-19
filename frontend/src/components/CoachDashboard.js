@@ -185,6 +185,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [liveIsPlaying, setLiveIsPlaying] = useState(false);
   const [liveTrackIndex, setLiveTrackIndex] = useState(0);
   const [livePosition, setLivePosition] = useState(0);
+  const [liveVolume, setLiveVolume] = useState(0.8); // Volume général
+  const [showLiveConsole, setShowLiveConsole] = useState(false); // Afficher la console
   const liveAudioRef = useRef(null);
 
   // ========== AUDIO PLAYLIST STATE ==========
@@ -194,6 +196,15 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [newAudioUrl, setNewAudioUrl] = useState("");
   const [savingPlaylist, setSavingPlaylist] = useState(false);
   const [audioUrlError, setAudioUrlError] = useState(""); // Erreur d'URL audio
+  const [previewUrl, setPreviewUrl] = useState(null); // URL en prévisualisation
+  const [previewPlaying, setPreviewPlaying] = useState(false); // État prévisualisation
+  const previewAudioRef = useRef(null);
+
+  // ========== GÉNÉRATION CODE SESSION À 4 CHIFFRES ==========
+  const generateSessionCode = () => {
+    // Générer un code à 4 chiffres unique
+    return String(Math.floor(1000 + Math.random() * 9000));
+  };
 
   // ========== UTILITAIRE: Convertir URLs Cloud en liens directs ==========
   const convertCloudUrlToDirect = (url) => {
@@ -226,15 +237,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       return;
     }
 
-    // Créer une session ID basée sur le cours
-    const sessionId = `live_${course.id}_${Date.now()}`;
+    // Générer un code à 4 chiffres unique
+    const sessionCode = generateSessionCode();
+    const sessionId = sessionCode; // Utiliser directement le code à 4 chiffres
     
     // Construire l'URL WebSocket avec /api/ws/ pour passer par l'ingress Kubernetes
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsHost = API.replace(/^https?:\/\//, '').replace('/api', '');
     const wsUrl = `${wsProtocol}//${wsHost}/api/ws/session/${sessionId}`;
     
-    console.log('[Silent Disco] Connecting to:', wsUrl);
+    console.log('[Silent Disco] Connecting to:', wsUrl, 'Code:', sessionCode);
     
     const ws = new WebSocket(wsUrl);
     
