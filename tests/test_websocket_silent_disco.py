@@ -41,7 +41,8 @@ class TestSilentDiscoWebSocket:
         print(f"Connecting to WebSocket: {full_ws_url}")
         
         try:
-            async with websockets.connect(full_ws_url, timeout=10) as websocket:
+            # Use open_timeout instead of timeout for newer websockets library
+            async with websockets.connect(full_ws_url, open_timeout=10, close_timeout=5) as websocket:
                 # Send JOIN message
                 join_msg = {
                     "type": "JOIN",
@@ -84,7 +85,7 @@ class TestSilentDiscoWebSocket:
         full_ws_url = f"{ws_url}/api/ws/session/{session_id}"
         
         try:
-            async with websockets.connect(full_ws_url, timeout=10) as websocket:
+            async with websockets.connect(full_ws_url, open_timeout=10, close_timeout=5) as websocket:
                 # Join as Coach
                 join_msg = {
                     "type": "JOIN",
