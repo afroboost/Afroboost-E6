@@ -1718,13 +1718,39 @@ const HeroMediaWithAudio = ({
           <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '16px' }}>🔊</span>
         </div>
 
-        {/* Élément audio caché */}
+        {/* Affichage d'erreur audio */}
+        {audioError && (
+          <div style={{
+            marginTop: '12px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: 'rgba(239, 68, 68, 0.2)',
+            border: '1px solid rgba(239, 68, 68, 0.5)',
+            color: '#ef4444',
+            fontSize: '12px',
+            textAlign: 'center'
+          }}>
+            ❌ {audioError}
+          </div>
+        )}
+
+        {/* Élément audio avec conversion URL Cloud */}
         <audio
           ref={audioRef}
-          src={playlist[currentTrackIndex]}
+          src={currentAudioUrl}
           onEnded={handleTrackEnded}
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => {
+            setIsPlaying(true);
+            setAudioError(null);
+          }}
           onPause={() => setIsPlaying(false)}
+          onError={(e) => {
+            console.error('[Audio Solo] Erreur:', e);
+            setAudioError('Impossible de lire ce fichier audio. Vérifiez le lien.');
+            setIsPlaying(false);
+          }}
+          onCanPlay={() => setAudioError(null)}
+          crossOrigin="anonymous"
         />
       </div>
     </div>
