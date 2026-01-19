@@ -887,7 +887,8 @@ const HeroMediaWithAudio = ({
       if (audioLoadTimeoutRef.current) {
         clearTimeout(audioLoadTimeoutRef.current);
       }
-      if (audioContextRef.current) {
+      // SÉCURITÉ: Vérifier que le contexte n'est pas déjà fermé
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
     };
