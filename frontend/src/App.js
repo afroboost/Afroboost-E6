@@ -4082,25 +4082,50 @@ function App() {
       return;
     }
 
-    // PAID RESERVATION: Check if payment is configured
-    if (!paymentLinks.stripe?.trim() && !paymentLinks.paypal?.trim() && !paymentLinks.twint?.trim()) {
-      setValidationMessage(t('noPaymentConfigured'));
-      setTimeout(() => setValidationMessage(""), 4000);
-      return;
-    }
-
+    // PAID RESERVATION: Utiliser Stripe Checkout pour sécuriser le paiement
     setPendingReservation(reservation);
     
     // Create user
     try { await axios.post(`${API}/users`, { name: userName, email: userEmail, whatsapp: userWhatsapp }); }
     catch (err) { console.error("User creation error:", err); }
 
-    // Open payment link
-    if (paymentLinks.twint?.trim()) window.open(paymentLinks.twint, '_blank');
-    else if (paymentLinks.stripe?.trim()) window.open(paymentLinks.stripe, '_blank');
-    else if (paymentLinks.paypal?.trim()) window.open(paymentLinks.paypal, '_blank');
-
-    setTimeout(() => setShowConfirmPayment(true), 800);
+    // ========== STRIPE CHECKOUT SECURISÉ ==========
+    setLoading(true);
+    try {
+      const stripeResponse = await axios.post(`${API}/stripe/create-checkout`, {
+        offer_id: selectedOffer.id,
+        offer_name: selectedOffer.name,
+        price: totalPrice,
+        user_name: userName,
+        user_email: userEmail,
+        course_id: selectedCourse.id,
+        course_name: selectedCourse.name,
+        origin_url: window.location.origin
+      });
+      
+      if (stripeResponse.data.url) {
+        // Stocker le code de réservation pour le polling après retour
+        localStorage.setItem('pending_stripe_session', stripeResponse.data.session_id);
+        localStorage.setItem('pending_reservation_code', stripeResponse.data.reservation_code);
+        
+        // Rediriger vers Stripe Checkout
+        window.location.href = stripeResponse.data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (err) {
+      console.error('Stripe checkout error:', err);
+      setValidationMessage('Erreur lors de la création du paiement. Veuillez réessayer.');
+      setTimeout(() => setValidationMessage(""), 4000);
+      
+      // Fallback: Utiliser les liens de paiement manuels si Stripe échoue
+      if (paymentLinks.twint?.trim()) window.open(paymentLinks.twint, '_blank');
+      else if (paymentLinks.stripe?.trim()) window.open(paymentLinks.stripe, '_blank');
+      else if (paymentLinks.paypal?.trim()) window.open(paymentLinks.paypal, '_blank');
+      
+      setTimeout(() => setShowConfirmPayment(true), 800);
+    }
+    setLoading(false);
   };
 
   const confirmPayment = async () => {
