@@ -2934,14 +2934,9 @@ function App() {
         )}
 
         {/* =====================================================
-            LECTEUR AUDIO IMMERSIF (Mini Player)
-            Utilise le composant AudioPlayer extrait
+            LECTEUR AUDIO - Maintenant intégré dans la section héro (MediaDisplay)
+            Le lecteur flottant a été supprimé pour une meilleure UX mobile
             ===================================================== */}
-        <AudioPlayer 
-          course={selectedCourse}
-          isVisible={showAudioPlayer}
-          onClose={() => setShowAudioPlayer(false)}
-        />
 
         {/* =====================================================
             SECTION PRODUITS PHYSIQUES - TOUJOURS VISIBLE si produits disponibles
