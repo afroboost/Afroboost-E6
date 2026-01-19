@@ -167,6 +167,9 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const isSuperAdmin = coachUser?.is_super_admin || coachUser?.email?.toLowerCase() === 'contact.artboost@gmail.com';
   const coachEmail = coachUser?.email || '';
   
+  // Vérifier si l'abonnement est actif (Super Admin toujours actif)
+  const subscriptionActive = isSuperAdmin || coachUser?.subscription_active === true;
+  
   // Scanner state
   const [showScanner, setShowScanner] = useState(false);
   const [scanResult, setScanResult] = useState(null);
