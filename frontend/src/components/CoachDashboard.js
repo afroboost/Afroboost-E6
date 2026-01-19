@@ -1547,12 +1547,32 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     } catch (err) { console.error("Error updating tracking:", err); }
   };
 
-  const tabs = [
-    { id: "reservations", label: t('reservations') }, { id: "concept", label: t('conceptVisual') },
-    { id: "courses", label: t('courses') }, { id: "offers", label: t('offers') },
-    { id: "payments", label: t('payments') }, { id: "codes", label: t('promoCodes') },
-    { id: "campaigns", label: "📢 Campagnes" }
-  ];
+  // ========== ONGLETS DYNAMIQUES SELON LE TYPE D'UTILISATEUR ==========
+  // Super Admin: Tous les onglets
+  // Coach normal: Réservations, Cours, Offres uniquement
+  const tabs = useMemo(() => {
+    const baseTabs = [
+      { id: "reservations", label: t('reservations') },
+      { id: "courses", label: t('courses') },
+      { id: "offers", label: t('offers') }
+    ];
+    
+    if (isSuperAdmin) {
+      // Ajouter les onglets réservés au Super Admin
+      return [
+        { id: "reservations", label: t('reservations') },
+        { id: "concept", label: t('conceptVisual') },
+        { id: "courses", label: t('courses') },
+        { id: "offers", label: t('offers') },
+        { id: "payments", label: t('payments') },
+        { id: "codes", label: t('promoCodes') },
+        { id: "campaigns", label: "📢 Campagnes" },
+        { id: "coaches", label: "👥 Coachs" } // Nouvel onglet pour gérer les coachs
+      ];
+    }
+    
+    return baseTabs;
+  }, [isSuperAdmin, t]);
 
   return (
     <div className="w-full min-h-screen p-6 section-gradient">
