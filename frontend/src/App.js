@@ -646,6 +646,9 @@ const HeroMediaWithAudio = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [waitingForCoach, setWaitingForCoach] = useState(false); // En attente du lancement
+  const [audioUnlocked, setAudioUnlocked] = useState(false); // Audio déverrouillé sur mobile
+  const [audioLoadError, setAudioLoadError] = useState(false); // Erreur chargement après 5s
+  const audioLoadTimeoutRef = useRef(null); // Timeout pour erreur 5s
 
   // ========== AUDIO UNLOCK: Réveiller le haut-parleur mobile ==========
   const unlockAudioForMobile = useCallback(() => {
