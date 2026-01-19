@@ -3126,16 +3126,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 <div key={course.id} className="glass rounded-lg p-4 mb-4 relative">
                   {/* Actions: Audio + Dupliquer + Archiver */}
                   <div className="absolute top-2 right-2 flex gap-1">
-                    {/* Bouton Gérer la Playlist - EXPLICITE */}
+                    {/* Bouton Gérer la Playlist - MINIMALISTE (sans cadre, sans fond) */}
                     <button 
                       onClick={() => openAudioModal(course)}
-                      className="px-2 py-1 rounded-lg hover:bg-pink-500/30 transition-colors flex items-center gap-1"
-                      style={{ color: '#d91cd2', border: '1px solid rgba(217, 28, 210, 0.3)' }}
+                      className="px-2 py-1 transition-opacity hover:opacity-70 flex items-center gap-1"
+                      style={{ 
+                        color: '#d91cd2', 
+                        background: 'transparent', 
+                        border: 'none',
+                        outline: 'none'
+                      }}
                       title="Gérer l'Audio / Playlist"
                       data-testid={`audio-course-${course.id}`}
                     >
                       <span className="text-sm">🎵</span>
-                      <span className="text-xs hidden sm:inline">Playlist</span>
+                      <span className="text-xs" style={{ color: 'rgba(217, 28, 210, 0.8)' }}>Playlist</span>
                     </button>
                     {/* Bouton dupliquer */}
                     <button 
