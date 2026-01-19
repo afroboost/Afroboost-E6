@@ -1088,9 +1088,9 @@ const OfferCardSlider = ({ offer, selected, onClick }) => {
   );
 };
 
-// === OFFERS SLIDER WITH AUTO-PLAY ===
-// Carrousel horizontal avec défilement automatique pour montrer qu'il y a plusieurs offres
-const OffersSliderAutoPlay = ({ offers, selectedOffer, onSelectOffer }) => {
+// OffersSliderAutoPlay est maintenant importé depuis ./components/OffersSlider
+
+// QR Scanner Modal with Camera Support - Enhanced Version
   const sliderRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
