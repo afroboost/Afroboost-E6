@@ -1582,20 +1582,29 @@ const HeroMediaWithAudio = ({
             </div>
           )}
 
-          {/* Icône animée */}
+          {/* Icône casque - taille adaptative */}
           <div style={{
-            fontSize: '80px',
-            marginBottom: '16px',
+            fontSize: 'clamp(48px, 12vw, 80px)', // Taille responsive
+            lineHeight: 1,
+            flexShrink: 0, // Ne pas réduire
             animation: isPlaying ? 'bounce 0.5s infinite alternate' : 'none'
           }}>
             🎧
           </div>
 
           {/* Titre avec indicateur LIVE */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '8px', 
+            flexWrap: 'wrap',
+            maxWidth: '100%',
+            flexShrink: 0
+          }}>
             <h3 style={{
               color: '#fff',
-              fontSize: '20px',
+              fontSize: 'clamp(16px, 4vw, 20px)', // Responsive
               fontWeight: 700,
               textAlign: 'center',
               margin: 0
@@ -1612,7 +1621,8 @@ const HeroMediaWithAudio = ({
               borderRadius: '10px',
               fontSize: '10px',
               fontWeight: 700,
-              color: '#fff'
+              color: '#fff',
+              flexShrink: 0
             }}>
               <span style={{
                 width: '6px',
@@ -1628,16 +1638,17 @@ const HeroMediaWithAudio = ({
 
           <p style={{
             color: 'rgba(255, 255, 255, 0.7)',
-            fontSize: '14px',
-            marginBottom: '24px'
+            fontSize: '13px',
+            margin: '4px 0',
+            flexShrink: 0
           }}>
             {liveParticipants} connecté{liveParticipants !== 1 ? 's' : ''} • Piste {currentTrackIndex + 1}
           </p>
 
-          {/* Indicateur de lecture (pas de contrôles - mode passif) */}
+          {/* Indicateur de lecture - taille responsive */}
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: 'clamp(60px, 15vw, 80px)',
+            height: 'clamp(60px, 15vw, 80px)',
             borderRadius: '50%',
             background: isPlaying 
               ? 'linear-gradient(135deg, #d91cd2, #8b5cf6)' 
@@ -1645,20 +1656,22 @@ const HeroMediaWithAudio = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: isPlaying ? '0 0 40px rgba(217, 28, 210, 0.7)' : 'none',
-            transition: 'all 0.3s'
+            boxShadow: isPlaying ? '0 0 30px rgba(217, 28, 210, 0.7)' : 'none',
+            transition: 'all 0.3s',
+            flexShrink: 0
           }}>
-            <span style={{ fontSize: '32px', color: '#fff' }}>
+            <span style={{ fontSize: 'clamp(24px, 6vw, 32px)', color: '#fff' }}>
               {isPlaying ? '♪' : '⏸'}
             </span>
           </div>
 
           <p style={{
             color: 'rgba(255, 255, 255, 0.5)',
-            fontSize: '12px',
-            marginTop: '16px',
+            fontSize: '11px',
             textAlign: 'center',
-            maxWidth: '90%'
+            maxWidth: '95%',
+            margin: '8px 0 0 0',
+            flexShrink: 0
           }}>
             {audioError ? (
               <span style={{ color: '#ef4444' }}>❌ {audioError}</span>
