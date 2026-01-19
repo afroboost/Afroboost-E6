@@ -1488,7 +1488,6 @@ const HeroMediaWithAudio = ({
           }}>
             <button
               onClick={() => {
-                initWebAudio();
                 setShowJoinLive(true);
               }}
               style={{
