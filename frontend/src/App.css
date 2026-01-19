@@ -516,6 +516,18 @@ html, body {
   50% { transform: scale(1.1); opacity: 0.8; }
 }
 
+/* Animation pour la miniature du cours en mode live */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(217, 28, 210, 0.4);
+    border-color: rgba(217, 28, 210, 0.6);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(217, 28, 210, 0.8);
+    border-color: rgba(217, 28, 210, 1);
+  }
+}
+
 /* Offers Horizontal Slider - SCROLL ENABLED - PRIORITÉ HAUTE */
 /* padding-top: 30px pour que le glow rose ne soit pas coupé en haut */
 .offers-slider {
