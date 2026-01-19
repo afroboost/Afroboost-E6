@@ -1275,7 +1275,8 @@ async def get_current_user(request: Request):
         "email": user.get("email"),
         "name": user.get("name"),
         "picture": user.get("picture"),
-        "is_coach": user.get("is_coach", True)
+        "is_coach": user.get("is_coach", True),
+        "is_super_admin": user.get("is_super_admin", user.get("email", "").lower() == AUTHORIZED_COACH_EMAIL.lower())
     }
 
 @api_router.post("/auth/logout")
