@@ -2947,14 +2947,15 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                           </div>
                         </div>
 
-                        {/* BOUTON PLAY/PAUSE PRINCIPAL - Centré */}
+                        {/* BOUTON PLAY/PAUSE PRINCIPAL - Centré et Responsive */}
                         <div className="flex justify-center">
                           <button
                             onClick={handleLivePlayPause}
-                            className="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="flex flex-col items-center justify-center gap-2 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                             style={{
-                              width: '160px',
-                              height: '160px',
+                              width: 'clamp(120px, 40vw, 160px)', // Responsive: 120px min, 160px max
+                              height: 'clamp(120px, 40vw, 160px)',
+                              padding: '16px',
                               background: liveIsPlaying 
                                 ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
                                 : 'linear-gradient(135deg, #22c55e, #16a34a)',
@@ -2964,8 +2965,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                             }}
                             data-testid="live-play-pause-main"
                           >
-                            <span className="text-6xl">{liveIsPlaying ? '⏸' : '▶'}</span>
-                            <span className="text-white font-black text-sm text-center">
+                            <span style={{ fontSize: 'clamp(36px, 10vw, 60px)' }}>{liveIsPlaying ? '⏸' : '▶'}</span>
+                            <span className="text-white font-black text-center" style={{ fontSize: 'clamp(10px, 3vw, 14px)' }}>
                               {liveIsPlaying ? 'PAUSE TOUT' : 'DÉMARRER LE FLUX'}
                             </span>
                           </button>
