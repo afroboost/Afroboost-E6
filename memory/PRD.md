@@ -963,3 +963,38 @@ Le système audio était bloqué car les URLs Cloud (Google Drive, Dropbox) ne s
 ### Note importante
 ⚠️ La commission est calculée et stockée mais le split réel de paiement Twint doit être fait manuellement. Twint ne supporte pas le split automatique.
 
+
+---
+
+## Fix Interface iPhone (19 Janvier 2026)
+
+### Corrections appliquées
+
+#### 1. BOUTON "REJOINDRE LE LIVE" - 100% largeur
+- Position: `left: 12px, right: 12px` au lieu de `left: 50%, transform: translateX(-50%)`
+- Largeur: `width: 100%` 
+- Résultat: 301px (86% de la zone vidéo)
+- Padding: 14px vertical, 20px horizontal
+- Font: 16px bold, icône 20px
+
+#### 2. MENU "..." - Hitbox 50px
+- Taille: 50x50px (augmentée de 40px)
+- Font: 24px (augmentée de 20px)
+- Position: top 8px, right 8px
+- Test: Position confirmée (top=283px, right=33px)
+
+#### 3. TABLEAUX SCROLLABLES
+- CSS ajouté pour `overflow-x: auto` sur tous les tableaux
+- `-webkit-overflow-scrolling: touch` pour momentum scroll iOS
+- `min-width: 600px` sur les tableaux pour forcer le scroll
+- Scrollbar stylisée (rose/violet)
+- `body { overflow-x: hidden }` pour empêcher le scroll horizontal global
+
+### Tests validés
+- ✅ iPhone (375px): Bouton LIVE 301px, Menu 50x50px
+- ✅ Compilation frontend réussie
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js` : Bouton LIVE pleine largeur, Menu 50px
+- `/app/frontend/src/App.css` : Styles tableaux scrollables
+
