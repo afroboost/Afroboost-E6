@@ -849,7 +849,8 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       const offerData = {
         ...newOffer,
         images: filteredImages,
-        thumbnail: filteredImages[0] || "" // Première image comme thumbnail
+        thumbnail: filteredImages[0] || "", // Première image comme thumbnail
+        authorEmail: isSuperAdmin ? null : coachEmail  // null = visible par tous les coachs
       };
 
       if (editingOfferId) {
