@@ -1077,67 +1077,44 @@ const HeroMediaWithAudio = ({
             break;
             
           case "PLAY":
-            // ========== RE-SYNC IMMÉDIAT: Rattraper le retard ==========
-            // NOTE: audioContext.resume() est appelé UNIQUEMENT au clic physique "REJOINDRE"
-            // Les navigateurs mobiles INTERDISENT le réveil audio via signal réseau
-            setWaitingForCoach(false);
-            setAudioLoadError(false); // Reset erreur
+            // ========== ARCHITECTURE "TOUJOURS ACTIVE" ==========
+            // Le canal audio est déjà ouvert depuis le clic REJOINDRE
+            // On change juste la source vers la piste du coach
+            console.log('[Silent Disco] 📻 PLAY reçu - changement de source audio');
             
-            // Annuler le timeout précédent s'il existe
+            setWaitingForCoach(false);
+            setAudioLoadError(false);
+            
+            // Annuler le timeout précédent
             if (audioLoadTimeoutRef.current) {
               clearTimeout(audioLoadTimeoutRef.current);
             }
             
-            if (audioRef.current) {
-              // Forcer le rechargement du flux audio pour garantir la lecture
-              const currentSrc = audioRef.current.src;
-              
-              // S'assurer que l'URL contient raw=1 pour Dropbox
-              let audioSrc = currentSrc;
-              if (audioSrc.includes('dropbox') && !audioSrc.includes('raw=1')) {
-                audioSrc = audioSrc.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
-                if (!audioSrc.includes('raw=1')) {
-                  audioSrc = audioSrc.includes('?') ? `${audioSrc}&raw=1` : `${audioSrc}?raw=1`;
-                }
-                audioRef.current.src = audioSrc;
-                console.log('[Silent Disco] URL Dropbox corrigée avec raw=1');
-              }
-              
-              // ========== TIMEOUT 5S: Erreur si audio ne charge pas ==========
-              audioLoadTimeoutRef.current = setTimeout(() => {
-                if (!isPlaying && audioRef.current && audioRef.current.readyState < 3) {
-                  console.error('[Silent Disco] ❌ Audio non chargé après 5 secondes');
-                  setAudioLoadError(true);
-                  setAudioError('Impossible de charger le flux audio. Vérifiez votre connexion.');
-                }
-              }, 5000);
-              
-              // Synchroniser la position avec compensation de latence
-              const serverTime = new Date(msg.data.server_timestamp).getTime();
-              const now = Date.now();
-              const latency = (now - serverTime) / 1000; // en secondes
-              const targetPosition = (msg.data.position || 0) + latency;
-              
-              console.log(`[Silent Disco] PLAY sync: position=${targetPosition.toFixed(2)}s, latency=${(latency * 1000).toFixed(0)}ms`);
-              
-              // S'assurer que l'AudioContext est actif (au cas où)
-              if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-                audioContextRef.current.resume().then(() => {
-                  console.log('[Silent Disco] AudioContext resumed avant lecture');
-                });
-              }
-              
-              // Charger et jouer
-              audioRef.current.load();
+            // Calculer la position avec compensation de latence
+            const serverTime = new Date(msg.data.server_timestamp).getTime();
+            const now = Date.now();
+            const latency = (now - serverTime) / 1000;
+            const targetPosition = (msg.data.position || 0) + latency;
+            
+            console.log(`[Silent Disco] Position: ${targetPosition.toFixed(2)}s, Latence: ${(latency * 1000).toFixed(0)}ms`);
+            
+            // Utiliser la fonction switchAudioSource pour changer la source
+            // Le canal audio est déjà en lecture (sur silence), donc ça coule directement
+            if (audioRef.current && audioRef.current.src !== SILENT_AUDIO_SRC) {
+              // La source est déjà la bonne piste, juste synchroniser la position
               audioRef.current.currentTime = Math.min(targetPosition, audioRef.current.duration || 9999);
-              
-              // Forcer la lecture avec retry
-              const playPromise = audioRef.current.play();
-              if (playPromise) {
-                playPromise
-                  .then(() => {
-                    console.log('[Silent Disco] ✅ Audio démarré avec succès');
-                    setIsPlaying(true);
+              audioRef.current.play().catch(() => {});
+            } else if (audioRef.current) {
+              // Première fois: changer vers la vraie piste
+              const playlist = selectedCourse?.playlist || [];
+              const trackSrc = playlist[msg.data.track_index || currentTrackIndex];
+              if (trackSrc) {
+                switchAudioSource(convertCloudUrlToDirect(trackSrc), targetPosition);
+              }
+            }
+            
+            setIsPlaying(true);
+            break;
                   })
                   .catch(err => {
                     console.error('[Silent Disco] Erreur lecture:', err);
