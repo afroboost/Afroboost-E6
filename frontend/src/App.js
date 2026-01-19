@@ -906,6 +906,29 @@ const HeroMediaWithAudio = ({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showSettingsMenu]);
 
+  // ========== VÉRIFIER SI UNE SESSION LIVE EST ACTIVE (polling) ==========
+  useEffect(() => {
+    const checkActiveSessions = async () => {
+      try {
+        const response = await fetch(`${API}/silent-disco/active-sessions`);
+        if (response.ok) {
+          const data = await response.json();
+          setLiveSessionActive(data.has_active);
+        }
+      } catch (err) {
+        // Ignorer les erreurs de réseau silencieusement
+      }
+    };
+    
+    // Vérifier immédiatement
+    checkActiveSessions();
+    
+    // Puis toutes les 5 secondes
+    const interval = setInterval(checkActiveSessions, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // ========== SILENT DISCO: Rejoindre une session Live avec Reconnexion ==========
   const joinLiveSession = useCallback(async (sessionId, isReconnect = false) => {
     if (!sessionId) return;
