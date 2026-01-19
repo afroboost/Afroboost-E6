@@ -747,15 +747,12 @@ const HeroMediaWithAudio = ({
   }, [audioVolume]);
 
   // ========== KEEP-ALIVE: Maintenir le canal audio ouvert ==========
-  const silenceIntervalRef = useRef(null);
-  
   const startKeepAlive = useCallback(() => {
     if (silenceIntervalRef.current) return;
     
     console.log('[Audio] 🔄 Keep-alive audio démarré');
     
     silenceIntervalRef.current = setInterval(() => {
-      // S'assurer que l'AudioContext reste actif
       if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume();
       }
@@ -768,45 +765,6 @@ const HeroMediaWithAudio = ({
       silenceIntervalRef.current = null;
       console.log('[Audio] Keep-alive arrêté');
     }
-  }, []);
-  
-  const forceAudioPlay = useCallback(() => {
-    console.log('[ForceAudio] 🔊 Maintien du canal audio...');
-    
-    // Arrêter l'intervalle précédent
-    if (silenceIntervalRef.current) {
-      clearInterval(silenceIntervalRef.current);
-    }
-    
-    // Jouer un silence périodiquement pour garder le canal ouvert
-    const playKeepAlive = () => {
-      try {
-        // Utiliser le contexte audio s'il existe
-        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-          if (audioContextRef.current.state === 'suspended') {
-            audioContextRef.current.resume();
-          }
-          
-          const oscillator = audioContextRef.current.createOscillator();
-          const gainNode = audioContextRef.current.createGain();
-          gainNode.gain.setValueAtTime(0.0001, audioContextRef.current.currentTime);
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContextRef.current.destination);
-          oscillator.frequency.value = 1;
-          oscillator.start();
-          oscillator.stop(audioContextRef.current.currentTime + 0.05);
-        }
-      } catch (e) {
-        // Ignorer les erreurs
-      }
-    };
-    
-    // Jouer immédiatement puis toutes les 500ms
-    playKeepAlive();
-    silenceIntervalRef.current = setInterval(playKeepAlive, 500);
-    
-    console.log('[ForceAudio] ✅ Keep-alive audio activé');
-    return true;
   }, []);
 
   // Arrêter le maintien du silence quand on quitte la session
