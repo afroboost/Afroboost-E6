@@ -963,7 +963,7 @@ const HeroMediaWithAudio = ({
             bottom: '16px',
             left: '50%',
             transform: 'translateX(-50%)',
-            zIndex: 20
+            zIndex: 100
           }}>
             <button
               onClick={() => {
@@ -983,7 +983,8 @@ const HeroMediaWithAudio = ({
                 alignItems: 'center',
                 gap: '8px',
                 boxShadow: '0 4px 20px rgba(217, 28, 210, 0.5)',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                pointerEvents: 'auto'
               }}
               data-testid="join-live-btn"
             >
