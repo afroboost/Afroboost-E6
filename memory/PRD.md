@@ -1347,3 +1347,62 @@ HeroMediaWithAudio
 - `/app/backend/server.py`:
   - Lignes 2562-2740: Endpoints Stripe (create-checkout, webhook, status)
   - Ligne 17: Import StripeCheckout
+
+
+---
+
+## Réparation Finale Lecteur Mobile & TWINT (19 Janvier 2026)
+
+### Fonctionnalités implémentées
+
+#### 1. DESIGN LECTEUR MOBILE PIXEL PERFECT
+- **Layout:** `justifyContent: 'space-between'` pour distribution verticale
+- **Unités relatives:** `padding: '3vh 4vw 5vh 4vw'` pour adaptation écran
+- **Structure:**
+  - HEADER: Badge "EN DIRECT" (haut gauche) + Menu ⋮ + Quitter ✕ (haut droite)
+  - CENTRE: Titre + Miniature (si image) + Info connexion
+  - BAS: Bouton PLAY + Statut + Bouton "Touchez pour activer le son" (si audio bloqué)
+- **Pas de carré noir:** La miniature n'apparaît QUE si `liveCourseImage` est défini
+
+#### 2. SON MOBILE FORCÉ
+- **audioContext.resume():** Appelé directement dans le onClick du bouton "Rejoindre"
+- **Alerte visuelle:** Bouton "⚠️ Touchez pour activer le son" si audio bloqué
+  - Style: Fond orange transparent, bordure orange, animation pulse
+  - data-testid: `unlock-audio-btn`
+- **ForceAudio:** Silence joué toutes les 900ms pour maintenir canal ouvert
+
+#### 3. TWINT & PAIEMENT SUISSE
+- **Configuration Stripe:** `payment_methods: ["card"]`
+- **TWINT:** Commenté avec instructions pour activation dans Stripe Dashboard
+- **URL Dashboard:** https://dashboard.stripe.com/account/payments/settings
+- **Commission 10%:** Appliquée via metadata (admin_commission, coach_amount)
+
+#### 4. NETTOYAGE UI FINAL
+- **Pas d'icône casque 🎧:** Lecteur utilise ⏸/♪
+- **Pas de badge LIVE doublon:** Seul "EN DIRECT" reste
+- **Pas de carré noir vide:** Condition `{liveCourseImage && (...)}`
+
+### Tests validés (iteration_27.json)
+- ✅ Test 1: Pas de carré noir (miniature conditionnelle)
+- ✅ Test 2: Badge 'EN DIRECT' en haut à gauche
+- ✅ Test 3: Bouton PLAY centré en bas
+- ✅ Test 4: ForceAudio logs confirmés
+- ✅ Test 5: API Stripe create-checkout fonctionne
+- ✅ Test 6: Pas de 🎧 dans lecteur live
+- ✅ Test 7: Statut '● En attente du coach...' en vert
+
+### Fichiers modifiés
+- `/app/frontend/src/App.js`:
+  - Lignes 1480-1800: Lecteur live redesigné
+  - Lignes 1474-1490: audioContext.resume() au clic
+  - Ligne 1680: Condition miniature `{liveCourseImage && (...)}`
+  - Lignes 1770-1790: Bouton "Touchez pour activer le son"
+- `/app/backend/server.py`:
+  - Ligne 2608: payment_methods avec TWINT commenté
+- `/app/tests/test_stripe_checkout.py`: Tests pytest créés
+
+### Note TWINT
+Pour activer TWINT:
+1. Accédez à https://dashboard.stripe.com/account/payments/settings
+2. Activez "TWINT" dans les méthodes de paiement
+3. Modifiez server.py ligne 2608: `payment_methods=["card", "twint"]`
